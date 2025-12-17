@@ -1,0 +1,8 @@
+Notes for D3:
+
+Setup stuff:
+	installed Node and Npm
+	Setup Linter and pretty/prettier npm install -D eslint prettier eslint-config-prettier eslint-plugin-react eslint-plugin-react-hooks eslint-plugin-import
+		Then set the settings in VS code
+	
+	Ran npm create vite@latest . -- --template react-tsx to create the app using tsx as default
