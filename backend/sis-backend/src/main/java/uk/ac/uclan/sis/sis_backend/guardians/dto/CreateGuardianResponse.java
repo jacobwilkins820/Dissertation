@@ -1,0 +1,22 @@
+package uk.ac.uclan.sis.sis_backend.guardians.dto;
+
+/**
+ * Create response simply returns the new guardian ID and name.
+ */
+public class CreateGuardianResponse {
+
+    private Long id;
+    private String firstName;
+    private String lastName;
+    public CreateGuardianResponse() {}
+
+    public CreateGuardianResponse(Long id, String firstName, String lastName) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+
+    public Long getId() { return id; }
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+}

@@ -1,0 +1,53 @@
+package uk.ac.uclan.sis.sis_backend.studentguardians.controller;
+
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import uk.ac.uclan.sis.sis_backend.studentguardians.dto.StudentGuardianResponse;
+import uk.ac.uclan.sis.sis_backend.studentguardians.dto.UpsertStudentGuardianLinkRequest;
+import uk.ac.uclan.sis.sis_backend.studentguardians.service.StudentGuardianService;
+
+import java.util.List;
+
+/**
+ * Keep small:
+ * - Link/unlink is basically CRUD on a join record.
+ */
+@RestController
+@RequestMapping("/api")
+public class StudentGuardianController {
+
+    private final StudentGuardianService studentGuardianService;
+
+    public StudentGuardianController(StudentGuardianService studentGuardianService) {
+        this.studentGuardianService = studentGuardianService;
+    }
+
+    /**
+     * Create or update link metadata between a student and guardian.
+     */
+    @PutMapping("/students/{studentId}/guardians/{guardianId}")
+    public StudentGuardianResponse upsertLink(
+            @PathVariable Long studentId,
+            @PathVariable Long guardianId,
+            @Valid @RequestBody UpsertStudentGuardianLinkRequest request
+    ) {
+        return studentGuardianService.upsertLink(studentId, guardianId, request);
+    }
+
+    @GetMapping("/students/{studentId}/guardians")
+    public List<StudentGuardianResponse> listByStudent(@PathVariable Long studentId) {
+        return studentGuardianService.listByStudent(studentId);
+    }
+
+    @GetMapping("/guardians/{guardianId}/students")
+    public List<StudentGuardianResponse> listByGuardian(@PathVariable Long guardianId) {
+        return studentGuardianService.listByGuardian(guardianId);
+    }
+
+    @DeleteMapping("/students/{studentId}/guardians/{guardianId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteLink(@PathVariable Long studentId, @PathVariable Long guardianId) {
+        studentGuardianService.deleteLink(studentId, guardianId);
+    }
+}
