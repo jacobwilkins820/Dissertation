@@ -1,4 +1,4 @@
-package uk.ac.uclan.sis.sis_backend.studentguardians.dto;
+package uk.ac.uclan.sis.sis_backend.student_guardians.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

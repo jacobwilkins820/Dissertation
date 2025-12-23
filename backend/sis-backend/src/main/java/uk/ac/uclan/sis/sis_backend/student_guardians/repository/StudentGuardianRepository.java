@@ -1,10 +1,11 @@
-package uk.ac.uclan.sis.sis_backend.studentguardians.repository;
+package uk.ac.uclan.sis.sis_backend.student_guardians.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import uk.ac.uclan.sis.sis_backend.studentguardians.entity.StudentGuardian;
-import uk.ac.uclan.sis.sis_backend.studentguardians.entity.StudentGuardianId;
+
+import uk.ac.uclan.sis.sis_backend.student_guardians.entity.StudentGuardian;
+import uk.ac.uclan.sis.sis_backend.student_guardians.entity.StudentGuardianId;
 
 import java.util.List;
 import java.util.Optional;

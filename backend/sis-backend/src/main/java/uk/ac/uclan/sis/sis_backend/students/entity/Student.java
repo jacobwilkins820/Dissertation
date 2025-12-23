@@ -48,7 +48,7 @@ public class Student {
     @Column(name="updated_at", nullable = false)
     private Instant updatedAt;
 
-    protected Student() {
+    public Student() {
         // Default constructor for student.
     }
 

@@ -1,17 +1,17 @@
-package uk.ac.uclan.sis.sis_backend.studentguardians.service;
+package uk.ac.uclan.sis.sis_backend.student_guardians.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
 import uk.ac.uclan.sis.sis_backend.guardians.entity.Guardian;
 import uk.ac.uclan.sis.sis_backend.guardians.repository.GuardianRepository;
+import uk.ac.uclan.sis.sis_backend.student_guardians.dto.StudentGuardianResponse;
+import uk.ac.uclan.sis.sis_backend.student_guardians.dto.UpsertStudentGuardianLinkRequest;
+import uk.ac.uclan.sis.sis_backend.student_guardians.entity.StudentGuardian;
+import uk.ac.uclan.sis.sis_backend.student_guardians.entity.StudentGuardianId;
+import uk.ac.uclan.sis.sis_backend.student_guardians.repository.StudentGuardianRepository;
 import uk.ac.uclan.sis.sis_backend.students.entity.Student;
 import uk.ac.uclan.sis.sis_backend.students.repository.StudentRepository;
-import uk.ac.uclan.sis.sis_backend.studentguardians.dto.StudentGuardianResponse;
-import uk.ac.uclan.sis.sis_backend.studentguardians.dto.UpsertStudentGuardianLinkRequest;
-import uk.ac.uclan.sis.sis_backend.studentguardians.entity.StudentGuardian;
-import uk.ac.uclan.sis.sis_backend.studentguardians.entity.StudentGuardianId;
-import uk.ac.uclan.sis.sis_backend.studentguardians.repository.StudentGuardianRepository;
 
 import java.util.List;
 

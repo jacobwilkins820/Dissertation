@@ -60,7 +60,7 @@ public class AttendanceRecordService {
         r.setStatus(req.getStatus());
         r.setReason(req.getReason());
 
-        // Optional metadata (until you wire auth → marked_by_user_id)
+        //TODO: Set markedByUser when authentication is implemented
         r.setMarkedAt(LocalDateTime.now());
 
         try {

@@ -1,4 +1,4 @@
-package uk.ac.uclan.sis.sis_backend.studentguardians.entity;
+package uk.ac.uclan.sis.sis_backend.student_guardians.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

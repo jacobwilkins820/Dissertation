@@ -1,18 +1,15 @@
-package uk.ac.uclan.sis.sis_backend.studentguardians.controller;
+package uk.ac.uclan.sis.sis_backend.student_guardians.controller;
 
 import jakarta.validation.Valid;
+import uk.ac.uclan.sis.sis_backend.student_guardians.dto.StudentGuardianResponse;
+import uk.ac.uclan.sis.sis_backend.student_guardians.dto.UpsertStudentGuardianLinkRequest;
+import uk.ac.uclan.sis.sis_backend.student_guardians.service.StudentGuardianService;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import uk.ac.uclan.sis.sis_backend.studentguardians.dto.StudentGuardianResponse;
-import uk.ac.uclan.sis.sis_backend.studentguardians.dto.UpsertStudentGuardianLinkRequest;
-import uk.ac.uclan.sis.sis_backend.studentguardians.service.StudentGuardianService;
 
 import java.util.List;
 
-/**
- * Keep small:
- * - Link/unlink is basically CRUD on a join record.
- */
 @RestController
 @RequestMapping("/api")
 public class StudentGuardianController {

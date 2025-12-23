@@ -3,8 +3,8 @@ package uk.ac.uclan.sis.sis_backend.attendance_sessions.entity;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
-import uk.ac.uclan.sis.sis_backend.academic_years.entity.AcademicYear;
 import uk.ac.uclan.sis.sis_backend.classes.entity.Class;
+import uk.ac.uclan.sis.sis_backend.academic_years.entity.AcademicYear;
 import uk.ac.uclan.sis.sis_backend.attendance_sessions.enums.SessionPart;
 
 @Entity

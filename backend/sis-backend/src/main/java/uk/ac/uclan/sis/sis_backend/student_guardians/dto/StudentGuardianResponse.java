@@ -1,4 +1,4 @@
-package uk.ac.uclan.sis.sis_backend.studentguardians.dto;
+package uk.ac.uclan.sis.sis_backend.student_guardians.dto;
 
 /**
  * Return names + a couple of useful fields.
