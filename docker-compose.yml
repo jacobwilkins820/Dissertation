@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: sis_db
+      POSTGRES_USER: sis_user
+      POSTGRES_PASSWORD: sis_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - sis_pgdata:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend/sis-backend
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/sis_db
+      SPRING_DATASOURCE_USERNAME: sis_user
+      SPRING_DATASOURCE_PASSWORD: sis_pass
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_FLYWAY_ENABLED: "true"
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  sis_pgdata:
