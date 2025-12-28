@@ -10,19 +10,26 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
+import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
+import uk.ac.uclan.sis.sis_backend.roles.entity.Role;
 import uk.ac.uclan.sis.sis_backend.students.dto.CreateStudentRequest;
 import uk.ac.uclan.sis.sis_backend.students.dto.StudentResponse;
 import uk.ac.uclan.sis.sis_backend.students.dto.UpdateStudentRequest;
 import uk.ac.uclan.sis.sis_backend.students.entity.Student;
 import uk.ac.uclan.sis.sis_backend.students.mapper.StudentMapper;
 import uk.ac.uclan.sis.sis_backend.students.repository.StudentRepository;
+import uk.ac.uclan.sis.sis_backend.users.entity.User;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -35,8 +42,26 @@ class StudentServiceTest {
     @Mock
     private StudentMapper mapper;
 
+    @Mock
+    private AuthorizationService authorizationService;
+
     @InjectMocks
     private StudentService service;
+
+    @BeforeEach
+    void setUpSecurityContext() {
+        Role role = new Role("ADMIN", 1023);
+        User user = new User();
+        user.setId(1L);
+        user.setRole(role);
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken(user, null, List.of()));
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     @Test
     void getById_returnsMappedResponse() {

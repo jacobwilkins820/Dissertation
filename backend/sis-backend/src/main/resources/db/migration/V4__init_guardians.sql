@@ -66,3 +66,37 @@ BEGIN
     FROM generate_series(1, target_guardians) AS gs;
 
 END $$;
+
+-- 3) Link PARENT users to guardians (round-robin).
+ALTER TABLE users
+    ADD CONSTRAINT fk_users_guardian
+        FOREIGN KEY (guardian_id)
+        REFERENCES guardians(id)
+        ON DELETE SET NULL;
+
+DO $$
+DECLARE
+    guardian_count INTEGER;
+BEGIN
+    SELECT COUNT(*) INTO guardian_count FROM guardians;
+
+    IF guardian_count > 0 THEN
+        WITH parent_users AS (
+            SELECT u.id, ROW_NUMBER() OVER (ORDER BY u.id) AS rn
+            FROM users u
+            JOIN roles r ON r.id = u.role_id
+            WHERE r.name = 'PARENT'
+        ),
+        guardian_rows AS (
+            SELECT g.id, ROW_NUMBER() OVER (ORDER BY g.id) AS rn
+            FROM guardians g
+        )
+        UPDATE users u
+        SET guardian_id = g.id
+        FROM parent_users pu
+        JOIN guardian_rows g
+          ON g.rn = ((pu.rn - 1) % guardian_count) + 1
+        WHERE u.id = pu.id
+          AND u.guardian_id IS NULL;
+    END IF;
+END $$;

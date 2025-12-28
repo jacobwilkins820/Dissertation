@@ -1,12 +1,16 @@
 package uk.ac.uclan.sis.sis_backend.enrolments.service;
 
 import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.ac.uclan.sis.sis_backend.academic_years.entity.AcademicYear;
 import uk.ac.uclan.sis.sis_backend.classes.entity.Class;
@@ -17,7 +21,10 @@ import uk.ac.uclan.sis.sis_backend.enrolments.dto.CreateEnrolmentRequest;
 import uk.ac.uclan.sis.sis_backend.enrolments.dto.UpdateEnrolmentRequest;
 import uk.ac.uclan.sis.sis_backend.enrolments.entity.Enrolment;
 import uk.ac.uclan.sis.sis_backend.enrolments.repository.EnrolmentRepository;
+import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
+import uk.ac.uclan.sis.sis_backend.roles.entity.Role;
 import uk.ac.uclan.sis.sis_backend.students.entity.Student;
+import uk.ac.uclan.sis.sis_backend.users.entity.User;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,8 +43,26 @@ class EnrolmentServiceTest {
     @Mock
     private EntityManager em;
 
+    @Mock
+    private AuthorizationService authorizationService;
+
     @InjectMocks
     private EnrolmentService service;
+
+    @BeforeEach
+    void setUpSecurityContext() {
+        Role role = new Role("ADMIN", 1023);
+        User user = new User();
+        user.setId(1L);
+        user.setRole(role);
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken(user, null, List.of()));
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     @Test
     void create_rejectsEndDateBeforeStartDate() {

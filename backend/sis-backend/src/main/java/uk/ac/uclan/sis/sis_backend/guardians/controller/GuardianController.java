@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.CreateGuardianRequest;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.CreateGuardianResponse;
+import uk.ac.uclan.sis.sis_backend.guardians.dto.GuardianContactResponse;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.GuardianResponse;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.UpdateGuardianRequest;
 import uk.ac.uclan.sis.sis_backend.guardians.service.GuardianService;
@@ -30,6 +31,11 @@ public class GuardianController {
     @GetMapping("/{id}")
     public ResponseEntity<GuardianResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(guardianService.getById(id));
+    }
+
+    @GetMapping("/{id}/contact")
+    public ResponseEntity<GuardianContactResponse> getContact(@PathVariable Long id) {
+        return ResponseEntity.ok(guardianService.getContactById(id));
     }
 
     //TODO: delete later

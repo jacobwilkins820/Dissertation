@@ -1,8 +1,13 @@
 package uk.ac.uclan.sis.sis_backend.users.service;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
 import uk.ac.uclan.sis.sis_backend.roles.repository.RoleRepository;
 import uk.ac.uclan.sis.sis_backend.roles.entity.Role;
@@ -18,23 +23,28 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthorizationService authorizationService;
 
     public UserService(UserRepository userRepository,
                     RoleRepository roleRepository,
-                    PasswordEncoder passwordEncoder) {
+                    PasswordEncoder passwordEncoder,
+                    AuthorizationService authorizationService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.authorizationService = authorizationService;
     }
 
     public List<UserListItemResponse> list() {
-    return userRepository.findAllWithRole()
-            .stream()
-            .map(this::toListItem)
-            .toList();
+        authorizationService.requireAdmin(currentUser());
+        return userRepository.findAllWithRole()
+                .stream()
+                .map(this::toListItem)
+                .toList();
     }
 
     public UserDetailResponse get(Long id) {
+        authorizationService.requireAdmin(currentUser());
         User user = userRepository.findByIdWithRole(id)
                 .orElseThrow(() -> new NotFoundException("user", "User not found: " + id));
         return toDetail(user);
@@ -43,6 +53,7 @@ public class UserService {
 
     @Transactional
     public UserListItemResponse create(CreateUserRequest req) {
+        authorizationService.requireAdmin(currentUser());
         String normalizedEmail = normalizeEmail(req.email);
 
         if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
@@ -69,6 +80,7 @@ public class UserService {
 
     @Transactional
     public UserListItemResponse update(Long id, UpdateUserRequest req) {
+        authorizationService.requireAdmin(currentUser());
         User user = userRepository.findByIdWithRole(id)
                 .orElseThrow(() -> new NotFoundException("User", "User not found: " + id));
 
@@ -101,6 +113,7 @@ public class UserService {
 
     @Transactional
     public void delete(Long id) {
+        authorizationService.requireAdmin(currentUser());
         if (!userRepository.existsById(id)) {
             throw new NotFoundException("User","User not found: " + id);
         }
@@ -129,5 +142,13 @@ public class UserService {
         dto.createdAt = u.getCreatedAt();
         dto.updatedAt = u.getUpdatedAt();
         return dto;
+    }
+
+    private User currentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof User)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
+        return (User) auth.getPrincipal();
     }
 }

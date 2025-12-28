@@ -50,6 +50,16 @@ public final class GuardianMapper {
         );
     }
 
+    public static GuardianContactResponse contactResponse(Guardian g) {
+        return new GuardianContactResponse(
+                g.getId(),
+                g.getFirstName(),
+                g.getLastName(),
+                g.getEmail(),
+                g.getPhone()
+        );
+    }
+
     private static String trimOrNull(String s) {
         if (s == null) return null;
         String t = s.trim();

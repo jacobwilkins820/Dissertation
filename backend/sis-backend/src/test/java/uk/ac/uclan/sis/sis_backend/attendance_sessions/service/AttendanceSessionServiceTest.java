@@ -1,11 +1,15 @@
 package uk.ac.uclan.sis.sis_backend.attendance_sessions.service;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.ac.uclan.sis.sis_backend.academic_years.entity.AcademicYear;
 import uk.ac.uclan.sis.sis_backend.academic_years.service.AcademicYearService;
@@ -14,9 +18,12 @@ import uk.ac.uclan.sis.sis_backend.attendance_sessions.dto.CreateAttendanceSessi
 import uk.ac.uclan.sis.sis_backend.attendance_sessions.entity.AttendanceSession;
 import uk.ac.uclan.sis.sis_backend.attendance_sessions.enums.SessionPart;
 import uk.ac.uclan.sis.sis_backend.attendance_sessions.repository.AttendanceSessionRepository;
+import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
 import uk.ac.uclan.sis.sis_backend.classes.entity.Class;
 import uk.ac.uclan.sis.sis_backend.classes.repository.ClassRepository;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
+import uk.ac.uclan.sis.sis_backend.roles.entity.Role;
+import uk.ac.uclan.sis.sis_backend.users.entity.User;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -37,8 +44,26 @@ class AttendanceSessionServiceTest {
     @Mock
     private ClassRepository classRepository;
 
+    @Mock
+    private AuthorizationService authorizationService;
+
     @InjectMocks
     private AttendanceSessionService service;
+
+    @BeforeEach
+    void setUpSecurityContext() {
+        Role role = new Role("ADMIN", 1023);
+        User user = new User();
+        user.setId(1L);
+        user.setRole(role);
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken(user, null, List.of()));
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     @Test
     void create_missingRequiredFieldsThrows() {

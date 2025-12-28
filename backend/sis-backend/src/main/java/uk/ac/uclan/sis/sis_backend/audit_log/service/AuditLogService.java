@@ -2,20 +2,31 @@ package uk.ac.uclan.sis.sis_backend.audit_log.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
 import uk.ac.uclan.sis.sis_backend.audit_log.dto.AuditLogResponse;
 import uk.ac.uclan.sis.sis_backend.audit_log.entity.AuditLog;
 import uk.ac.uclan.sis.sis_backend.audit_log.repository.AuditLogRepository;
+import uk.ac.uclan.sis.sis_backend.users.entity.User;
 
 @Service
 public class AuditLogService {
 
     private final AuditLogRepository auditLogRepository;
+    private final AuthorizationService authorizationService;
 
-    public AuditLogService(AuditLogRepository auditLogRepository) {
+    public AuditLogService(
+            AuditLogRepository auditLogRepository,
+            AuthorizationService authorizationService
+    ) {
         this.auditLogRepository = auditLogRepository;
+        this.authorizationService = authorizationService;
     }
 
     /**
@@ -36,18 +47,19 @@ public class AuditLogService {
      * }
      *
      *   // call it wherever it matters
-     *   auditLogService.log(
-     *       actorUserId,                 // Long (nullable)
-     *       "STUDENT_CREATED",           // action
-     *       "STUDENT",                   // entityType
-     *       createdStudent.getId(),      // entityId
-     *       "Created student via API"    // details (nullable)
-     *   );
+        auditLogService.log(
+            actorUserId,                 // Long (nullable)
+            "STUDENT_CREATED",           // action
+            "STUDENT",                   // entityType
+            createdStudent.getId(),      // entityId
+            "Created student via API"    // details (nullable)
+        );
      *
      */
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void log(Long actorUserId, String action, String entityType, Long entityId, String details) {
+        authorizationService.requireAdmin(currentUser());
         if (action == null || action.isBlank()) throw new IllegalArgumentException("action is required");
         if (entityType == null || entityType.isBlank()) throw new IllegalArgumentException("entityType is required");
         if (entityId == null) throw new IllegalArgumentException("entityId is required");
@@ -58,16 +70,19 @@ public class AuditLogService {
 
     @Transactional(readOnly = true)
     public Page<AuditLogResponse> getAll(Pageable pageable) {
+        authorizationService.requireAdmin(currentUser());
         return auditLogRepository.findAll(pageable).map(this::toResponse);
     }
 
     @Transactional(readOnly = true)
     public Page<AuditLogResponse> getByActorUserId(Long actorUserId, Pageable pageable) {
+        authorizationService.requireAdmin(currentUser());
         return auditLogRepository.findByActorUserId(actorUserId, pageable).map(this::toResponse);
     }
 
     @Transactional(readOnly = true)
     public Page<AuditLogResponse> getByEntity(String entityType, Long entityId, Pageable pageable) {
+        authorizationService.requireAdmin(currentUser());
         return auditLogRepository.findByEntityTypeIgnoreCaseAndEntityId(entityType, entityId, pageable).map(this::toResponse);
     }
 
@@ -81,5 +96,13 @@ public class AuditLogService {
                 e.getTimestamp(),
                 e.getDetails()
         );
+    }
+
+    private User currentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof User)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
+        return (User) auth.getPrincipal();
     }
 }

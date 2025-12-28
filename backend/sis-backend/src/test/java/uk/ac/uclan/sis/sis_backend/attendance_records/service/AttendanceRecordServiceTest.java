@@ -1,12 +1,16 @@
 package uk.ac.uclan.sis.sis_backend.attendance_records.service;
 
 import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.ac.uclan.sis.sis_backend.attendance_records.AttendanceStatus;
 import uk.ac.uclan.sis.sis_backend.attendance_records.dto.AttendanceRecordListItemResponse;
@@ -16,8 +20,11 @@ import uk.ac.uclan.sis.sis_backend.attendance_records.dto.UpdateAttendanceRecord
 import uk.ac.uclan.sis.sis_backend.attendance_records.entity.AttendanceRecord;
 import uk.ac.uclan.sis.sis_backend.attendance_records.repository.AttendanceRecordRepository;
 import uk.ac.uclan.sis.sis_backend.attendance_sessions.entity.AttendanceSession;
+import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
+import uk.ac.uclan.sis.sis_backend.roles.entity.Role;
 import uk.ac.uclan.sis.sis_backend.students.entity.Student;
+import uk.ac.uclan.sis.sis_backend.users.entity.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,8 +42,26 @@ class AttendanceRecordServiceTest {
     @Mock
     private EntityManager em;
 
+    @Mock
+    private AuthorizationService authorizationService;
+
     @InjectMocks
     private AttendanceRecordService service;
+
+    @BeforeEach
+    void setUpSecurityContext() {
+        Role role = new Role("ADMIN", 1023);
+        User user = new User();
+        user.setId(1L);
+        user.setRole(role);
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken(user, null, List.of()));
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     @Test
     void getById_returnsResponse() {

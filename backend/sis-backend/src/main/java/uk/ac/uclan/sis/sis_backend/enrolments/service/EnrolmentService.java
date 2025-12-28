@@ -2,9 +2,14 @@ package uk.ac.uclan.sis.sis_backend.enrolments.service;
 
 import jakarta.persistence.EntityManager;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
+import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
 import uk.ac.uclan.sis.sis_backend.enrolments.dto.*;
 import uk.ac.uclan.sis.sis_backend.enrolments.entity.Enrolment;
@@ -13,6 +18,7 @@ import uk.ac.uclan.sis.sis_backend.enrolments.repository.EnrolmentRepository;
 import uk.ac.uclan.sis.sis_backend.students.entity.Student;
 import uk.ac.uclan.sis.sis_backend.classes.entity.Class;
 import uk.ac.uclan.sis.sis_backend.academic_years.entity.AcademicYear;
+import uk.ac.uclan.sis.sis_backend.users.entity.User;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -22,14 +28,21 @@ public class EnrolmentService {
 
     private final EnrolmentRepository repository;
     private final EntityManager em;
+    private final AuthorizationService authorizationService;
 
-    public EnrolmentService(EnrolmentRepository repository, EntityManager em) {
+    public EnrolmentService(
+            EnrolmentRepository repository,
+            EntityManager em,
+            AuthorizationService authorizationService
+    ) {
         this.repository = repository;
         this.em = em;
+        this.authorizationService = authorizationService;
     }
 
     @Transactional
     public EnrolmentResponse create(CreateEnrolmentRequest req) {
+        authorizationService.requireAdmin(currentUser());
         validateDates(req.getStartDate(), req.getEndDate());
 
         if (repository.existsByStudent_IdAndClazz_IdAndAcademicYear_Id(req.getStudentId(), req.getClassId(), req.getAcademicYearId())) {
@@ -53,6 +66,7 @@ public class EnrolmentService {
 
     @Transactional(readOnly = true)
     public EnrolmentResponse getById(Long id) {
+        authorizationService.requireAdmin(currentUser());
         Enrolment e = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Enrolment", "Enrolment not found: " + id));
         return toResponse(e);
@@ -60,6 +74,7 @@ public class EnrolmentService {
 
     @Transactional(readOnly = true)
     public List<EnrolmentListItemResponse> listByClass(Long classId, Long academicYearId) {
+        authorizationService.requireAdmin(currentUser());
         return repository.findByClazz_IdAndAcademicYear_IdOrderByIdAsc(classId, academicYearId)
                 .stream()
                 .map(e -> new EnrolmentListItemResponse(
@@ -74,6 +89,7 @@ public class EnrolmentService {
 
     @Transactional(readOnly = true)
     public List<EnrolmentListItemResponse> listByStudent(Long studentId, Long academicYearId) {
+        authorizationService.requireAdmin(currentUser());
         return repository.findByStudent_IdAndAcademicYear_IdOrderByIdAsc(studentId, academicYearId)
                 .stream()
                 .map(e -> new EnrolmentListItemResponse(
@@ -88,6 +104,7 @@ public class EnrolmentService {
 
     @Transactional
     public EnrolmentResponse update(Long id, UpdateEnrolmentRequest req) {
+        authorizationService.requireAdmin(currentUser());
         validateDates(req.getStartDate(), req.getEndDate());
 
         Enrolment e = repository.findById(id)
@@ -102,6 +119,7 @@ public class EnrolmentService {
 
     @Transactional
     public void delete(Long id) {
+        authorizationService.requireAdmin(currentUser());
         if (!repository.existsById(id)) {
             throw new NotFoundException("Enrolment", "Enrolment not found: " + id);
         }
@@ -125,5 +143,13 @@ public class EnrolmentService {
                 e.getCreatedAt(),
                 e.getUpdatedAt()
         );
+    }
+
+    private User currentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof User)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
+        return (User) auth.getPrincipal();
     }
 }

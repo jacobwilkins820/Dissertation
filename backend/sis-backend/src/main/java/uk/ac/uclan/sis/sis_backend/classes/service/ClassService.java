@@ -1,7 +1,12 @@
 package uk.ac.uclan.sis.sis_backend.classes.service;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
 import uk.ac.uclan.sis.sis_backend.classes.dto.ClassListItemResponse;
 import uk.ac.uclan.sis.sis_backend.classes.dto.ClassResponse;
 import uk.ac.uclan.sis.sis_backend.classes.dto.CreateClassRequest;
@@ -19,14 +24,21 @@ public class ClassService {
 
     private final ClassRepository classRepository;
     private final UserRepository userRepository;
+    private final AuthorizationService authorizationService;
 
-    public ClassService(ClassRepository classRepository, UserRepository userRepository) {
+    public ClassService(
+            ClassRepository classRepository,
+            UserRepository userRepository,
+            AuthorizationService authorizationService
+    ) {
         this.classRepository = classRepository;
         this.userRepository = userRepository;
+        this.authorizationService = authorizationService;
     }
 
     @Transactional
     public ClassResponse create(CreateClassRequest request) {
+        authorizationService.requireAdmin(currentUser());
         if (request.getName() == null || request.getName().trim().isEmpty()) {
             throw new IllegalArgumentException("Class name is required");
         }
@@ -47,6 +59,7 @@ public class ClassService {
 
     @Transactional(readOnly = true)
     public List<ClassListItemResponse> listAll() {
+        authorizationService.requireAdmin(currentUser());
         return classRepository.findAll()
                 .stream()
                 .map(c -> new ClassListItemResponse(c.getId(), c.getName(), c.getCode(), c.isActive()))
@@ -55,6 +68,7 @@ public class ClassService {
 
     @Transactional(readOnly = true)
     public ClassResponse getById(Long id) {
+        authorizationService.requireAdmin(currentUser());
         Class classEntity = classRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Class", "Class not found with id: " + id));
         return toResponse(classEntity);
@@ -62,6 +76,7 @@ public class ClassService {
 
     @Transactional
     public ClassResponse update(Long id, UpdateClassRequest request) {
+        authorizationService.requireAdmin(currentUser());
         Class classEntity = classRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Class", "Class not found with id: " + id));
 
@@ -93,6 +108,7 @@ public class ClassService {
 
     @Transactional
     public void unassignTeacher(Long id) {
+        authorizationService.requireAdmin(currentUser());
         Class classEntity = classRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Class", "Class not found with id: " + id));
 
@@ -102,6 +118,7 @@ public class ClassService {
 
     @Transactional
     public void delete(Long id) {
+        authorizationService.requireAdmin(currentUser());
         if (!classRepository.existsById(id)) {
             throw new NotFoundException("Class", "Class not found with id: " + id);
         }
@@ -142,5 +159,13 @@ public class ClassService {
                 classEntity.getCode(),
                 classEntity.isActive()
         );
+    }
+
+    private User currentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof User)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
+        return (User) auth.getPrincipal();
     }
 }

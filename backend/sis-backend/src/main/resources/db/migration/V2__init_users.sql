@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
 
     role_id BIGINT NOT NULL,
+    guardian_id BIGINT,
 
     first_name VARCHAR(255) NOT NULL,
     last_name  VARCHAR(255) NOT NULL,
@@ -26,6 +27,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_role_id ON users(role_id);
+CREATE INDEX IF NOT EXISTS idx_users_guardian_id ON users(guardian_id);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
 -- 2) Seed users

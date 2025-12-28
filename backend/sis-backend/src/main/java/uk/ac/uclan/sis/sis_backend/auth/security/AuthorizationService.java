@@ -14,4 +14,11 @@ public class AuthorizationService {
             throw new ForbiddenException("User permission", "User does not have required permission: " + permission);
         }
     }
+
+    public void requireAdmin(User user) {
+        String roleName = user.getRole() == null ? null : user.getRole().getName();
+        if (roleName == null || !roleName.equalsIgnoreCase("ADMIN")) {
+            throw new ForbiddenException("User permission", "Admin role required");
+        }
+    }
 }

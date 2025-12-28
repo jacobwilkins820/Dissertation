@@ -1,7 +1,12 @@
 package uk.ac.uclan.sis.sis_backend.student_guardians.service;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
 import uk.ac.uclan.sis.sis_backend.guardians.entity.Guardian;
 import uk.ac.uclan.sis.sis_backend.guardians.repository.GuardianRepository;
@@ -12,6 +17,7 @@ import uk.ac.uclan.sis.sis_backend.student_guardians.entity.StudentGuardianId;
 import uk.ac.uclan.sis.sis_backend.student_guardians.repository.StudentGuardianRepository;
 import uk.ac.uclan.sis.sis_backend.students.entity.Student;
 import uk.ac.uclan.sis.sis_backend.students.repository.StudentRepository;
+import uk.ac.uclan.sis.sis_backend.users.entity.User;
 
 import java.util.List;
 
@@ -21,15 +27,18 @@ public class StudentGuardianService {
     private final StudentGuardianRepository studentGuardianRepository;
     private final StudentRepository studentRepository;
     private final GuardianRepository guardianRepository;
+    private final AuthorizationService authorizationService;
 
     public StudentGuardianService(
             StudentGuardianRepository studentGuardianRepository,
             StudentRepository studentRepository,
-            GuardianRepository guardianRepository
+            GuardianRepository guardianRepository,
+            AuthorizationService authorizationService
     ) {
         this.studentGuardianRepository = studentGuardianRepository;
         this.studentRepository = studentRepository;
         this.guardianRepository = guardianRepository;
+        this.authorizationService = authorizationService;
     }
 
     /**
@@ -37,6 +46,7 @@ public class StudentGuardianService {
      */
     @Transactional
     public StudentGuardianResponse upsertLink(Long studentId, Long guardianId, UpsertStudentGuardianLinkRequest request) {
+        authorizationService.requireAdmin(currentUser());
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new NotFoundException("Student", "Student not found: " + studentId));
 
@@ -66,6 +76,7 @@ public class StudentGuardianService {
 
     @Transactional(readOnly = true)
     public List<StudentGuardianResponse> listByStudent(Long studentId) {
+        authorizationService.requireAdmin(currentUser());
         // Explicit 404 if the student doesn't exist
         if (!studentRepository.existsById(studentId)) {
             throw new NotFoundException("Student", "Student not found: " + studentId);
@@ -79,6 +90,7 @@ public class StudentGuardianService {
 
     @Transactional(readOnly = true)
     public List<StudentGuardianResponse> listByGuardian(Long guardianId) {
+        authorizationService.requireAdmin(currentUser());
         if (!guardianRepository.existsById(guardianId)) {
             throw new NotFoundException("Guardian", "Guardian not found: " + guardianId);
         }
@@ -91,6 +103,7 @@ public class StudentGuardianService {
 
     @Transactional
     public void deleteLink(Long studentId, Long guardianId) {
+        authorizationService.requireAdmin(currentUser());
         StudentGuardianId id = new StudentGuardianId(studentId, guardianId);
 
         if (!studentGuardianRepository.existsById(id)) {
@@ -110,5 +123,13 @@ public class StudentGuardianService {
                 link.getRelationship(),
                 link.isPrimary()
         );
+    }
+
+    private User currentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof User)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
+        return (User) auth.getPrincipal();
     }
 }

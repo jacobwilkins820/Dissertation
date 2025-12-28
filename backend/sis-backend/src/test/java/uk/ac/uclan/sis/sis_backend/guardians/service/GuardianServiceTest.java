@@ -1,5 +1,7 @@
 package uk.ac.uclan.sis.sis_backend.guardians.service;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -10,7 +12,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
+import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.CreateGuardianRequest;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.CreateGuardianResponse;
@@ -18,6 +23,8 @@ import uk.ac.uclan.sis.sis_backend.guardians.dto.GuardianResponse;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.UpdateGuardianRequest;
 import uk.ac.uclan.sis.sis_backend.guardians.entity.Guardian;
 import uk.ac.uclan.sis.sis_backend.guardians.repository.GuardianRepository;
+import uk.ac.uclan.sis.sis_backend.roles.entity.Role;
+import uk.ac.uclan.sis.sis_backend.users.entity.User;
 
 import java.time.Instant;
 import java.util.List;
@@ -32,8 +39,26 @@ class GuardianServiceTest {
     @Mock
     private GuardianRepository guardianRepository;
 
+    @Mock
+    private AuthorizationService authorizationService;
+
     @InjectMocks
     private GuardianService service;
+
+    @BeforeEach
+    void setUpSecurityContext() {
+        Role role = new Role("ADMIN", 1023);
+        User user = new User();
+        user.setId(1L);
+        user.setRole(role);
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken(user, null, List.of()));
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     @Test
     void create_mapsAndSavesGuardian() {
