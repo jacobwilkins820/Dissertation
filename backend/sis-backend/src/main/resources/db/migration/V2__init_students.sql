@@ -1,4 +1,4 @@
--- V3__init_students.sql
+-- V2__init_students.sql
 -- Creates the students table and seeds 150 example rows for development/testing.
 
 CREATE TABLE IF NOT EXISTS students (

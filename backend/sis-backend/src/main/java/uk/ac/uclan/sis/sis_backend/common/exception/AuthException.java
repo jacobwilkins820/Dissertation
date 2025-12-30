@@ -4,14 +4,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * 403 Exception for forbidden resources.
+ * 401 Exception for authentication exceptions.
  */
-@ResponseStatus(HttpStatus.FORBIDDEN)
-public class ForbiddenException extends RuntimeException {
+@ResponseStatus(HttpStatus.UNAUTHORIZED)
+public class AuthException extends RuntimeException {
 
     private final String entityName;
 
-    public ForbiddenException(String entityName, String message) {
+    public AuthException(String entityName, String message) {
         super(entityName + ": " + message);
         this.entityName = entityName;
     }

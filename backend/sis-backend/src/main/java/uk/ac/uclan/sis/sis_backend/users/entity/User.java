@@ -12,11 +12,14 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = false, length = 255)
-    private String first_name;
+    @Column(nullable = true, unique = false, length = 255, name = "linked_guardian_id")
+    private Long linkedGuardianId;
 
     @Column(nullable = false, unique = false, length = 255)
-    private String last_name;
+    private String firstName;
+
+    @Column(nullable = false, unique = false, length = 255)
+    private String lastName;
 
     @Column(nullable = false, unique = true, length = 255)
     private String email;
@@ -41,14 +44,17 @@ public class User {
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
 
+    public Long getLinkedGuardianId() { return linkedGuardianId; }
+    public void setLinkedGuardianId(Long linkedGuardianId) { this.linkedGuardianId = linkedGuardianId; }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public String getFirstName() { return first_name; }
-    public void setFirstName(String first_name) { this.first_name = first_name; }
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
 
-    public String getLastName() { return last_name; }
-    public void setLastName(String last_name) { this.last_name = last_name; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
     
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
