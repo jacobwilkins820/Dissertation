@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../auth/UseAuth";
+import { useAuth } from "../auth/UseAuth";
+import { Button } from "./Button";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -27,9 +28,9 @@ export default function Navbar() {
         </Link>
       </div>
 
-      <button onClick={handleLogout} style={styles.logout}>
+      <Button onClick={handleLogout} variant="danger" size="sm">
         Logout
-      </button>
+      </Button>
     </nav>
   );
 }
@@ -52,12 +53,4 @@ const styles = {
     marginRight: 10,
   },
   link: { color: "#cbd5f5", textDecoration: "none" },
-  logout: {
-    background: "#ef4444",
-    border: 0,
-    color: "#fff",
-    padding: "8px 12px",
-    borderRadius: 6,
-    cursor: "pointer",
-  },
 };
