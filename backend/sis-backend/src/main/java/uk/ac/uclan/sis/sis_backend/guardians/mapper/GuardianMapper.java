@@ -60,6 +60,16 @@ public final class GuardianMapper {
         );
     }
 
+    public static GuardianSearchResponse searchResponse(Guardian g) {
+        return new GuardianSearchResponse(
+                g.getId(),
+                g.getFirstName(),
+                g.getLastName(),
+                g.getEmail()
+        );
+    }
+
+
     private static String trimOrNull(String s) {
         if (s == null) return null;
         String t = s.trim();

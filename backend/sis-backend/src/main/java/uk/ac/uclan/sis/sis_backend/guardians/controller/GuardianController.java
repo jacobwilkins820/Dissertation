@@ -1,6 +1,7 @@
 package uk.ac.uclan.sis.sis_backend.guardians.controller;
 
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +10,7 @@ import uk.ac.uclan.sis.sis_backend.guardians.dto.CreateGuardianRequest;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.CreateGuardianResponse;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.GuardianContactResponse;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.GuardianResponse;
+import uk.ac.uclan.sis.sis_backend.guardians.dto.GuardianSearchResponse;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.UpdateGuardianRequest;
 import uk.ac.uclan.sis.sis_backend.guardians.service.GuardianService;
 
@@ -52,6 +54,13 @@ public class GuardianController {
             Pageable pageable
     ) {
         return ResponseEntity.ok(guardianService.list(q, pageable));
+    }
+
+    @GetMapping(params = "query")
+    public ResponseEntity<List<GuardianSearchResponse>> search(
+            @RequestParam("query") String query
+    ) {
+        return ResponseEntity.ok(guardianService.search(query));
     }
 
     @PutMapping("/{id}")

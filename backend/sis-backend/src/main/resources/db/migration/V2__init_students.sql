@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS students (
     first_name    VARCHAR(100) NOT NULL,
     last_name     VARCHAR(100) NOT NULL,
     date_of_birth DATE         NOT NULL,
-    gender        VARCHAR(20),
+    gender        VARCHAR(20)  NOT NULL,
 
     status        VARCHAR(20)  NOT NULL,
     created_at    TIMESTAMP    NOT NULL,
@@ -44,12 +44,11 @@ SELECT
     -- DOB spread across a realistic range (roughly 4–16 years old)
     (DATE '2011-01-01' + ((gs * 23) % 3650))::date AS date_of_birth,
 
-    -- Gender optional: cycles through values with some NULLs
+    -- Gender required: cycles through values
     CASE ((gs - 1) % 3)
         WHEN 0 THEN 'MALE'
         WHEN 1 THEN 'FEMALE'
-        WHEN 2 THEN 'OTHER'
-        ELSE NULL
+        ELSE 'OTHER'
     END AS gender,
 
     -- Status cycles: mostly ACTIVE, some INACTIVE, few WITHDRAWN

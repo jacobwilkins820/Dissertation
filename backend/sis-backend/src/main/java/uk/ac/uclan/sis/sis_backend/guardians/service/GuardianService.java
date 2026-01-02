@@ -1,6 +1,7 @@
 package uk.ac.uclan.sis.sis_backend.guardians.service;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -14,12 +15,15 @@ import uk.ac.uclan.sis.sis_backend.guardians.dto.CreateGuardianRequest;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.CreateGuardianResponse;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.GuardianContactResponse;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.GuardianResponse;
+import uk.ac.uclan.sis.sis_backend.guardians.dto.GuardianSearchResponse;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.UpdateGuardianRequest;
 import uk.ac.uclan.sis.sis_backend.guardians.entity.Guardian;
 import uk.ac.uclan.sis.sis_backend.guardians.mapper.GuardianMapper;
 import uk.ac.uclan.sis.sis_backend.guardians.repository.GuardianRepository;
 import uk.ac.uclan.sis.sis_backend.roles.Permissions;
 import uk.ac.uclan.sis.sis_backend.users.entity.User;
+
+import java.util.List;
 
 @Service
 public class GuardianService {
@@ -62,21 +66,41 @@ public class GuardianService {
         return GuardianMapper.contactResponse(guardian);
     }
 
+    /**
+     * Admin list view (paged).
+     */
     @Transactional(readOnly = true)
     public Page<GuardianResponse> list(String q, Pageable pageable) {
         authorizationService.requireAdmin(currentUser());
-        Page<Guardian> page;
 
         if (q == null || q.trim().isEmpty()) {
-            // No search term → return all guardians (paged)
-            page = guardianRepository.findAll(pageable);
-        } else {
-            // Search by first/last name (paged)
-            String term = q.trim();
-            page = guardianRepository.searchByName(term, pageable);
+            return guardianRepository.findAll(pageable).map(GuardianMapper::response);
         }
 
-        return page.map(GuardianMapper::response);
+        String term = q.trim();
+        // Uses the unified repository search(query, pageable)
+        return guardianRepository.search(term, pageable).map(GuardianMapper::response);
+    }
+
+    /**
+     * Lightweight search for linking during user creation.
+     * GET /api/guardians?query=<text>
+     *
+     * Returns a small capped list.
+     */
+    @Transactional(readOnly = true)
+    public List<GuardianSearchResponse> search(String query) {
+        authorizationService.requireAdmin(currentUser());
+
+        if (query == null) return List.of();
+        String q = query.trim();
+        if (q.isEmpty() || q.length() < 2) return List.of();
+
+        Pageable limit = PageRequest.of(0, 20);
+
+        return guardianRepository.search(q, limit)
+                .map(GuardianMapper::searchResponse)
+                .getContent();
     }
 
     @Transactional
@@ -94,9 +118,7 @@ public class GuardianService {
     @Transactional
     public void delete(Long id) {
         authorizationService.requireAdmin(currentUser());
-        // If a guardian doesn't exist, deleting should be a straight 404.
-        // If it *does* exist but is linked by FK constraints, the delete will fail later
-        // (which is the correct signal that it can't be removed yet).
+
         if (!guardianRepository.existsById(id)) {
             throw new NotFoundException("Guardian", "id " + id + " not found");
         }

@@ -139,7 +139,7 @@ class GuardianServiceTest {
 
         assertEquals(1, result.getTotalElements());
         assertEquals("Ada", result.getContent().get(0).getFirstName());
-        verify(guardianRepository, never()).searchByName(anyString(), any(Pageable.class));
+        verify(guardianRepository, never()).search(anyString(), any(Pageable.class));
     }
 
     @Test
@@ -148,7 +148,7 @@ class GuardianServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Guardian> page = new PageImpl<>(List.of(guardian), pageable, 1);
 
-        when(guardianRepository.searchByName("smith", pageable)).thenReturn(page);
+        when(guardianRepository.search("smith", pageable)).thenReturn(page);
 
         Page<GuardianResponse> result = service.list("  smith  ", pageable);
 

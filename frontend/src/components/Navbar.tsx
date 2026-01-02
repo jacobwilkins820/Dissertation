@@ -4,7 +4,7 @@ import { Button } from "./Button";
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const handleLogout = async () => {
     await logout();
@@ -12,20 +12,49 @@ export default function Navbar() {
   };
 
   return (
-    <nav style={styles.nav}>
-      <div style={styles.left}>
-        <Link to="/students" style={styles.brand}>
+    <nav className="h-14 flex items-center justify-between px-4 bg-slate-800 text-white">
+      <div className="flex items-center gap-3.5">
+        <Link
+          to="/students"
+          className="font-bold mr-2.5 no-underline text-white"
+        >
           SIS
         </Link>
-        <Link to="/students" style={styles.link}>
+
+        <Link
+          to="/students"
+          className="text-slate-300 no-underline hover:text-white"
+        >
           Students
         </Link>
-        <Link to="/classes" style={styles.link}>
+        <Link
+          to="/classes"
+          className="text-slate-300 no-underline hover:text-white"
+        >
           Classes
         </Link>
-        <Link to="/attendance" style={styles.link}>
+        <Link
+          to="/attendance"
+          className="text-slate-300 no-underline hover:text-white"
+        >
           Attendance
         </Link>
+        {user?.roleId === 4 && (
+          <Link
+            to="/register-user"
+            className="text-slate-300 no-underline hover:text-white"
+          >
+            Register
+          </Link>
+        )}
+        {user?.roleId === 4 && (
+          <Link
+            to="/register-student"
+            className="text-slate-300 no-underline hover:text-white"
+          >
+            Register Students
+          </Link>
+        )}
       </div>
 
       <Button onClick={handleLogout} variant="danger" size="sm">
@@ -34,23 +63,3 @@ export default function Navbar() {
     </nav>
   );
 }
-
-const styles = {
-  nav: {
-    height: 56,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "0 16px",
-    background: "#1e293b",
-    color: "#fff",
-  },
-  left: { display: "flex", gap: 14, alignItems: "center" },
-  brand: {
-    color: "#fff",
-    textDecoration: "none",
-    fontWeight: 700,
-    marginRight: 10,
-  },
-  link: { color: "#cbd5f5", textDecoration: "none" },
-};

@@ -73,7 +73,6 @@ class UserServiceTest {
 
         assertEquals(1, result.size());
         UserListItemResponse item = result.get(0);
-        assertEquals(1L, item.id);
         assertEquals("user@example.com", item.email);
         assertTrue(item.enabled);
         assertEquals("ADMIN", item.roleName);
@@ -132,7 +131,6 @@ class UserServiceTest {
         assertEquals(role, saved.getRole());
         assertTrue(saved.isEnabled());
 
-        assertEquals(42L, result.id);
         assertEquals("test@example.com", result.email);
         assertEquals("ADMIN", result.roleName);
     }

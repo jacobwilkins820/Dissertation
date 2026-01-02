@@ -1,0 +1,73 @@
+# ===============================
+# Config
+# ===============================
+$baseUrl = "http://localhost:8080"
+
+$loginUrl = "$baseUrl/api/auth/login"
+$createUserUrl = "$baseUrl/api/users"
+
+# ===============================
+# Login payload
+# ===============================
+$loginBody = @{
+    email    = "admin_1@example.local"
+    password = "Password123!"
+} | ConvertTo-Json
+
+# ===============================
+# Login request
+# ===============================
+$loginResponse = Invoke-RestMethod `
+    -Uri $loginUrl `
+    -Method POST `
+    -ContentType "application/json" `
+    -Body $loginBody
+
+# ===============================
+# Extract JWT token
+# Adjust property name if needed
+# ===============================
+$token = $loginResponse.token
+
+if (-not $token) {
+    throw "JWT token not found in login response"
+}
+
+# ===============================
+# Auth header
+# ===============================
+$headers = @{
+    Authorization = "Bearer $token"
+}
+
+# ===============================
+# Create user payload
+# ===============================
+$createUserBody = @{
+    email       = "Jacobfegdgf@gmail.com"
+
+    # send both variants so whichever your backend maps, it gets a value
+    firstName   = "Jake"
+    lastName    = "wilkins"
+    password    = "w33z6Mvu5sVmbXpPAQkH"
+    roleId      = 3
+} | ConvertTo-Json -Depth 10
+
+# ===============================
+# Create user request
+# ===============================
+
+Write-Host "Create-user JSON:"
+Write-Host $createUserBody
+
+$newUserResponse = Invoke-RestMethod `
+    -Uri $createUserUrl `
+    -Method POST `
+    -Headers $headers `
+    -ContentType "application/json" `
+    -Body $createUserBody
+
+# ===============================
+# Output result
+# ===============================
+$newUserResponse

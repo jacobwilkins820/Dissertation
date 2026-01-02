@@ -7,16 +7,24 @@ import jakarta.validation.constraints.Size;
 
 public class CreateUserRequest {
 
-    @NotBlank
+    @NotNull
     @Email
     public String email;
 
-    @NotBlank
+    @NotNull
     @Size(min = 8, max = 72) // bcrypt input limit ~72 bytes
     public String password;
 
     @NotNull
     public Long roleId;
 
+    @NotNull
+    public String firstName;
+
+    @NotNull
+    public String lastName;
+
     public Boolean enabled;
+
+    public Long linkedGuardianId;
 }

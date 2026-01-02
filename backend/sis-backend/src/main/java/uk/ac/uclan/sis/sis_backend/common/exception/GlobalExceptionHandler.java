@@ -32,7 +32,7 @@ public class GlobalExceptionHandler {
         ));
     }
 
-        @ExceptionHandler(AuthException.class)
+    @ExceptionHandler(AuthException.class)
     public ResponseEntity<?> handleAuthException(AuthException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                 "timestamp", Instant.now().toString(),

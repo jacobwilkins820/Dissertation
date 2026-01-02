@@ -10,16 +10,28 @@ import uk.ac.uclan.sis.sis_backend.guardians.entity.Guardian;
 public interface GuardianRepository extends JpaRepository<Guardian, Long> {
 
     /**
-     * Case-insensitive "contains" search over first + last name.
-     * Parameterised query => safe from SQL injection.
+     * search used for:
+     * - admin paginated lists
+     * - autocomplete / linking (with small page size)
+     *
+     * Case-insensitive search over:
+     * - first name
+     * - last name
+     * - full name
+     * - email
      */
     @Query("""
         SELECT g
         FROM Guardian g
-        WHERE LOWER(g.firstName) LIKE LOWER(CONCAT('%', :term, '%'))
-           OR LOWER(g.lastName)  LIKE LOWER(CONCAT('%', :term, '%'))
+        WHERE LOWER(g.firstName) LIKE LOWER(CONCAT('%', :query, '%'))
+           OR LOWER(g.lastName) LIKE LOWER(CONCAT('%', :query, '%'))
+           OR LOWER(CONCAT(g.firstName, ' ', g.lastName)) LIKE LOWER(CONCAT('%', :query, '%'))
+           OR LOWER(g.email) LIKE LOWER(CONCAT('%', :query, '%'))
     """)
-    Page<Guardian> searchByName(@Param("term") String term, Pageable pageable);
+    Page<Guardian> search(
+            @Param("query") String query,
+            Pageable pageable
+    );
 
     boolean existsByEmailIgnoreCase(String email);
 }

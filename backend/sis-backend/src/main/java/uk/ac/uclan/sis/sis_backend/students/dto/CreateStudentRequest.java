@@ -27,6 +27,7 @@ public class CreateStudentRequest {
     @NotNull
     private LocalDate dateOfBirth;
 
+    @NotBlank
     @Size(max = 20)
     private String gender;
 

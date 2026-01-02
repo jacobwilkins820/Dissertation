@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
+import uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException;
 import uk.ac.uclan.sis.sis_backend.roles.repository.RoleRepository;
 import uk.ac.uclan.sis.sis_backend.roles.entity.Role;
 import uk.ac.uclan.sis.sis_backend.users.dto.*;
@@ -54,25 +55,71 @@ public class UserService {
     @Transactional
     public UserListItemResponse create(CreateUserRequest req) {
         authorizationService.requireAdmin(currentUser());
+
+        // email
+        if (req.email == null || req.email.isBlank()) {
+            throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                    "email", "Email is required"
+            );
+        }
+
         String normalizedEmail = normalizeEmail(req.email);
 
-        if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
-            throw new IllegalArgumentException("Email already in use");
+        if (!isValidEmail(normalizedEmail)) {
+            throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                    "email", "Invalid email format"
+            );
         }
+
+        if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
+            throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                    "email", "Email already in use"
+            );
+        }
+
+        // password
+        if (req.password == null || req.password.isBlank()) {
+            throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                    "password", "Password is required"
+            );
+        }
+
+        if (req.password.length() < 8) {
+            throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                    "password", "Password must be at least 8 characters"
+            );
+        }
+
+        // role
+        if (req.roleId == null) {
+            throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                    "roleId", "Role is required"
+            );
+        }
+
+        Role role = roleRepository.findById(req.roleId)
+                .orElseThrow(() ->
+                        new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                                "roleId", "Role not found: " + req.roleId
+                        )
+                );
 
         User user = new User();
         user.setEmail(normalizedEmail);
-        user.setPasswordHash(passwordEncoder.encode(req.password)); // salted + hashed
-
-        Role role = roleRepository.findById(req.roleId)
-                .orElseThrow(() -> new NotFoundException("User Role", "Role not found: " + req.roleId));
-
+        user.setPasswordHash(passwordEncoder.encode(req.password));
         user.setRole(role);
-
+        user.setFirstName(req.firstName);
+        user.setLastName(req.lastName);
+        user.setEnabled(req.enabled != null ? req.enabled : true);
+        user.setLinkedGuardianId(req.linkedGuardianId);
 
         if (req.enabled != null) {
             user.setEnabled(req.enabled);
-        } // else keep default true
+        }
+        System.out.println("user being saved");
+        System.out.println(user.getFirstName());
+        System.out.println(user.getLastName());
+        System.out.println(user.getEmail());
 
         User saved = userRepository.save(user);
         return toListItem(saved);
@@ -80,26 +127,61 @@ public class UserService {
 
     @Transactional
     public UserListItemResponse update(Long id, UpdateUserRequest req) {
-        authorizationService.requireAdmin(currentUser());
+    authorizationService.requireAdmin(currentUser());
+
         User user = userRepository.findByIdWithRole(id)
                 .orElseThrow(() -> new NotFoundException("User", "User not found: " + id));
+        // email (optional)
+        if (req.email != null) {
+            if (req.email.isBlank()) {
+                throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                        "email", "Email must not be blank"
+                );
+            }
 
-        if (req.email != null && !req.email.isBlank()) {
             String normalizedEmail = normalizeEmail(req.email);
+
+            if (!isValidEmail(normalizedEmail)) {
+                throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                        "email", "Invalid email format"
+                );
+            }
+
             boolean emailChanged = !normalizedEmail.equalsIgnoreCase(user.getEmail());
             if (emailChanged && userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
-                throw new IllegalArgumentException("Email already in use");
+                throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                        "email", "Email already in use"
+                );
             }
+
             user.setEmail(normalizedEmail);
         }
 
-        if (req.password != null && !req.password.isBlank()) {
+        // password (optional)
+        if (req.password != null) {
+            if (req.password.isBlank()) {
+                throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                        "password", "Password must not be blank"
+                );
+            }
+
+            if (req.password.length() < 8) {
+                throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                        "password", "Password must be at least 8 characters"
+                );
+            }
+
             user.setPasswordHash(passwordEncoder.encode(req.password));
         }
 
+        // role (optional)
         if (req.roleId != null) {
             Role role = roleRepository.findById(req.roleId)
-                    .orElseThrow(() -> new NotFoundException("User Role", "Role not found: " + req.roleId));
+                    .orElseThrow(() ->
+                            new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                                    "roleId", "Role not found: " + req.roleId
+                            )
+                    );
             user.setRole(role);
         }
 
@@ -109,7 +191,6 @@ public class UserService {
 
         return toListItem(user);
     }
-
 
     @Transactional
     public void delete(Long id) {
@@ -126,7 +207,8 @@ public class UserService {
 
     private UserListItemResponse toListItem(User u) {
         UserListItemResponse dto = new UserListItemResponse();
-        dto.id = u.getId();
+        dto.firstName = u.getFirstName();
+        dto.lastName = u.getLastName();
         dto.email = u.getEmail();
         dto.enabled = u.isEnabled();
         dto.roleName = u.getRole().getName();
@@ -151,4 +233,14 @@ public class UserService {
         }
         return (User) auth.getPrincipal();
     }
+
+    private boolean isValidEmail(String email) {
+    if (email == null) return false;
+    String e = email.trim();
+    if (e.isEmpty()) return false;
+
+    // deliberately simple — avoids rejecting valid real-world emails
+    return e.contains("@") && e.contains(".") && !e.contains(" ");
+}
+
 }

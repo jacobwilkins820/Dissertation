@@ -26,7 +26,6 @@ export function Button({
   className = "",
   ...props
 }: ButtonProps) {
-  console.log("Button variant:", variant);
   return (
     <button
       className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}

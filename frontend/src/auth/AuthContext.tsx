@@ -16,6 +16,7 @@ function mapMeToAuthUser(me: MeResponse): AuthUser {
     firstName: me.firstName,
     lastName: me.lastName,
     roleName: me.roleName,
+    roleId: me.roleId,
     guardianId: me.guardianId,
   };
 }
@@ -66,6 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       firstName: res.firstName,
       lastName: "",
       roleName: res.roleName,
+      roleId: null,
       guardianId: null,
     });
 

@@ -16,6 +16,7 @@ export type MeResponse = {
   firstName: string;
   lastName: string;
   roleName: string;
+  roleId: number | null;
   guardianId: number | null;
 };
 
@@ -25,6 +26,7 @@ export type AuthUser = {
   firstName: string;
   lastName: string;
   roleName: string;
+  roleId: number | null;
   guardianId: number | null;
 };
 

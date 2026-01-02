@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * Everything else belongs in the service.
  */
 @RestController
-@RequestMapping("/api/v1/students")
+@RequestMapping("/api/students")
 public class StudentController {
 
     private final StudentService service;
