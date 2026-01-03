@@ -10,6 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
 import uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException;
+import uk.ac.uclan.sis.sis_backend.roles.Permissions;
 import uk.ac.uclan.sis.sis_backend.roles.repository.RoleRepository;
 import uk.ac.uclan.sis.sis_backend.roles.entity.Role;
 import uk.ac.uclan.sis.sis_backend.users.dto.*;
@@ -54,7 +55,7 @@ public class UserService {
 
     @Transactional
     public UserListItemResponse create(CreateUserRequest req) {
-        authorizationService.requireAdmin(currentUser());
+        authorizationService.require(currentUser(), Permissions.CREATE_USER);
 
         // email
         if (req.email == null || req.email.isBlank()) {
@@ -207,6 +208,7 @@ public class UserService {
 
     private UserListItemResponse toListItem(User u) {
         UserListItemResponse dto = new UserListItemResponse();
+        dto.id = u.getId();
         dto.firstName = u.getFirstName();
         dto.lastName = u.getLastName();
         dto.email = u.getEmail();

@@ -14,6 +14,7 @@ import uk.ac.uclan.sis.sis_backend.classes.dto.UpdateClassRequest;
 import uk.ac.uclan.sis.sis_backend.classes.entity.Class;
 import uk.ac.uclan.sis.sis_backend.classes.repository.ClassRepository;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
+import uk.ac.uclan.sis.sis_backend.roles.Permissions;
 import uk.ac.uclan.sis.sis_backend.users.entity.User;
 import uk.ac.uclan.sis.sis_backend.users.repository.UserRepository;
 
@@ -59,7 +60,7 @@ public class ClassService {
 
     @Transactional(readOnly = true)
     public List<ClassListItemResponse> listAll() {
-        authorizationService.requireAdmin(currentUser());
+        authorizationService.require(currentUser(), Permissions.VIEW_CLASSES);
         return classRepository.findAll()
                 .stream()
                 .map(c -> new ClassListItemResponse(c.getId(), c.getName(), c.getCode(), c.isActive()))
@@ -68,7 +69,7 @@ public class ClassService {
 
     @Transactional(readOnly = true)
     public ClassResponse getById(Long id) {
-        authorizationService.requireAdmin(currentUser());
+        authorizationService.require(currentUser(), Permissions.VIEW_CLASSES);
         Class classEntity = classRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Class", "Class not found with id: " + id));
         return toResponse(classEntity);

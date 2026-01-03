@@ -1,10 +1,31 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/UseAuth";
 import { Button } from "./Button";
+import { FlyoutLink } from "./Flyout";
+import { hasPermission, Permissions } from "../utils/permissions";
 
 export default function Navbar() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
+  const permissionLevel = user?.permissionLevel ?? 0;
+  const canViewStudents = hasPermission(
+    permissionLevel,
+    Permissions.VIEW_STUDENT_DIRECTORY
+  );
+  const canViewClasses = hasPermission(
+    permissionLevel,
+    Permissions.VIEW_CLASSES
+  );
+  const canViewAttendance = hasPermission(
+    permissionLevel,
+    Permissions.VIEW_ATTENDANCE
+  );
+  const canCreateStudent = hasPermission(
+    permissionLevel,
+    Permissions.CREATE_STUDENT
+  );
+  const canCreateUser = hasPermission(permissionLevel, Permissions.CREATE_USER);
+  const canRegister = canCreateStudent || canCreateUser;
 
   const handleLogout = async () => {
     await logout();
@@ -12,54 +33,90 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="h-14 flex items-center justify-between px-4 bg-slate-800 text-white">
-      <div className="flex items-center gap-3.5">
+    <nav className="fixed w-full shadow-lg top-0 z-20 border-b border-slate-800/80 bg-slate-950/80 px-6 py-4 text-white backdrop-blur">
+      <div className="flex items-center gap-4">
         <Link
-          to="/students"
-          className="font-bold mr-2.5 no-underline text-white"
+          to="/studentDirectory"
+          className="text-lg font-semibold text-white no-underline"
         >
-          SIS
+          ACORN
         </Link>
 
-        <Link
-          to="/students"
-          className="text-slate-300 no-underline hover:text-white"
-        >
-          Students
-        </Link>
-        <Link
-          to="/classes"
-          className="text-slate-300 no-underline hover:text-white"
-        >
-          Classes
-        </Link>
-        <Link
-          to="/attendance"
-          className="text-slate-300 no-underline hover:text-white"
-        >
-          Attendance
-        </Link>
-        {user?.roleId === 4 && (
+        {canViewStudents && (
           <Link
-            to="/register-user"
-            className="text-slate-300 no-underline hover:text-white"
+            to="/studentDirectory"
+            className="text-sm uppercase tracking-[0.2em] text-slate-300 no-underline transition hover:text-white"
+          >
+            Students
+          </Link>
+        )}
+        {canViewClasses && (
+          <Link
+            to="/classes"
+            className="text-sm uppercase tracking-[0.2em] text-slate-300 no-underline transition hover:text-white"
+          >
+            Classes
+          </Link>
+        )}
+        {canViewAttendance && (
+          <Link
+            to="/attendance"
+            className="text-sm uppercase tracking-[0.2em] text-slate-300 no-underline transition hover:text-white"
+          >
+            Attendance
+          </Link>
+        )}
+        {canRegister && (
+          <FlyoutLink
+            FlyoutContent={RegisterFlyout}
+            className="text-sm uppercase tracking-[0.2em] text-slate-300 hover:text-white"
+            underlineClassName="bg-amber-300/60"
+            flyoutClassName="rounded-2xl border border-slate-800/80 bg-slate-950/90 shadow-2xl shadow-black/30"
+            caretClassName="bg-slate-950 border-t border-l border-slate-800/80"
           >
             Register
-          </Link>
+          </FlyoutLink>
         )}
-        {user?.roleId === 4 && (
-          <Link
-            to="/register-student"
-            className="text-slate-300 no-underline hover:text-white"
-          >
-            Register Students
-          </Link>
-        )}
+        <Button
+          onClick={handleLogout}
+          variant="danger"
+          size="sm"
+          className="right-0 ml-auto"
+        >
+          Logout
+        </Button>
       </div>
-
-      <Button onClick={handleLogout} variant="danger" size="sm">
-        Logout
-      </Button>
     </nav>
+  );
+}
+
+function RegisterFlyout() {
+  const { user } = useAuth();
+  const permissionLevel = user?.permissionLevel ?? 0;
+  const canCreateStudent = hasPermission(
+    permissionLevel,
+    Permissions.CREATE_STUDENT
+  );
+  const canCreateUser = hasPermission(permissionLevel, Permissions.CREATE_USER);
+
+  return (
+    <div className="min-w-[200px] py-2 text-sm text-white">
+      {canCreateStudent && (
+        <Link
+          to="/register-student"
+          className="block px-4 py-2 text-xs uppercase tracking-[0.2em] text-slate-200 transition hover:bg-slate-900 hover:text-white"
+        >
+          Register a student
+        </Link>
+      )}
+      {canCreateUser && (
+        <Link
+          to="/register-user"
+          className="block px-4 py-2 text-xs uppercase tracking-[0.2em] text-slate-200 transition hover:bg-slate-900 hover:text-white"
+        >
+          Register a user
+        </Link>
+      )}
+    </div>
   );
 }

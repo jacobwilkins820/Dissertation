@@ -143,43 +143,55 @@ export default function RegisterStudent() {
 
   if (user?.roleId !== 4) {
     return (
-      <div className="p-6">
-        <h1 className="text-2xl font-semibold mb-2">Register Student</h1>
-        <div>You do not have permission to access this page.</div>
+      <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-6 py-4 text-sm text-rose-200">
+        You do not have permission to access this page.
       </div>
     );
   }
 
   return (
-    <div className="max-w-[760px] mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-2">Register Student</h1>
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+          Onboarding
+        </p>
+        <h1 className="text-3xl font-semibold text-white">Register Student</h1>
+        <p className="text-sm text-slate-300">
+          Create a new student record and assign the initial status.
+        </p>
+      </div>
 
       {globalError && (
-        <div className="p-3 border border-gray-300 mb-4">
+        <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-200">
           <strong>Error:</strong> {globalError}
         </div>
       )}
 
       {successMsg && (
-        <div className="p-3 border border-gray-300 mb-4">{successMsg}</div>
+        <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-xs text-emerald-200">
+          {successMsg}
+        </div>
       )}
 
-      <form onSubmit={handleSubmit} className="grid gap-3.5">
-        <label className="grid gap-1.5">
-          <span>UPN</span>
+      <form
+        onSubmit={handleSubmit}
+        className="grid gap-4 rounded-3xl border border-slate-800/80 bg-slate-900/70 p-6 shadow-2xl shadow-black/30"
+      >
+        <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+          UPN
           <TextField
             value={upn}
             onChange={(e) => setUpn(e.target.value)}
             placeholder="e.g., UPN12345"
           />
           {fieldErrors.upn && (
-            <small className="text-red-600">{fieldErrors.upn}</small>
+            <small className="text-rose-200">{fieldErrors.upn}</small>
           )}
         </label>
 
         <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
-          <label className="grid gap-1.5">
-            <span>First name</span>
+          <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+            First name
             <TextField
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
@@ -187,12 +199,12 @@ export default function RegisterStudent() {
               autoComplete="given-name"
             />
             {fieldErrors.firstName && (
-              <small className="text-red-600">{fieldErrors.firstName}</small>
+              <small className="text-rose-200">{fieldErrors.firstName}</small>
             )}
           </label>
 
-          <label className="grid gap-1.5">
-            <span>Last name</span>
+          <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+            Last name
             <TextField
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
@@ -200,41 +212,43 @@ export default function RegisterStudent() {
               autoComplete="family-name"
             />
             {fieldErrors.lastName && (
-              <small className="text-red-600">{fieldErrors.lastName}</small>
+              <small className="text-rose-200">{fieldErrors.lastName}</small>
             )}
           </label>
         </div>
 
         <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
-          <label className="grid gap-1.5">
-            <span>Date of birth</span>
+          <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+            Date of birth
             <TextField
               type="date"
               value={dateOfBirth}
               onChange={(e) => setDateOfBirth(e.target.value)}
             />
             {fieldErrors.dateOfBirth && (
-              <small className="text-red-600">{fieldErrors.dateOfBirth}</small>
+              <small className="text-rose-200">
+                {fieldErrors.dateOfBirth}
+              </small>
             )}
           </label>
 
-          <label className="grid gap-1.5">
-            <span>Gender</span>
+          <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+            Gender
             <TextField
               value={gender}
               onChange={(e) => setGender(e.target.value)}
               placeholder="e.g., Female"
             />
             {fieldErrors.gender && (
-              <small className="text-red-600">{fieldErrors.gender}</small>
+              <small className="text-rose-200">{fieldErrors.gender}</small>
             )}
           </label>
         </div>
 
-        <label className="grid gap-1.5">
-          <span>Status</span>
+        <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+          Status
           <select
-            className="w-full rounded-md border border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="w-full rounded-2xl border border-slate-800/80 bg-slate-950/70 px-4 py-2 text-sm text-slate-100 transition focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400/40"
             value={status}
             onChange={(e) => setStatus(e.target.value)}
           >
@@ -244,11 +258,11 @@ export default function RegisterStudent() {
             <option value="WITHDRAWN">WITHDRAWN</option>
           </select>
           {fieldErrors.status && (
-            <small className="text-red-600">{fieldErrors.status}</small>
+            <small className="text-rose-200">{fieldErrors.status}</small>
           )}
         </label>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 pt-2">
           <Button type="submit" disabled={submitting}>
             {submitting ? "Creating..." : "Create student"}
           </Button>

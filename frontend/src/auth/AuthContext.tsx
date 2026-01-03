@@ -5,7 +5,11 @@ import type {
   LoginResponse,
   MeResponse,
 } from "./auth.types";
-import { login as loginApi, logout as logoutApi, me as meApi } from "../services/auth.api";
+import {
+  login as loginApi,
+  logout as logoutApi,
+  me as meApi,
+} from "../services/auth.api";
 import { getToken, setToken, clearToken } from "../utils/storage";
 import { AuthContext, type AuthContextValue } from "./auth.context";
 
@@ -17,6 +21,7 @@ function mapMeToAuthUser(me: MeResponse): AuthUser {
     lastName: me.lastName,
     roleName: me.roleName,
     roleId: me.roleId,
+    permissionLevel: me.permissionLevel,
     guardianId: me.guardianId,
   };
 }
@@ -68,6 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       lastName: "",
       roleName: res.roleName,
       roleId: null,
+      permissionLevel: null,
       guardianId: null,
     });
 

@@ -44,6 +44,7 @@ public class MeService {
 
         String roleName = user.getRole() != null ? user.getRole().getName() : null;
         Long roleId = user.getRole() != null ? user.getRole().getId() : null;
+        long permissionLevel = user.getRole() != null ? user.getRole().getPermissionLevel() : 0L;
 
         return new MeResponse(
                 user.getId(),
@@ -52,6 +53,7 @@ public class MeService {
                 user.getLastName(),
                 roleName,
                 roleId,
+                permissionLevel,
                 linkedGuardianId
         );
     }

@@ -1,5 +1,3 @@
-Clear DB tables
-
 DO $$
 DECLARE
     r RECORD;

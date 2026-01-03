@@ -8,6 +8,7 @@ public class MeResponse {
     private final String lastName;
     private final String roleName;
     private final Long roleId;
+    private final Long permissionLevel;
     private final Long guardianId; // nullable
 
     public MeResponse(
@@ -17,6 +18,7 @@ public class MeResponse {
             String lastName,
             String roleName,
             Long roleId,
+            Long permissionLevel,
             Long guardianId
     ) {
         this.userId = userId;
@@ -25,6 +27,7 @@ public class MeResponse {
         this.lastName = lastName;
         this.roleName = roleName;
         this.roleId = roleId;
+        this.permissionLevel = permissionLevel;
         this.guardianId = guardianId;
     }
 
@@ -34,5 +37,6 @@ public class MeResponse {
     public String getLastName() { return lastName; }
     public String getRoleName() { return roleName; }
     public Long getRoleId() { return roleId; }
+    public Long getPermissionLevel() { return permissionLevel; }
     public Long getGuardianId() { return guardianId; }
 }

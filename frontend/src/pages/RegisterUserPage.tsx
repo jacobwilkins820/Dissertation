@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { API_BASE_URL } from "../config/env";
 import { Button } from "../components/Button";
 import { TextField } from "../components/TextField";
+import { SearchSelect } from "../components/SearchSelect";
 import { useAuth } from "../auth/UseAuth";
 import {
   getAuthHeader,
@@ -115,23 +116,16 @@ export default function RegisterUserPage() {
     !!selectedRole && isParentRoleName(selectedRole.name);
 
   // Guardians search (only for parent role)
-  const [guardianQuery, setGuardianQuery] = useState("");
-  const [guardians, setGuardians] = useState<GuardianDto[]>([]);
-  const [guardiansLoading, setGuardiansLoading] = useState(false);
-  const [guardiansError, setGuardiansError] = useState<string | null>(null);
   const [selectedGuardian, setSelectedGuardian] = useState<GuardianDto | null>(
     null
   );
+  const [guardianResetKey, setGuardianResetKey] = useState(0);
 
   // Submission
   const [submitting, setSubmitting] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-
-  // Debounce / cancel guardian searches
-  const guardianAbortRef = useRef<AbortController | null>(null);
-  const guardianDebounceRef = useRef<number | null>(null);
 
   const { user } = useAuth();
 
@@ -166,81 +160,34 @@ export default function RegisterUserPage() {
   useEffect(() => {
     // If role changes away from parent role, clear guardian selection + query
     if (!showGuardianLink) {
-      setGuardianQuery("");
-      setGuardians([]);
       setSelectedGuardian(null);
-      setGuardiansError(null);
-      setGuardiansLoading(false);
-      // cancel pending requests
-      guardianAbortRef.current?.abort();
-      guardianAbortRef.current = null;
-      if (guardianDebounceRef.current)
-        window.clearTimeout(guardianDebounceRef.current);
-      guardianDebounceRef.current = null;
+      setGuardianResetKey((prev) => prev + 1);
     }
   }, [showGuardianLink]);
 
-  useEffect(() => {
-    if (!showGuardianLink) return;
-
-    const q = guardianQuery.trim();
-
-    // Avoid searching for very short inputs
-    if (q.length < 2) {
-      setGuardians([]);
-      setGuardiansError(null);
-      setGuardiansLoading(false);
-      guardianAbortRef.current?.abort();
-      guardianAbortRef.current = null;
-      if (guardianDebounceRef.current)
-        window.clearTimeout(guardianDebounceRef.current);
-      guardianDebounceRef.current = null;
-      return;
-    }
-
-    // Debounce
-    if (guardianDebounceRef.current)
-      window.clearTimeout(guardianDebounceRef.current);
-    guardianDebounceRef.current = window.setTimeout(async () => {
-      guardianAbortRef.current?.abort();
-      const ac = new AbortController();
-      guardianAbortRef.current = ac;
-
-      setGuardiansLoading(true);
-      setGuardiansError(null);
-
-      try {
-        const res = await fetch(
-          `${API_BASE_URL}/api/guardians?query=${encodeURIComponent(q)}`,
-          {
-            signal: ac.signal,
-            headers: {
-              "Content-Type": "application/json",
-              ...getAuthHeader(),
-            },
-          }
-        );
-
-        if (!res.ok) {
-          const payload = await safeReadJson(res);
-          throw new Error(extractErrorMessage(payload));
+  const fetchGuardians = useCallback(
+    async (query: string, signal: AbortSignal) => {
+      const res = await fetch(
+        `${API_BASE_URL}/api/guardians?query=${encodeURIComponent(query)}`,
+        {
+          signal,
+          headers: {
+            "Content-Type": "application/json",
+            ...getAuthHeader(),
+          },
         }
+      );
 
-        const data = (await res.json()) as GuardianDto[];
-        setGuardians(data);
-      } catch (e: unknown) {
-        if (e instanceof DOMException && e.name === "AbortError") return;
-        setGuardiansError(getErrorMessage(e, "Failed to search guardians."));
-      } finally {
-        setGuardiansLoading(false);
+      if (!res.ok) {
+        const payload = await safeReadJson(res);
+        throw new Error(extractErrorMessage(payload));
       }
-    }, 350);
 
-    return () => {
-      if (guardianDebounceRef.current)
-        window.clearTimeout(guardianDebounceRef.current);
-    };
-  }, [guardianQuery, showGuardianLink]);
+      const data = (await res.json()) as GuardianDto[];
+      return Array.isArray(data) ? data : [];
+    },
+    []
+  );
 
   function validateClient(): FieldErrors {
     const errs: FieldErrors = {};
@@ -315,9 +262,8 @@ export default function RegisterUserPage() {
       setGlobalError(null);
 
       // Clear guardian section
-      setGuardianQuery("");
-      setGuardians([]);
       setSelectedGuardian(null);
+      setGuardianResetKey((prev) => prev + 1);
     } catch (e: unknown) {
       setGlobalError(getErrorMessage(e, "Failed to create user."));
     } finally {
@@ -327,39 +273,49 @@ export default function RegisterUserPage() {
 
   if (user?.roleId !== 4) {
     return (
-      <div className="p-6">
-        <h1 className="text-2xl font-semibold mb-2">Create User</h1>
-        <div>You do not have permission to access this page.</div>
+      <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-6 py-4 text-sm text-rose-200">
+        You do not have permission to access this page.
       </div>
     );
   }
 
   return (
-    <div className="max-w-[760px] mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-2">Create User</h1>
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+          Administration
+        </p>
+        <h1 className="text-3xl font-semibold text-white">Create User</h1>
+        <p className="text-sm text-slate-300">
+          Add staff, teacher, or guardian access with role-aware linking.
+        </p>
+      </div>
 
       {rolesError && (
-        <div className="p-3 border border-gray-300 mb-4">
+        <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-200">
           <strong>Roles failed to load:</strong> {rolesError}
         </div>
       )}
 
       {globalError && (
-        <div className="p-3 border border-gray-300 mb-4">
+        <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-200">
           <strong>Error:</strong> {globalError}
         </div>
       )}
 
       {successMsg && (
-        <div className="p-3 border border-gray-300 mb-4">
+        <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-xs text-emerald-200">
           {successMsg}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="grid gap-3.5">
+      <form
+        onSubmit={handleSubmit}
+        className="grid gap-4 rounded-3xl border border-slate-800/80 bg-slate-900/70 p-6 shadow-2xl shadow-black/30"
+      >
         <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
-          <label className="grid gap-1.5">
-            <span>First name</span>
+          <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+            First name
             <TextField
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
@@ -367,12 +323,12 @@ export default function RegisterUserPage() {
               autoComplete="given-name"
             />
             {fieldErrors.firstName && (
-              <small className="text-red-600">{fieldErrors.firstName}</small>
+              <small className="text-rose-200">{fieldErrors.firstName}</small>
             )}
           </label>
 
-          <label className="grid gap-1.5">
-            <span>Last name</span>
+          <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+            Last name
             <TextField
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
@@ -380,13 +336,13 @@ export default function RegisterUserPage() {
               autoComplete="family-name"
             />
             {fieldErrors.lastName && (
-              <small className="text-red-600">{fieldErrors.lastName}</small>
+              <small className="text-rose-200">{fieldErrors.lastName}</small>
             )}
           </label>
         </div>
 
-        <label className="grid gap-1.5">
-          <span>Email</span>
+        <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+          Email
           <TextField
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -394,13 +350,13 @@ export default function RegisterUserPage() {
             autoComplete="email"
           />
           {fieldErrors.email && (
-            <small className="text-red-600">{fieldErrors.email}</small>
+            <small className="text-rose-200">{fieldErrors.email}</small>
           )}
         </label>
 
         <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
-          <label className="grid gap-1.5">
-            <span>Password</span>
+          <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+            Password
             <TextField
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -408,12 +364,12 @@ export default function RegisterUserPage() {
               autoComplete="new-password"
             />
             {fieldErrors.password && (
-              <small className="text-red-600">{fieldErrors.password}</small>
+              <small className="text-rose-200">{fieldErrors.password}</small>
             )}
           </label>
 
-          <label className="grid gap-1.5">
-            <span>Confirm password</span>
+          <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+            Confirm password
             <TextField
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -422,17 +378,17 @@ export default function RegisterUserPage() {
             />
 
             {fieldErrors.confirmPassword && (
-              <small className="text-red-600">
+              <small className="text-rose-200">
                 {fieldErrors.confirmPassword}
               </small>
             )}
           </label>
         </div>
 
-        <label className="grid gap-1.5">
-          <span>Role</span>
+        <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+          Role
           <select
-            className="w-full rounded-md border border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-60"
+            className="w-full rounded-2xl border border-slate-800/80 bg-slate-950/70 px-4 py-2 text-sm text-slate-100 transition focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400/40 disabled:opacity-60"
             value={roleId === "" ? "" : String(roleId)}
             onChange={(e) =>
               setRoleId(e.target.value ? Number(e.target.value) : "")
@@ -449,100 +405,50 @@ export default function RegisterUserPage() {
             ))}
           </select>
           {fieldErrors.roleId && (
-            <small className="text-red-600">{fieldErrors.roleId}</small>
+            <small className="text-rose-200">{fieldErrors.roleId}</small>
           )}
         </label>
 
         {showGuardianLink && (
-          <div className="p-3 border border-gray-300">
-            <div className="grid gap-2">
-              <strong>Link Guardian</strong>
-              <span className="opacity-80">
-                Search guardians by name (min 2 characters). Select one to link
-                during user creation.
-              </span>
+          <div className="rounded-2xl border border-slate-800/80 bg-slate-950/60 p-4 text-sm text-slate-300">
+            <div className="grid gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                  Link Guardian
+                </p>
+                <p className="mt-1 text-sm text-slate-300">
+                  Search guardians by name (min 2 characters). Select one to
+                  link during user creation.
+                </p>
+              </div>
 
-              <label className="grid gap-1.5">
-                <span>Search</span>
-                <TextField
-                  value={guardianQuery}
-                  onChange={(e) => {
-                    setGuardianQuery(e.target.value);
-                    // If they start searching again, clear selection
-                    setSelectedGuardian(null);
-                  }}
-                  placeholder="e.g., John Doe"
-                />
-              </label>
-
-              {guardiansError && (
-                <small className="text-red-600">
-                  Guardian search failed: {guardiansError}
-                </small>
-              )}
+              <SearchSelect
+                label="Search"
+                placeholder="e.g., John Doe"
+                selected={selectedGuardian}
+                onSelect={setSelectedGuardian}
+                fetchOptions={fetchGuardians}
+                getOptionKey={(guardian) => guardian.id}
+                getOptionLabel={(guardian) =>
+                  `${guardian.firstName} ${guardian.lastName}${
+                    guardian.email ? ` - ${guardian.email}` : ""
+                  }`
+                }
+                idleLabel="Type at least 2 characters."
+                loadingLabel="Searching..."
+                resultsLabel="Results"
+                emptyLabel="No matches."
+                resetKey={guardianResetKey}
+              />
 
               {fieldErrors.guardianId && (
-                <small className="text-red-600">{fieldErrors.guardianId}</small>
+                <small className="text-rose-200">{fieldErrors.guardianId}</small>
               )}
-
-              <div className="grid gap-2">
-                <div className="opacity-80">
-                  {guardiansLoading
-                    ? "Searching..."
-                    : guardians.length > 0
-                      ? "Results"
-                      : guardianQuery.trim().length >= 2
-                        ? "No matches."
-                        : "Type to search."}
-                </div>
-
-                {guardians.length > 0 && (
-                  <div className="grid gap-2">
-                    {guardians.map((g) => {
-                      const label = `${g.firstName} ${g.lastName}${
-                        g.email ? ` - ${g.email}` : ""
-                      }`;
-                      const selected = selectedGuardian?.id === g.id;
-
-                      return (
-                        <button
-                          type="button"
-                          key={g.id}
-                          onClick={() => setSelectedGuardian(g)}
-                          className={`text-left p-2.5 border border-gray-300 ${
-                            selected ? "bg-gray-100" : "bg-transparent"
-                          }`}
-                        >
-                          {label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {selectedGuardian && (
-                  <div className="mt-2 p-2.5 border border-gray-300">
-                    <strong>Selected:</strong> {selectedGuardian.firstName}{" "}
-                    {selectedGuardian.lastName}
-                    {selectedGuardian.email
-                      ? ` - ${selectedGuardian.email}`
-                      : ""}
-                    <div className="mt-2">
-                      <Button
-                        variant="secondary"
-                        onClick={() => setSelectedGuardian(null)}
-                      >
-                        Clear selection
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         )}
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 pt-2">
           <Button type="submit" disabled={submitting || rolesLoading}>
             {submitting ? "Creating..." : "Create user"}
           </Button>
@@ -559,9 +465,8 @@ export default function RegisterUserPage() {
               setFieldErrors({});
               setGlobalError(null);
               setSuccessMsg(null);
-              setGuardianQuery("");
-              setGuardians([]);
               setSelectedGuardian(null);
+              setGuardianResetKey((prev) => prev + 1);
             }}
           >
             Reset

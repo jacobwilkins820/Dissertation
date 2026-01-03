@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS roles (
 -- 128 = EDIT_ATTENDANCE
 -- 256 = CREATE_GUARDIAN
 -- 512 = CREATE_STUDENT
+-- 1024 = VIEW_CLASSES
+-- 2048 = CREATE_USER
 -- ------------------------------------------------------------
 
 -- VIEWER:
@@ -34,7 +36,7 @@ ON CONFLICT (name) DO NOTHING;
 -- PARENT:
 -- Can view own child details + attendance
 -- Can view own guardian contact details (address/self-edit to be re-enabled with self-checks)
--- TODO: Add VIEW_GUARDIAN_ADDRESS + EDIT_GUARDIAN_SELF once self-checks are implemented.
+-- TODO: Add VIEW_GUARDIAN_ADDRESS + EDIT_GUARDIAN_SELF once self-checks are implemented. aswell as own child checks
 -- 2 + 8 + 64 = 74
 INSERT INTO roles (name, permission_level)
 VALUES ('PARENT', 74)
@@ -44,14 +46,16 @@ ON CONFLICT (name) DO NOTHING;
 -- Can view/edit students in their classes
 -- Can view guardian contact (not address)
 -- Can view/edit attendance
--- 1 + 2 + 4 + 8 + 64 + 128 = 207
+-- 1 + 2 + 4 + 8 + 64 + 128 + 1024 = 1231
 INSERT INTO roles (name, permission_level)
-VALUES ('TEACHER', 207)
+VALUES ('TEACHER', 1231)
 ON CONFLICT (name) DO NOTHING;
 
 -- ADMIN:
 -- Full access (all defined permissions)
--- 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256 + 512 = 1023
+-- 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256 + 512 + 1024 + 2048 = 4095
 INSERT INTO roles (name, permission_level)
-VALUES ('ADMIN', 1023)
+VALUES ('ADMIN', 4095)
 ON CONFLICT (name) DO NOTHING;
+
+

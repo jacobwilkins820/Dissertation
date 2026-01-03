@@ -4,14 +4,13 @@ type TextFieldProps = {
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "size">;
 
 const base =
-  "inline-flex w-full font-medium rounded-md transition " +
-  "bg-gray-50 border border-gray-300 text-gray-900 " +
-  "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:border-blue-500";
+  "inline-flex w-full rounded-2xl border border-slate-800/80 bg-slate-950/70 text-slate-100 " +
+  "placeholder:text-slate-500 transition focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400/40";
 
 const sizes = {
-  sm: "px-3 py-1.5 text-sm",
+  sm: "px-3 py-1.5 text-xs",
   md: "px-4 py-2 text-sm",
-  lg: "px-5 py-2.5 text-base",
+  lg: "px-5 py-2.5 text-sm",
 };
 
 export function TextField({

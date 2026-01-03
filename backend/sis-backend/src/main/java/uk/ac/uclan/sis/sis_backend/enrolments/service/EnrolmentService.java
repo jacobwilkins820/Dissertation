@@ -66,7 +66,7 @@ public class EnrolmentService {
 
     @Transactional(readOnly = true)
     public EnrolmentResponse getById(Long id) {
-        authorizationService.requireAdmin(currentUser());
+        authorizationService.require(currentUser(), 1);
         Enrolment e = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Enrolment", "Enrolment not found: " + id));
         return toResponse(e);
@@ -74,7 +74,7 @@ public class EnrolmentService {
 
     @Transactional(readOnly = true)
     public List<EnrolmentListItemResponse> listByClass(Long classId, Long academicYearId) {
-        authorizationService.requireAdmin(currentUser());
+        authorizationService.require(currentUser(), 1);
         return repository.findByClazz_IdAndAcademicYear_IdOrderByIdAsc(classId, academicYearId)
                 .stream()
                 .map(e -> new EnrolmentListItemResponse(
@@ -89,7 +89,7 @@ public class EnrolmentService {
 
     @Transactional(readOnly = true)
     public List<EnrolmentListItemResponse> listByStudent(Long studentId, Long academicYearId) {
-        authorizationService.requireAdmin(currentUser());
+        authorizationService.require(currentUser(), 1);
         return repository.findByStudent_IdAndAcademicYear_IdOrderByIdAsc(studentId, academicYearId)
                 .stream()
                 .map(e -> new EnrolmentListItemResponse(
@@ -104,7 +104,7 @@ public class EnrolmentService {
 
     @Transactional
     public EnrolmentResponse update(Long id, UpdateEnrolmentRequest req) {
-        authorizationService.requireAdmin(currentUser());
+        authorizationService.require(currentUser(), 4);
         validateDates(req.getStartDate(), req.getEndDate());
 
         Enrolment e = repository.findById(id)

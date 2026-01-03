@@ -16,6 +16,8 @@ public final class Permissions {
 
     public static final int CREATE_GUARDIAN        = 1 << 8; // 256
     public static final int CREATE_STUDENT         = 1 << 9; // 512
+    public static final int VIEW_CLASSES           = 1 << 10; // 1024
+    public static final int CREATE_USER            = 1 << 11; // 2048
 
     public static boolean has(int mask, int permission) {
         return (mask & permission) == permission;
