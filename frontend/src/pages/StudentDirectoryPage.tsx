@@ -190,7 +190,7 @@ export default function StudentPage() {
           </div>
         </div>
 
-          <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 p-6 shadow-2xl shadow-black/30">
+        <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 p-6 shadow-2xl shadow-black/30">
           <div className="grid gap-4 md:grid-cols-[1.6fr_1fr_0.8fr]">
             <SearchSelect
               label="Search"

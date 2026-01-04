@@ -50,6 +50,7 @@ export default function ClassDetailPage() {
   const parsedId = Number(classId);
   const { user } = useAuth();
   const isAdmin = (user?.roleName ?? "").toUpperCase() === "ADMIN";
+  const canAddStudent = isAdmin;
 
   const [clazz, setClazz] = useState<ClassResponse | null>(null);
   const [academicYear, setAcademicYear] = useState<AcademicYearResponse | null>(
@@ -252,6 +253,33 @@ export default function ClassDetailPage() {
     };
 
     try {
+      const enrolmentRes = await fetch(
+        `${API_BASE_URL}/api/enrolments/students/${selectedStudent.id}/enrolments?academicYearId=${academicYear.id}`,
+        {
+          method: "GET",
+          headers: {
+            ...getAuthHeader(),
+          },
+        }
+      );
+
+      if (!enrolmentRes.ok) {
+        const payload = await safeReadJson(enrolmentRes);
+        throw new Error(extractErrorMessage(payload));
+      }
+
+      const enrolments = (await safeReadJson(enrolmentRes)) as
+        | EnrolmentListItemResponse[]
+        | null;
+      const alreadyEnrolled =
+        Array.isArray(enrolments) &&
+        enrolments.some((enrolment) => enrolment.classId === clazz.id);
+
+      if (alreadyEnrolled) {
+        setAddError("Student already in class");
+        return;
+      }
+
       const res = await fetch(`${API_BASE_URL}/api/enrolments`, {
         method: "POST",
         headers: {
@@ -304,7 +332,7 @@ export default function ClassDetailPage() {
           {clazz?.name ?? "Loading class..."}
         </h1>
         <p className="text-sm text-slate-300">
-          {clazz?.code ? `${clazz.code} Â· ` : ""}
+          {clazz?.code ? `${clazz.code} · ` : ""}
           {clazz?.teacherName
             ? `Teacher: ${clazz.teacherName}`
             : "Teacher unassigned"}
@@ -358,13 +386,15 @@ export default function ClassDetailPage() {
             showResults={false}
           />
         </div>
-        <Button
-          variant="primary"
-          size="md"
-          onClick={() => setShowAddStudent(true)}
-        >
-          Add student
-        </Button>
+        {canAddStudent && (
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => setShowAddStudent(true)}
+          >
+            Add student
+          </Button>
+        )}
       </div>
 
       <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 shadow-2xl shadow-black/30">
@@ -432,7 +462,8 @@ export default function ClassDetailPage() {
         </div>
       </div>
 
-      {showAddStudent &&
+      {canAddStudent &&
+        showAddStudent &&
         createPortal(
           <div className="fixed inset-0 z-[99] flex items-center justify-center bg-black/60 px-6 py-8 backdrop-blur-sm">
             <div className="w-full max-w-xl rounded-3xl border border-slate-800/80 bg-slate-950 p-6 text-slate-200 shadow-2xl shadow-black/40">

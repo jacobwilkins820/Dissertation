@@ -32,4 +32,29 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
            OR LOWER(s.upn)       LIKE LOWER(CONCAT('%', :term, '%'))
     """)
     Page<Student> search(@Param("term") String term, Pageable pageable);
+
+    @Query("""
+        SELECT s
+        FROM Student s
+        JOIN StudentGuardian sg ON sg.student = s
+        WHERE sg.guardian.id = :guardianId
+    """)
+    Page<Student> findByGuardianId(@Param("guardianId") Long guardianId, Pageable pageable);
+
+    @Query("""
+        SELECT s
+        FROM Student s
+        JOIN StudentGuardian sg ON sg.student = s
+        WHERE sg.guardian.id = :guardianId
+          AND (
+            LOWER(s.firstName) LIKE LOWER(CONCAT('%', :term, '%'))
+            OR LOWER(s.lastName)  LIKE LOWER(CONCAT('%', :term, '%'))
+            OR LOWER(s.upn)       LIKE LOWER(CONCAT('%', :term, '%'))
+          )
+    """)
+    Page<Student> searchByGuardian(
+            @Param("guardianId") Long guardianId,
+            @Param("term") String term,
+            Pageable pageable
+    );
 }

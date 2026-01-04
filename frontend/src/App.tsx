@@ -10,6 +10,7 @@ import StudentDirectoryPage from "./pages/StudentDirectoryPage";
 import StudentPage from "./pages/StudentPage";
 import ClassesPage from "./pages/ClassesPage";
 import ClassDetailPage from "./pages/ClassDetailPage";
+import AttendanceRegisterPage from "./pages/AttendanceRegisterPage";
 import AppLayout from "./layouts/AppLayout";
 import AuthLayout from "./layouts/AuthLayout";
 
@@ -27,10 +28,6 @@ export default function App() {
   const canViewClasses = hasPermission(
     permissionLevel,
     Permissions.VIEW_CLASSES
-  );
-  const canViewAttendance = hasPermission(
-    permissionLevel,
-    Permissions.VIEW_ATTENDANCE
   );
   const canCreateStudent = hasPermission(
     permissionLevel,
@@ -58,9 +55,7 @@ export default function App() {
                     ? "/studentDirectory"
                     : canViewClasses
                       ? "/classes"
-                      : canViewAttendance
-                        ? "/attendance"
-                        : "/login"
+                      : "/login"
                 }
                 replace
               />
@@ -99,16 +94,8 @@ export default function App() {
             element={canViewClasses ? <ClassDetailPage /> : <Forbidden />}
           />
           <Route
-            path="/attendance"
-            element={
-              canViewAttendance ? (
-                <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 p-6 text-sm text-slate-300 shadow-2xl shadow-black/30">
-                  Attendance (protected)
-                </div>
-              ) : (
-                <Forbidden />
-              )
-            }
+            path="/attendance/:classId"
+            element={canViewClasses ? <AttendanceRegisterPage /> : <Forbidden />}
           />
         </Route>
       </Route>

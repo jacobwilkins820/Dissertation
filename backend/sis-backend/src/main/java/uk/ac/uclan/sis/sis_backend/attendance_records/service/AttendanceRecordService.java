@@ -63,6 +63,7 @@ public class AttendanceRecordService {
     @Transactional
     public AttendanceRecordResponse create(CreateAttendanceRecordRequest req) {
         authorizationService.require(currentUser(), Permissions.EDIT_ATTENDANCE);
+        User user = currentUser();
         if (repository.existsByAttendanceSession_IdAndStudent_Id(req.getAttendanceSessionId(), req.getStudentId())) {
             throw new IllegalArgumentException("Attendance record already exists for this session + student.");
         }
@@ -75,8 +76,7 @@ public class AttendanceRecordService {
         r.setStudent(studentRef);
         r.setStatus(req.getStatus());
         r.setReason(req.getReason());
-
-        //TODO: Set markedByUser when authentication is implemented
+        r.setMarkedByUser(user);
         r.setMarkedAt(LocalDateTime.now());
 
         try {
@@ -90,11 +90,13 @@ public class AttendanceRecordService {
     @Transactional
     public AttendanceRecordResponse update(Long id, UpdateAttendanceRecordRequest req) {
         authorizationService.require(currentUser(), Permissions.EDIT_ATTENDANCE);
+        User user = currentUser();
         AttendanceRecord r = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Attendance record", "Attendance record not found: " + id));
 
         r.setStatus(req.getStatus());
         r.setReason(req.getReason());
+        r.setMarkedByUser(user);
         r.setMarkedAt(LocalDateTime.now());
 
         AttendanceRecord saved = repository.save(r);

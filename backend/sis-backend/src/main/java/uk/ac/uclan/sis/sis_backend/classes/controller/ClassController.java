@@ -41,7 +41,6 @@ public class ClassController {
         return classService.update(id, request);
     }
 
-    // dev note: explicit endpoint to avoid "null vs not provided" ambiguity
     @PutMapping("/{id}/teacher/unassign")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unassignTeacher(@PathVariable Long id) {

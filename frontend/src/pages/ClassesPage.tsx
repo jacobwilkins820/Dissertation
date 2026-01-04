@@ -369,6 +369,7 @@ export default function ClassesPage() {
                 <th className="px-6 py-4">Class</th>
                 <th className="px-6 py-4">Code</th>
                 <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4">Attendance</th>
               </tr>
             </thead>
             <tbody>
@@ -377,7 +378,7 @@ export default function ClassesPage() {
                   key={clazz.id}
                   className="relative border-t border-slate-800/60 hover:bg-slate-900/50"
                 >
-                  <td className="px-6 py-4">
+                  <td className="relative px-6 py-4">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -407,6 +408,15 @@ export default function ClassesPage() {
                     >
                       {clazz.active ? "Active" : "Inactive"}
                     </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => navigate(`/attendance/${clazz.id}`)}
+                    >
+                      Attendance
+                    </Button>
                   </td>
                 </tr>
               ))}

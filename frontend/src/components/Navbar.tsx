@@ -16,10 +16,6 @@ export default function Navbar() {
     permissionLevel,
     Permissions.VIEW_CLASSES
   );
-  const canViewAttendance = hasPermission(
-    permissionLevel,
-    Permissions.VIEW_ATTENDANCE
-  );
   const canCreateStudent = hasPermission(
     permissionLevel,
     Permissions.CREATE_STUDENT
@@ -56,14 +52,6 @@ export default function Navbar() {
             className="text-sm uppercase tracking-[0.2em] text-slate-300 no-underline transition hover:text-white"
           >
             Classes
-          </Link>
-        )}
-        {canViewAttendance && (
-          <Link
-            to="/attendance"
-            className="text-sm uppercase tracking-[0.2em] text-slate-300 no-underline transition hover:text-white"
-          >
-            Attendance
           </Link>
         )}
         {canRegister && (

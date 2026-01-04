@@ -17,6 +17,7 @@ import uk.ac.uclan.sis.sis_backend.students.dto.UpdateStudentRequest;
 import uk.ac.uclan.sis.sis_backend.students.entity.Student;
 import uk.ac.uclan.sis.sis_backend.students.mapper.StudentMapper;
 import uk.ac.uclan.sis.sis_backend.students.repository.StudentRepository;
+import uk.ac.uclan.sis.sis_backend.student_guardians.repository.StudentGuardianRepository;
 import uk.ac.uclan.sis.sis_backend.users.entity.User;
 
 @Service
@@ -25,37 +26,60 @@ public class StudentService {
     private final StudentRepository repo;
     private final StudentMapper mapper;
     private final AuthorizationService authorizationService;
+    private final StudentGuardianRepository studentGuardianRepository;
 
     public StudentService(
             StudentRepository repo,
             StudentMapper mapper,
-            AuthorizationService authorizationService
+            AuthorizationService authorizationService,
+            StudentGuardianRepository studentGuardianRepository
     ) {
         this.repo = repo;
         this.mapper = mapper;
         this.authorizationService = authorizationService;
+        this.studentGuardianRepository = studentGuardianRepository;
     }
 
     public StudentResponse getById(Long id) {
-        authorizationService.require(currentUser(), Permissions.VIEW_STUDENT_DETAILS);
+        User user = currentUser();
+        authorizationService.require(user, Permissions.VIEW_STUDENT_DETAILS);
+
+        Long guardianId = user.getLinkedGuardianId();
+        if (guardianId != null
+                && studentGuardianRepository
+                        .findByIdStudentIdAndIdGuardianId(id, guardianId)
+                        .isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Student not linked to guardian");
+        }
+
         Student student = repo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found"));
         return mapper.toResponse(student);
     }
 
     @Transactional(readOnly = true)
-        public Page<StudentResponse> list(String q, Pageable pageable) {
-        authorizationService.require(currentUser(), Permissions.VIEW_STUDENT_DIRECTORY);
+    public Page<StudentResponse> list(String q, Pageable pageable) {
+        User user = currentUser();
+        authorizationService.require(user, Permissions.VIEW_STUDENT_DIRECTORY);
 
         Page<Student> page;
+        Long guardianId = user.getLinkedGuardianId();
 
         if (q == null || q.trim().isEmpty()) {
-            // No search term → return all students (paged)
-            page = repo.findAll(pageable);
+            if (guardianId != null) {
+                page = repo.findByGuardianId(guardianId, pageable);
+            } else {
+                // No search term: return all students (paged)
+                page = repo.findAll(pageable);
+            }
         } else {
             // Search by first name, last name, or UPN
             String term = q.trim();
-            page = repo.search(term, pageable);
+            if (guardianId != null) {
+                page = repo.searchByGuardian(guardianId, term, pageable);
+            } else {
+                page = repo.search(term, pageable);
+            }
         }
 
         return page.map(mapper::toResponse);
