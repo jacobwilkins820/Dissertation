@@ -40,14 +40,6 @@ public class GuardianController {
         return ResponseEntity.ok(guardianService.getContactById(id));
     }
 
-    //TODO: delete later
-    /** 
-     * Example calls:
-     *  - GET /api/guardians?page=0&size=20
-     *  - GET /api/guardians?q=smith&page=0&size=20&sort=lastName,asc
-     *
-     * Spring auto-builds Pageable from query params (page, size, sort).
-     */
     @GetMapping
     public ResponseEntity<Page<GuardianResponse>> list(
             @RequestParam(value = "q", required = false) String q,

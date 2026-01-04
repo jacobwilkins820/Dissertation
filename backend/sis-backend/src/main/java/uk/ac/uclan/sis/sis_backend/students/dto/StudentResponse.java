@@ -7,8 +7,6 @@ import java.time.LocalDate;
  * Response model returned to the frontend.
  * Includes timestamps because they're required by the schema and useful for auditing/debugging.
  */
-
-//TODO: consider what we actually want retured here (e.g., do we want to expose UPNs?)
 public class StudentResponse {
 
     private final Long id;

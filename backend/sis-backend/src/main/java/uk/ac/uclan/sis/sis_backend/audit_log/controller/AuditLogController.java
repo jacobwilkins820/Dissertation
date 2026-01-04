@@ -28,9 +28,6 @@ public class AuditLogController {
         return auditLogService.getByActorUserId(actorUserId, pageable);
     }
 
-    //TODO: Delete this comment block
-    // example use GET /api/audit-log/entity?entityType=STUDENT&entityId=42
-
     @GetMapping("/entity")
     public Page<AuditLogResponse> getByEntity(
             @RequestParam String entityType,

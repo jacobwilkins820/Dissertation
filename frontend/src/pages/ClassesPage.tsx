@@ -12,31 +12,11 @@ import {
   getErrorMessage,
   safeReadJson,
 } from "../utils/utilFuncs";
-
-type ClassListItemResponse = {
-  id: number;
-  name: string;
-  code?: string | null;
-  active: boolean;
-};
-
-type ClassResponse = {
-  id: number;
-  teacherId?: number | null;
-  teacherName?: string | null;
-  name: string;
-  code?: string | null;
-  active: boolean;
-};
-
-type UserListItemResponse = {
-  id: number;
-  firstName?: string | null;
-  lastName?: string | null;
-  email?: string | null;
-  enabled?: boolean;
-  roleName?: string | null;
-};
+import type {
+  ClassListItemResponse,
+  ClassResponse,
+  UserListItemResponse,
+} from "../types/responses";
 
 export default function ClassesPage() {
   const navigate = useNavigate();

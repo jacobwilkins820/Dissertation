@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useParams } from "react-router-dom";
 import { API_BASE_URL } from "../config/env";
@@ -12,38 +12,12 @@ import {
   getErrorMessage,
   safeReadJson,
 } from "../utils/utilFuncs";
-
-type ClassResponse = {
-  id: number;
-  teacherId?: number | null;
-  teacherName?: string | null;
-  name: string;
-  code?: string | null;
-  active: boolean;
-};
-
-type AcademicYearResponse = {
-  id: number;
-  name: string;
-  startsOn: string;
-  endsOn: string;
-};
-
-type EnrolmentListItemResponse = {
-  id: number;
-  studentId: number;
-  classId: number;
-  startDate: string;
-  endDate?: string | null;
-};
-
-type StudentResponse = {
-  id: number;
-  upn?: string | null;
-  firstName?: string | null;
-  lastName?: string | null;
-  status?: string | null;
-};
+import type {
+  AcademicYearResponse,
+  ClassResponse,
+  EnrolmentListItemResponse,
+  StudentResponse,
+} from "../types/responses";
 
 export default function ClassDetailPage() {
   const { classId } = useParams();

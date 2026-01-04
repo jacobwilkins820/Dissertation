@@ -1,7 +1,6 @@
 package uk.ac.uclan.sis.sis_backend.users.dto;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 

@@ -29,34 +29,6 @@ public class AuditLogService {
         this.authorizationService = authorizationService;
     }
 
-    /**
-     * Main method I call from anywhere.
-     * actorUserId can be null (system action).
-     */
-
-    //TODO: delete this comment block
-    /**example use for future reference inside a service file: 
-     * 
-     * 
-     * // inject it
-     *   private final AuditLogService auditLogService;
-     *
-     *   public StudentService(..., AuditLogService auditLogService) {
-     *      ...
-     *     this.auditLogService = auditLogService;
-     * }
-     *
-     *   // call it wherever it matters
-        auditLogService.log(
-            actorUserId,                 // Long (nullable)
-            "STUDENT_CREATED",           // action
-            "STUDENT",                   // entityType
-            createdStudent.getId(),      // entityId
-            "Created student via API"    // details (nullable)
-        );
-     *
-     */
-
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void log(Long actorUserId, String action, String entityType, Long entityId, String details) {
         authorizationService.requireAdmin(currentUser());

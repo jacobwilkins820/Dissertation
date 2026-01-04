@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
-import uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException;
 import uk.ac.uclan.sis.sis_backend.roles.Permissions;
 import uk.ac.uclan.sis.sis_backend.roles.repository.RoleRepository;
 import uk.ac.uclan.sis.sis_backend.roles.entity.Role;

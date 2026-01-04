@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { API_BASE_URL } from "../config/env";
 import { Button } from "../components/Button";
@@ -9,65 +9,16 @@ import {
   getErrorMessage,
   safeReadJson,
 } from "../utils/utilFuncs";
-
-type ClassResponse = {
-  id: number;
-  teacherId?: number | null;
-  teacherName?: string | null;
-  name: string;
-  code?: string | null;
-  active: boolean;
-};
-
-type AcademicYearResponse = {
-  id: number;
-  name: string;
-  startsOn: string;
-  endsOn: string;
-};
-
-type EnrolmentListItemResponse = {
-  id: number;
-  studentId: number;
-  classId: number;
-  startDate: string;
-  endDate?: string | null;
-};
-
-type StudentResponse = {
-  id: number;
-  upn?: string | null;
-  firstName?: string | null;
-  lastName?: string | null;
-  status?: string | null;
-};
-
-type SessionPart = "AM" | "PM";
-
-type AttendanceSessionResponse = {
-  id: number;
-  classId: number;
-  academicYearId: number;
-  academicYearName: string;
-  sessionDate: string;
-  session: SessionPart;
-};
-
-type AttendanceRecordListItemResponse = {
-  id: number;
-  studentId: number;
-  status: "PRESENT" | "ABSENT" | "LATE";
-  markedAt?: string | null;
-};
-
-type AttendanceRecordResponse = {
-  id: number;
-  attendanceSessionId: number;
-  studentId: number;
-  status: "PRESENT" | "ABSENT" | "LATE";
-  reason?: string | null;
-  markedAt?: string | null;
-};
+import type {
+  AcademicYearResponse,
+  AttendanceRecordListItemResponse,
+  AttendanceRecordResponse,
+  AttendanceSessionResponse,
+  ClassResponse,
+  EnrolmentListItemResponse,
+  SessionPart,
+  StudentResponse,
+} from "../types/responses";
 
 type AttendanceRecordState = {
   id?: number;
@@ -208,60 +159,65 @@ export default function AttendanceRegisterPage() {
     [academicYear, clazz]
   );
 
-  const loadRecords = useCallback(async (sessionId: number, signal: AbortSignal) => {
-    const res = await fetch(
-      `${API_BASE_URL}/api/attendance-sessions/${sessionId}/attendance-records`,
-      {
-        headers: { ...getAuthHeader() },
-        signal,
-      }
-    );
-
-    if (!res.ok) {
-      const payload = await safeReadJson(res);
-      throw new Error(extractErrorMessage(payload));
-    }
-
-    const payload = (await safeReadJson(res)) as AttendanceRecordListItemResponse[];
-    const nextRecords: Record<number, AttendanceRecordState> = {};
-    const lateRecords = (payload ?? []).filter((r) => r.status === "LATE");
-
-    (payload ?? []).forEach((record) => {
-      nextRecords[record.studentId] = {
-        id: record.id,
-        status: record.status,
-        reason: "",
-      };
-    });
-
-    if (lateRecords.length > 0) {
-      const lateDetails = await Promise.all(
-        lateRecords.map(async (record) => {
-          const detailRes = await fetch(
-            `${API_BASE_URL}/api/attendance-records/${record.id}`,
-            { headers: { ...getAuthHeader() }, signal }
-          );
-
-          if (!detailRes.ok) {
-            const payload = await safeReadJson(detailRes);
-            throw new Error(extractErrorMessage(payload));
-          }
-
-          return (await safeReadJson(detailRes)) as AttendanceRecordResponse;
-        })
+  const loadRecords = useCallback(
+    async (sessionId: number, signal: AbortSignal) => {
+      const res = await fetch(
+        `${API_BASE_URL}/api/attendance-sessions/${sessionId}/attendance-records`,
+        {
+          headers: { ...getAuthHeader() },
+          signal,
+        }
       );
 
-      lateDetails.forEach((detail) => {
-        nextRecords[detail.studentId] = {
-          id: detail.id,
-          status: detail.status,
-          reason: detail.reason ?? "",
+      if (!res.ok) {
+        const payload = await safeReadJson(res);
+        throw new Error(extractErrorMessage(payload));
+      }
+
+      const payload = (await safeReadJson(
+        res
+      )) as AttendanceRecordListItemResponse[];
+      const nextRecords: Record<number, AttendanceRecordState> = {};
+      const lateRecords = (payload ?? []).filter((r) => r.status === "LATE");
+
+      (payload ?? []).forEach((record) => {
+        nextRecords[record.studentId] = {
+          id: record.id,
+          status: record.status,
+          reason: "",
         };
       });
-    }
 
-    setRecords(nextRecords);
-  }, []);
+      if (lateRecords.length > 0) {
+        const lateDetails = await Promise.all(
+          lateRecords.map(async (record) => {
+            const detailRes = await fetch(
+              `${API_BASE_URL}/api/attendance-records/${record.id}`,
+              { headers: { ...getAuthHeader() }, signal }
+            );
+
+            if (!detailRes.ok) {
+              const payload = await safeReadJson(detailRes);
+              throw new Error(extractErrorMessage(payload));
+            }
+
+            return (await safeReadJson(detailRes)) as AttendanceRecordResponse;
+          })
+        );
+
+        lateDetails.forEach((detail) => {
+          nextRecords[detail.studentId] = {
+            id: detail.id,
+            status: detail.status,
+            reason: detail.reason ?? "",
+          };
+        });
+      }
+
+      setRecords(nextRecords);
+    },
+    []
+  );
 
   const loadSession = useCallback(
     async (signal: AbortSignal) => {
@@ -287,7 +243,9 @@ export default function AttendanceRegisterPage() {
           throw new Error(extractErrorMessage(payload));
         }
 
-        const payload = (await safeReadJson(res)) as AttendanceSessionResponse[];
+        const payload = (await safeReadJson(
+          res
+        )) as AttendanceSessionResponse[];
         const match = (payload ?? []).find(
           (item) => item.session === sessionPart
         );
@@ -368,7 +326,7 @@ export default function AttendanceRegisterPage() {
       [studentId]: {
         ...prev[studentId],
         status,
-        reason: status === "LATE" ? prev[studentId]?.reason ?? "" : "",
+        reason: status === "LATE" ? (prev[studentId]?.reason ?? "") : "",
       },
     }));
   };
@@ -425,7 +383,9 @@ export default function AttendanceRegisterPage() {
               throw new Error(extractErrorMessage(responsePayload));
             }
 
-            const updated = (await safeReadJson(res)) as AttendanceRecordResponse;
+            const updated = (await safeReadJson(
+              res
+            )) as AttendanceRecordResponse;
             return {
               studentId,
               record: {
@@ -592,10 +552,7 @@ export default function AttendanceRegisterPage() {
                 const status = record?.status;
 
                 return (
-                  <tr
-                    key={student.id}
-                    className="border-t border-slate-800/60"
-                  >
+                  <tr key={student.id} className="border-t border-slate-800/60">
                     <td className="px-6 py-4">
                       <div className="font-medium text-white">
                         {student.firstName} {student.lastName}
@@ -628,9 +585,13 @@ export default function AttendanceRegisterPage() {
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-2">
                         <Button
-                          variant={status === "PRESENT" ? "primary" : "secondary"}
+                          variant={
+                            status === "PRESENT" ? "primary" : "secondary"
+                          }
                           size="sm"
-                          onClick={() => handleStatusClick(student.id, "PRESENT")}
+                          onClick={() =>
+                            handleStatusClick(student.id, "PRESENT")
+                          }
                           disabled={saving}
                         >
                           Present
@@ -638,7 +599,9 @@ export default function AttendanceRegisterPage() {
                         <Button
                           variant={status === "ABSENT" ? "danger" : "secondary"}
                           size="sm"
-                          onClick={() => handleStatusClick(student.id, "ABSENT")}
+                          onClick={() =>
+                            handleStatusClick(student.id, "ABSENT")
+                          }
                           disabled={saving}
                         >
                           Absent

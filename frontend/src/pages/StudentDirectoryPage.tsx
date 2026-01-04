@@ -10,26 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { hasPermission, Permissions } from "../utils/permissions";
 import { useAuth } from "../auth/UseAuth";
-
-type Student = {
-  id: number;
-  upn: string;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  gender: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type PageResponse<T> = {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  size: number;
-  number: number;
-};
+import type { PageResponse, Student } from "../types/responses";
 
 const sortOptions = [
   { label: "Last name (A-Z)", value: "lastName,asc" },
