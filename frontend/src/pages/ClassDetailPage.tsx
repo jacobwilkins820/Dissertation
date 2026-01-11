@@ -19,6 +19,7 @@ import type {
   StudentResponse,
 } from "../utils/responses";
 
+// Class detail page with roster + enrolment modal.
 export default function ClassDetailPage() {
   const { classId } = useParams();
   const parsedId = Number(classId);

@@ -1,6 +1,7 @@
 import { API_BASE_URL } from "../config/env";
 import { getToken, clearToken } from "../utils/storage";
 
+// Fetch wrapper with optional auth + error normalization.
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 export type ApiError = {
@@ -16,6 +17,7 @@ type HttpOptions = {
   signal?: AbortSignal;
 };
 
+// Internal request helper to share auth and error handling.
 async function request<TResponse>(
   path: string,
   options: HttpOptions,
@@ -64,7 +66,7 @@ async function request<TResponse>(
   return (isJson ? payload : (payload as unknown)) as TResponse;
 }
 
-/** For protected endpoints (default). */
+// For protected endpoints (default).
 export function http<TResponse>(
   path: string,
   options: HttpOptions = {}
@@ -72,7 +74,7 @@ export function http<TResponse>(
   return request<TResponse>(path, options, true);
 }
 
-/** For public endpoints like login/register. that doesnt have a token yet */
+// For public endpoints like login/register without a token.
 export function publicHttp<TResponse>(
   path: string,
   options: HttpOptions = {}

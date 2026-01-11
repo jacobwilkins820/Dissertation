@@ -4,6 +4,7 @@ import { Button } from "./Button";
 import { FlyoutLink } from "./Flyout";
 import { hasPermission, Permissions } from "../utils/permissions";
 
+// Main top navigation with permission-aware links.
 export default function Navbar() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
@@ -92,6 +93,7 @@ export default function Navbar() {
   );
 }
 
+// Register menu content for the navbar flyout.
 function RegisterFlyout() {
   const { user } = useAuth();
   const permissionLevel = user?.permissionLevel ?? 0;

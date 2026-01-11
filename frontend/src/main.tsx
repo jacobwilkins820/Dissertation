@@ -5,6 +5,7 @@ import App from "./App";
 import { AuthProvider } from "./auth/AuthContext";
 import "./index.css";
 
+// App entry point and root rendering.
 const root = document.getElementById("root");
 
 if (!root) {

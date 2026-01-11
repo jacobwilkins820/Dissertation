@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
+// App layout with navbar + background styling.
 export default function AppLayout() {
   return (
     <div

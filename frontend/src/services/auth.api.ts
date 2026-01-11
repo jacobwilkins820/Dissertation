@@ -7,9 +7,10 @@ import type {
   MeResponse,
 } from "../auth/auth.types";
 
+// Auth API calls.
 /**
  * Login:
- * - Uses publicHttp since no token yet. only for login/register.
+ * - Uses publicHttp since no token yet. only for login.
  */
 export async function login(req: LoginRequest): Promise<LoginResponse> {
   return publicHttp<LoginResponse>("/api/auth/login", {
@@ -18,10 +19,12 @@ export async function login(req: LoginRequest): Promise<LoginResponse> {
   });
 }
 
+// Fetch current user profile.
 export async function me(): Promise<MeResponse> {
   return http<MeResponse>("/api/auth/me", { method: "GET" });
 }
 
+// End session and clear client auth state.
 export async function logout() {
   try {
     await publicHttp<AuthSession>("/api/auth/logout", { method: "GET" }); //backend doenst actually do anything here but added a response just for consistency

@@ -1,6 +1,7 @@
 import { createContext } from "react";
 import type { AuthUser, LoginRequest } from "./auth.types";
 
+// Auth context type + default context value.
 export type AuthContextValue = {
   isAuthenticated: boolean;
   isHydrating: boolean;

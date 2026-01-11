@@ -1,3 +1,4 @@
+// Shared API response/request types used in UI.
 export type ClassListItemResponse = {
   id: number;
   name: string;
@@ -121,6 +122,16 @@ export type CreateStudentRequest = {
   dateOfBirth: string;
   gender: string;
   status?: string;
+};
+
+export type StudentGuardianResponse = {
+  studentId: number;
+  studentFirstName: string;
+  studentLastName: string;
+  guardianFirstName: string;
+  guardianLastName: string;
+  relationship?: string | null;
+  isPrimary: boolean;
 };
 
 export type GuardianSearch = {

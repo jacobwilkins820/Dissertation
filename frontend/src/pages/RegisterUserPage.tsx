@@ -4,7 +4,11 @@ import { Button } from "../components/Button";
 import { TextField } from "../components/TextField";
 import { SearchSelect } from "../components/SearchSelect";
 import { useAuth } from "../auth/UseAuth";
-import type { CreateUserRequest, GuardianDto, RoleDto } from "../utils/responses";
+import type {
+  CreateUserRequest,
+  GuardianDto,
+  RoleDto,
+} from "../utils/responses";
 import {
   getAuthHeader,
   safeReadJson,
@@ -13,14 +17,17 @@ import {
   type BackendErrorPayload,
 } from "../utils/utilFuncs";
 
+// User creation form with role-based guardian linking. should be SQL injection safe.
 type FieldErrors = Partial<
   Record<keyof CreateUserRequest | "confirmPassword", string>
 >;
 
+// Normalize role names for comparisons.
 function normalizeRoleName(name: string) {
   return name.trim().toUpperCase();
 }
 
+// Check if the role should link a guardian.
 function isParentRoleName(name: string) {
   const n = normalizeRoleName(name);
   return n === "PARENT";
@@ -67,6 +74,7 @@ function extractFieldErrors(payload: unknown): FieldErrors {
   return out;
 }
 
+// Render the register user page.
 export default function RegisterUserPage() {
   // Roles
   const [roles, setRoles] = useState<RoleDto[]>([]);
@@ -351,7 +359,6 @@ export default function RegisterUserPage() {
               type="password"
               autoComplete="new-password"
             />
-
             {fieldErrors.confirmPassword && (
               <small className="text-rose-200">
                 {fieldErrors.confirmPassword}
@@ -417,7 +424,9 @@ export default function RegisterUserPage() {
               />
 
               {fieldErrors.guardianId && (
-                <small className="text-rose-200">{fieldErrors.guardianId}</small>
+                <small className="text-rose-200">
+                  {fieldErrors.guardianId}
+                </small>
               )}
             </div>
           </div>

@@ -2,6 +2,8 @@ import type { ComponentType, ReactNode } from "react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Hover-triggered flyout menu link.
+// Example usage placeholder for the flyout.
 const Example = () => {
   return (
     <div className="p-4">
@@ -25,6 +27,7 @@ type FlyoutLinkProps = {
   caretClassName?: string;
 };
 
+// Render a link/button that shows a flyout on hover.
 export const FlyoutLink = ({
   children,
   href,

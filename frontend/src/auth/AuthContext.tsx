@@ -13,6 +13,9 @@ import {
 import { getToken, setToken, clearToken } from "../utils/storage";
 import { AuthContext, type AuthContextValue } from "./auth.context";
 
+// Auth provider with login/logout
+
+// Normalize /me response into the AuthUser shape.
 function mapMeToAuthUser(me: MeResponse): AuthUser {
   return {
     id: me.userId,
@@ -26,6 +29,7 @@ function mapMeToAuthUser(me: MeResponse): AuthUser {
   };
 }
 
+// Context provider for auth state + actions.
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [tokenState, setTokenState] = useState<string | null>(() => getToken());
   const [user, setUser] = useState<AuthUser | null>(null);

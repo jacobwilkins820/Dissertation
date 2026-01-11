@@ -1,10 +1,12 @@
 import { getToken } from "./storage";
 
+// Misc helpers for auth headers and error parsing.
 export function getAuthHeader(): Record<string, string> {
   const token = getToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+// Safely parse JSON responses and fall back to raw text.
 export async function safeReadJson(res: Response) {
   const text = await res.text();
   if (!text) return null;
@@ -22,6 +24,7 @@ export type BackendErrorPayload = {
   message?: unknown;
 };
 
+// Extract a human-friendly message from backend error Messages.
 export function extractErrorMessage(payload: unknown): string {
   if (payload == null) return "Request failed.";
 
@@ -45,6 +48,7 @@ export function extractErrorMessage(payload: unknown): string {
   return "Request failed.";
 }
 
+// Normalize unknown errors into a message.
 export function getErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof Error) return err.message;
   if (typeof err === "string") return err;

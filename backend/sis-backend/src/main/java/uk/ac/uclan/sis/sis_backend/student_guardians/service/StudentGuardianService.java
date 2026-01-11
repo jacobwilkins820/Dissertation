@@ -90,7 +90,16 @@ public class StudentGuardianService {
 
     @Transactional(readOnly = true)
     public List<StudentGuardianResponse> listByGuardian(Long guardianId) {
-        authorizationService.requireAdmin(currentUser());
+        User user = currentUser();
+        if (!isAdmin(user)) {
+            Long linkedGuardianId = user.getLinkedGuardianId();
+            if (linkedGuardianId == null || !linkedGuardianId.equals(guardianId)) {
+                if (isParent(user)) {
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+                }
+                authorizationService.require(user, uk.ac.uclan.sis.sis_backend.roles.Permissions.VIEW_STUDENT_DETAILS);
+            }
+        }
         if (!guardianRepository.existsById(guardianId)) {
             throw new NotFoundException("Guardian", "Guardian not found: " + guardianId);
         }
@@ -115,7 +124,11 @@ public class StudentGuardianService {
     }
 
     private StudentGuardianResponse toResponse(StudentGuardian link) {
+        Long studentId = link.getId() != null
+                ? link.getId().getStudentId()
+                : link.getStudent().getId();
         return new StudentGuardianResponse(
+                studentId,
                 link.getStudent().getFirstName(),
                 link.getStudent().getLastName(),
                 link.getGuardian().getFirstName(),
@@ -131,5 +144,15 @@ public class StudentGuardianService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
         }
         return (User) auth.getPrincipal();
+    }
+
+    private boolean isAdmin(User user) {
+        String roleName = user.getRole() == null ? null : user.getRole().getName();
+        return roleName != null && roleName.equalsIgnoreCase("ADMIN");
+    }
+
+    private boolean isParent(User user) {
+        String roleName = user.getRole() == null ? null : user.getRole().getName();
+        return roleName != null && roleName.equalsIgnoreCase("PARENT");
     }
 }

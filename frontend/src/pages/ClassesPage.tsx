@@ -18,6 +18,7 @@ import type {
   UserListItemResponse,
 } from "../utils/responses";
 
+// Classes directory with admin-only create flow.
 export default function ClassesPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -140,6 +141,7 @@ export default function ClassesPage() {
     []
   );
 
+  // Create a new class and refresh the list.
   async function handleCreateClass(e: React.FormEvent) {
     e.preventDefault();
     setFormError(null);

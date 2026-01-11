@@ -20,12 +20,14 @@ import type {
   StudentResponse,
 } from "../utils/responses";
 
+// Attendance register with session creation + record updates.
 type AttendanceRecordState = {
   id?: number;
   status?: "PRESENT" | "ABSENT" | "LATE";
   reason?: string;
 };
 
+// Get YYYY-MM-DD for today's local date.
 function getLocalDateString() {
   const now = new Date();
   const year = now.getFullYear();
@@ -34,6 +36,7 @@ function getLocalDateString() {
   return `${year}-${month}-${day}`;
 }
 
+// Render the attendance register page for a class.
 export default function AttendanceRegisterPage() {
   const { classId } = useParams();
   const parsedId = Number(classId);

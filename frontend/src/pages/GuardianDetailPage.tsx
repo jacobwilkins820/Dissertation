@@ -1,6 +1,10 @@
-import type { GuardianDetail, GuardianForm } from "../utils/responses";
+import type {
+  GuardianDetail,
+  GuardianForm,
+  StudentGuardianResponse,
+} from "../utils/responses";
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { API_BASE_URL } from "../config/env";
 import { Button } from "../components/Button";
 import { TextField } from "../components/TextField";
@@ -13,6 +17,7 @@ import {
   safeReadJson,
 } from "../utils/utilFuncs";
 
+// Guardian profile view with self-editing if a parent user. parents are unable to see others details.
 const emptyForm: GuardianForm = {
   firstName: "",
   lastName: "",
@@ -31,6 +36,7 @@ type GuardianDetailPageProps = {
 export default function GuardianDetailPage({
   self = false,
 }: GuardianDetailPageProps) {
+  const navigate = useNavigate();
   const { guardianId: guardianIdParam } = useParams();
   const { user } = useAuth();
   const permissionLevel = user?.permissionLevel ?? 0;
@@ -66,6 +72,11 @@ export default function GuardianDetailPage({
 
   const [guardian, setGuardian] = useState<GuardianDetail | null>(null);
   const [formValues, setFormValues] = useState<GuardianForm>(emptyForm);
+  const [guardianStudents, setGuardianStudents] = useState<
+    StudentGuardianResponse[]
+  >([]);
+  const [studentsLoading, setStudentsLoading] = useState(false);
+  const [studentsError, setStudentsError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -100,6 +111,28 @@ export default function GuardianDetailPage({
     [shouldLoadFull]
   );
 
+  const loadGuardianStudents = useCallback(
+    async (id: number, signal?: AbortSignal) => {
+      const res = await fetch(`${API_BASE_URL}/api/guardians/${id}/students`, {
+        signal,
+        headers: {
+          ...getAuthHeader(),
+        },
+      });
+
+      if (!res.ok) {
+        const payload = await safeReadJson(res);
+        throw new Error(extractErrorMessage(payload));
+      }
+
+      const data = (await safeReadJson(res)) as
+        | StudentGuardianResponse[]
+        | null;
+      return Array.isArray(data) ? data : [];
+    },
+    []
+  );
+
   useEffect(() => {
     if (!resolvedGuardianId) {
       setGuardian(null);
@@ -129,6 +162,38 @@ export default function GuardianDetailPage({
 
     return () => controller.abort();
   }, [loadGuardian, resolvedGuardianId]);
+
+  useEffect(() => {
+    if (!resolvedGuardianId) {
+      setGuardianStudents([]);
+      setStudentsError(null);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    (async () => {
+      setStudentsLoading(true);
+      setStudentsError(null);
+      try {
+        const data = await loadGuardianStudents(
+          resolvedGuardianId,
+          controller.signal
+        );
+        setGuardianStudents(data);
+      } catch (err: unknown) {
+        if (!(err instanceof DOMException && err.name === "AbortError")) {
+          setStudentsError(
+            getErrorMessage(err, "Failed to load guardian students.")
+          );
+        }
+      } finally {
+        setStudentsLoading(false);
+      }
+    })();
+
+    return () => controller.abort();
+  }, [loadGuardianStudents, resolvedGuardianId]);
 
   useEffect(() => {
     if (!guardian) {
@@ -413,10 +478,93 @@ export default function GuardianDetailPage({
           )}
         </div>
       )}
+
+      {guardian && (
+        <div className="overflow-x-auto rounded-3xl border border-slate-800/80 bg-slate-900/70 shadow-2xl shadow-black/30">
+          <div className="px-6 pt-6">
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+              Linked Students
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold text-white">Students</h2>
+          </div>
+
+          {studentsError && (
+            <div className="mx-6 mt-4 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-200">
+              {studentsError}
+            </div>
+          )}
+
+          <table className="mt-4 min-w-full text-left text-sm text-slate-200">
+            <thead className="bg-slate-950/60 text-xs uppercase tracking-[0.3em] text-slate-400">
+              <tr>
+                <th className="px-4 py-4">Student</th>
+                <th className="px-4 py-4">Relationship</th>
+                <th className="px-4 py-4">Primary</th>
+              </tr>
+            </thead>
+            <tbody>
+              {guardianStudents.map((studentLink) => (
+                <tr
+                  key={`${studentLink.studentId}-${studentLink.relationship ?? ""}`}
+                  className="relative border-t border-slate-800/60 hover:bg-slate-900/50"
+                >
+                  <td className="px-4 py-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute inset-0 h-full w-full rounded-none px-0 py-0"
+                      onClick={() =>
+                        navigate(`/student/${studentLink.studentId}`)
+                      }
+                      aria-label={`Select ${studentLink.studentFirstName} ${studentLink.studentLastName}`}
+                    >
+                      <span className="sr-only">
+                        Select {studentLink.studentFirstName}{" "}
+                        {studentLink.studentLastName}
+                      </span>
+                    </Button>
+
+                    <div className="relative z-10 pointer-events-none">
+                      <div className="font-medium text-white">
+                        {studentLink.studentFirstName}{" "}
+                        {studentLink.studentLastName}
+                      </div>
+                      <div className="text-xs text-slate-400">
+                        ID: {studentLink.studentId}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 relative z-10 pointer-events-none">
+                    {studentLink.relationship || "-"}
+                  </td>
+                  <td className="px-4 py-4 relative z-10 pointer-events-none">
+                    {studentLink.isPrimary ? "Yes" : "No"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {!studentsLoading &&
+            guardianStudents.length === 0 &&
+            !studentsError && (
+              <div className="px-6 py-8 text-center text-sm text-slate-400">
+                No linked students found.
+              </div>
+            )}
+
+          {studentsLoading && (
+            <div className="px-6 py-8 text-center text-sm text-slate-400">
+              Loading students...
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
+// Render a read-only or editable field block.
 function renderField({
   label,
   value,
@@ -455,6 +603,7 @@ function renderField({
   );
 }
 
+// Format a full date/time string for display.
 function formatDateTime(value?: string | null) {
   if (!value) return "-";
   const parsed = new Date(value);

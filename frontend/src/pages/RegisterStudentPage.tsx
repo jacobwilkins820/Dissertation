@@ -12,6 +12,7 @@ import {
   type BackendErrorPayload,
 } from "../utils/utilFuncs";
 
+// Student registration form with client + server validation. Should be SQL injection safe.
 type FieldErrors = Partial<Record<keyof CreateStudentRequest, string>>;
 
 const fieldErrorKeys = new Set<keyof CreateStudentRequest>([
@@ -23,10 +24,12 @@ const fieldErrorKeys = new Set<keyof CreateStudentRequest>([
   "status",
 ]);
 
+// Narrow backend field keys to known form fields.
 function isFieldErrorKey(key: string): key is keyof CreateStudentRequest {
   return fieldErrorKeys.has(key as keyof CreateStudentRequest);
 }
 
+// Parse backend error message into field-level errors.
 function extractFieldErrors(payload: unknown): FieldErrors {
   const out: FieldErrors = {};
   if (!payload || typeof payload !== "object") return out;
@@ -48,6 +51,7 @@ function extractFieldErrors(payload: unknown): FieldErrors {
   return out;
 }
 
+// Render the register student page.
 export default function RegisterStudent() {
   const [upn, setUpn] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -214,9 +218,7 @@ export default function RegisterStudent() {
               onChange={(e) => setDateOfBirth(e.target.value)}
             />
             {fieldErrors.dateOfBirth && (
-              <small className="text-rose-200">
-                {fieldErrors.dateOfBirth}
-              </small>
+              <small className="text-rose-200">{fieldErrors.dateOfBirth}</small>
             )}
           </label>
 

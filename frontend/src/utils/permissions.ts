@@ -1,3 +1,6 @@
+// Permission bitmask flags + helper.
+//TODO: mayeb look into expanding them
+//TODO: think about a shared module. DTOS and permissions would be in it
 export const Permissions = {
   VIEW_STUDENT_DIRECTORY: 1 << 0, // 1
   VIEW_STUDENT_DETAILS: 1 << 1, // 2
@@ -16,6 +19,7 @@ export const Permissions = {
   CREATE_USER: 1 << 11, // 2048
 };
 
+// Check if a permission bit is set on the mask.
 export function hasPermission(mask: number, perm: number) {
   return (mask & perm) === perm;
 }

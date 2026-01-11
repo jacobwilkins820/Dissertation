@@ -1,3 +1,4 @@
+// Auth request/response types used across the frontend.
 export type LoginRequest = {
   email: string;
   password: string;

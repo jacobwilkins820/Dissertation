@@ -1,3 +1,4 @@
+// Reusable button with style variants and sizes. ensures consistency across the app.
 type ButtonProps = {
   variant?: "primary" | "secondary" | "danger" | "ghost";
   size?: "sm" | "md" | "lg";
@@ -24,6 +25,7 @@ const sizes = {
   lg: "px-5 py-2.5 text-sm tracking-[0.18em] uppercase",
 };
 
+// Render a styled button with variant/size classes.
 export function Button({
   variant = "primary",
   size = "md",

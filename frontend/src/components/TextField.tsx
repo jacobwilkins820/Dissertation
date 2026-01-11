@@ -1,3 +1,4 @@
+// Reusable input with size variants.
 type TextFieldProps = {
   size?: "sm" | "md" | "lg";
   className?: string;
@@ -13,6 +14,7 @@ const sizes = {
   lg: "px-5 py-2.5 text-sm",
 };
 
+// Render a styled text input.
 export function TextField({
   size = "md",
   className = "",

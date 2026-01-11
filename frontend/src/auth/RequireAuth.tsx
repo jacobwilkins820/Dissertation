@@ -1,6 +1,8 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "./UseAuth";
 
+// Route guard that redirects unauthenticated users to login.
+// Gate protected routes until auth hydration completes.
 export function RequireAuth() {
   const { isAuthenticated, isHydrating } = useAuth();
   const location = useLocation();

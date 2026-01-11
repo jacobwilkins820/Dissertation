@@ -12,6 +12,7 @@ import { hasPermission, Permissions } from "../utils/permissions";
 import { useAuth } from "../auth/UseAuth";
 import type { PageResponse, Student } from "../utils/responses";
 
+// Student directory with search, filters, and pagination.
 const sortOptions = [
   { label: "Last name (A-Z)", value: "lastName,asc" },
   { label: "Last name (Z-A)", value: "lastName,desc" },
@@ -353,6 +354,7 @@ export default function StudentPage() {
     );
   }
 
+  // Format a short date string for display.
   function formatDate(value?: string) {
     if (!value) return "-";
     const parsed = new Date(value);
@@ -360,6 +362,7 @@ export default function StudentPage() {
     return parsed.toLocaleDateString();
   }
 
+  // Format a full date/time string for display.
   function formatDateTime(value?: string) {
     if (!value) return "-";
     const parsed = new Date(value);
@@ -367,6 +370,7 @@ export default function StudentPage() {
     return parsed.toLocaleString();
   }
 
+  // Map status values to badge styles.
   function statusClasses(status?: string) {
     switch (status) {
       case "ACTIVE":

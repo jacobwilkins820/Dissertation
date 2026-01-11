@@ -11,6 +11,7 @@ import {
   safeReadJson,
 } from "../utils/utilFuncs";
 
+// Guardian search page with permission-aware access.
 export default function GuardiansSearchPage() {
   const navigate = useNavigate();
   const { user } = useAuth();

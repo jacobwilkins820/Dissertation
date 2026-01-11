@@ -3,6 +3,7 @@ import { Button } from "./Button";
 import { TextField } from "./TextField";
 import { getErrorMessage } from "../utils/utilFuncs";
 
+// Generic async search select with debounce + optional summary.
 type SearchSelectProps<T> = {
   label: string;
   placeholder?: string;
@@ -25,6 +26,7 @@ type SearchSelectProps<T> = {
   maxResults?: number;
 };
 
+// Render a search select list for results.
 export function SearchSelect<T>({
   label,
   placeholder,

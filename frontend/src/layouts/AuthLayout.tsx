@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
 
+// Auth layout without navbar (login only so far).
 export default function AuthLayout() {
   // no navbar here
   return (

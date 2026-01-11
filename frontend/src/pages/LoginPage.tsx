@@ -5,6 +5,7 @@ import { Button } from "../components/Button";
 import { TextField } from "../components/TextField";
 import type { ApiError } from "../services/http";
 
+// Login form with auth redirect handling.
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -90,9 +91,7 @@ export default function LoginPage() {
   );
 }
 
-/**
- * Type guard for ApiError thrown by http.ts
- */
+// Type guard for ApiError thrown by http.ts.
 function isApiError(err: unknown): err is ApiError {
   if (typeof err !== "object" || err === null) return false;
   if (!("message" in err) || !("status" in err)) return false;

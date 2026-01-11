@@ -16,6 +16,8 @@ import GuardianDetailPage from "./pages/GuardianDetailPage";
 import AppLayout from "./layouts/AppLayout";
 import AuthLayout from "./layouts/AuthLayout";
 
+// App routes with permission gating + layout composition.
+// Main router tree and access control rules.
 export default function App() {
   const { user } = useAuth();
   const permissionLevel = user?.permissionLevel ?? 0;
@@ -136,6 +138,7 @@ export default function App() {
   );
 }
 
+// Simple forbidden banner for protected routes.
 function Forbidden() {
   return (
     <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-6 py-4 text-sm text-rose-200">
