@@ -2,6 +2,8 @@
 -- Creates users table (if missing) and seeds 10 users per role.
 -- Password for all users: Password123!
 
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
 

@@ -3,6 +3,7 @@ import { API_BASE_URL } from "../config/env";
 import { Button } from "../components/Button";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../auth/UseAuth";
+import type { CreateStudentRequest } from "../utils/responses";
 import {
   getAuthHeader,
   safeReadJson,
@@ -10,19 +11,6 @@ import {
   getErrorMessage,
   type BackendErrorPayload,
 } from "../utils/utilFuncs";
-
-/**
- * Register Student Page
- * - Admin-only create via POST /api/students
- */
-type CreateStudentRequest = {
-  upn: string;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  gender: string;
-  status?: string;
-};
 
 type FieldErrors = Partial<Record<keyof CreateStudentRequest, string>>;
 

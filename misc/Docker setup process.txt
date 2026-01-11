@@ -1,0 +1,6 @@
+Process for building container.
+
+Install and Open docker desktop
+
+In VSCode open the docker-compose. click run all services at the top. this should start it as expected
+

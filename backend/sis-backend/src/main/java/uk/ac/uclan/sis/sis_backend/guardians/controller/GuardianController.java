@@ -55,6 +55,13 @@ public class GuardianController {
         return ResponseEntity.ok(guardianService.search(query));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<GuardianSearchResponse>> searchByPath(
+            @RequestParam("query") String query
+    ) {
+        return ResponseEntity.ok(guardianService.search(query));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<CreateGuardianResponse> update(
             @PathVariable Long id,

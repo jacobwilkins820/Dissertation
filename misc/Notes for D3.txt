@@ -6,3 +6,11 @@ Setup stuff:
 		Then set the settings in VS code
 	
 	Ran npm create vite@latest . -- --template react-tsx to create the app using tsx as default
+
+
+
+
+
+Random notes:
+
+SQL injection is mitigated in the creation fields as i use Spring Data JPAs. i use @Valid @RequestBody for all inputs

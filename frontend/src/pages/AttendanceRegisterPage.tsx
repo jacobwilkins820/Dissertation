@@ -18,7 +18,7 @@ import type {
   EnrolmentListItemResponse,
   SessionPart,
   StudentResponse,
-} from "../types/responses";
+} from "../utils/responses";
 
 type AttendanceRecordState = {
   id?: number;

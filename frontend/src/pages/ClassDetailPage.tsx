@@ -17,7 +17,7 @@ import type {
   ClassResponse,
   EnrolmentListItemResponse,
   StudentResponse,
-} from "../types/responses";
+} from "../utils/responses";
 
 export default function ClassDetailPage() {
   const { classId } = useParams();

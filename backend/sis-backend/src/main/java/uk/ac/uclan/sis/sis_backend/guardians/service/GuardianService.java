@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
+import uk.ac.uclan.sis.sis_backend.common.exception.ForbiddenException;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.CreateGuardianRequest;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.CreateGuardianResponse;
@@ -51,7 +52,8 @@ public class GuardianService {
 
     @Transactional(readOnly = true)
     public GuardianResponse getById(Long id) {
-        authorizationService.requireAdmin(currentUser());
+        User user = currentUser();
+        requireAdminOrSelf(user, id);
         Guardian guardian = guardianRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Guardian", "id " + id + " not found"));
 
@@ -90,7 +92,10 @@ public class GuardianService {
      */
     @Transactional(readOnly = true)
     public List<GuardianSearchResponse> search(String query) {
-        authorizationService.requireAdmin(currentUser());
+        User user = currentUser();
+        if (!isAdmin(user)) {
+            authorizationService.require(user, Permissions.VIEW_GUARDIAN_CONTACT);
+        }
 
         if (query == null) return List.of();
         String q = query.trim();
@@ -105,7 +110,8 @@ public class GuardianService {
 
     @Transactional
     public CreateGuardianResponse update(Long id, UpdateGuardianRequest request) {
-        authorizationService.requireAdmin(currentUser());
+        User user = currentUser();
+        requireAdminOrSelf(user, id);
         Guardian guardian = guardianRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Guardian", "id " + id + " not found"));
 
@@ -132,5 +138,25 @@ public class GuardianService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
         }
         return (User) auth.getPrincipal();
+    }
+
+    private boolean isAdmin(User user) {
+        String roleName = user.getRole() == null ? null : user.getRole().getName();
+        return roleName != null && roleName.equalsIgnoreCase("ADMIN");
+    }
+
+    private void requireAdminOrSelf(User user, Long guardianId) {
+        if (isAdmin(user)) {
+            return;
+        }
+
+        Long linkedGuardianId = user.getLinkedGuardianId();
+        if (linkedGuardianId != null
+                && linkedGuardianId.equals(guardianId)
+                && Permissions.has(user.getRole().getPermissionLevel(), Permissions.EDIT_GUARDIAN_SELF)) {
+            return;
+        }
+
+        throw new ForbiddenException("Guardian", "Not allowed to access this guardian");
     }
 }

@@ -92,3 +92,65 @@ export type PageResponse<T> = {
   size: number;
   number: number;
 };
+
+export type RoleDto = {
+  id: number;
+  name: string; // e.g., "ADMIN", "TEACHER", "PARENT"
+};
+
+export type GuardianDto = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email?: string | null;
+};
+
+export type CreateUserRequest = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  roleId: number;
+  guardianId?: number | null;
+};
+
+export type CreateStudentRequest = {
+  upn: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  gender: string;
+  status?: string;
+};
+
+export type GuardianSearch = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email?: string | null;
+};
+
+export type GuardianDetail = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email?: string | null;
+  phone?: string | null;
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  city?: string | null;
+  postcode?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+};
+
+export type GuardianForm = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  postcode: string;
+};

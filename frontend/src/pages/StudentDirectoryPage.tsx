@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { API_BASE_URL } from "../config/env";
 import { Button } from "../components/Button";
 import { SearchSelect } from "../components/SearchSelect";
@@ -10,7 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { hasPermission, Permissions } from "../utils/permissions";
 import { useAuth } from "../auth/UseAuth";
-import type { PageResponse, Student } from "../types/responses";
+import type { PageResponse, Student } from "../utils/responses";
 
 const sortOptions = [
   { label: "Last name (A-Z)", value: "lastName,asc" },

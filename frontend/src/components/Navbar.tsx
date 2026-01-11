@@ -21,6 +21,12 @@ export default function Navbar() {
     Permissions.CREATE_STUDENT
   );
   const canCreateUser = hasPermission(permissionLevel, Permissions.CREATE_USER);
+  const isAdmin = (user?.roleName ?? "").toUpperCase() === "ADMIN";
+  const hasGuardianAccount = user?.guardianId != null;
+  const canAccessGuardians =
+    isAdmin ||
+    hasGuardianAccount ||
+    hasPermission(permissionLevel, Permissions.VIEW_GUARDIAN_CONTACT);
   const canRegister = canCreateStudent || canCreateUser;
 
   const handleLogout = async () => {
@@ -52,6 +58,14 @@ export default function Navbar() {
             className="text-sm uppercase tracking-[0.2em] text-slate-300 no-underline transition hover:text-white"
           >
             Classes
+          </Link>
+        )}
+        {canAccessGuardians && (
+          <Link
+            to={hasGuardianAccount && !isAdmin ? "/guardian/me" : "/guardians"}
+            className="text-sm uppercase tracking-[0.2em] text-slate-300 no-underline transition hover:text-white"
+          >
+            {hasGuardianAccount && !isAdmin ? "My Account" : "Guardians"}
           </Link>
         )}
         {canRegister && (

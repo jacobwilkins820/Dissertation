@@ -4,6 +4,7 @@ import { Button } from "../components/Button";
 import { TextField } from "../components/TextField";
 import { SearchSelect } from "../components/SearchSelect";
 import { useAuth } from "../auth/UseAuth";
+import type { CreateUserRequest, GuardianDto, RoleDto } from "../utils/responses";
 import {
   getAuthHeader,
   safeReadJson,
@@ -11,34 +12,6 @@ import {
   getErrorMessage,
   type BackendErrorPayload,
 } from "../utils/utilFuncs";
-
-/**
- * Register (Admin Create User) Page
- * - Admin-only create via POST /api/users
- * - Loads roles, shows role dropdown (name -> sends roleId)
- * - If selected role is "PARENT",
- *   shows guardian search + selection, and includes guardianId in create request.
- */
-type RoleDto = {
-  id: number;
-  name: string; // e.g., "ADMIN", "TEACHER", "PARENT"
-};
-
-type GuardianDto = {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email?: string | null;
-};
-
-type CreateUserRequest = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  roleId: number;
-  guardianId?: number | null;
-};
 
 type FieldErrors = Partial<
   Record<keyof CreateUserRequest | "confirmPassword", string>
@@ -168,7 +141,9 @@ export default function RegisterUserPage() {
   const fetchGuardians = useCallback(
     async (query: string, signal: AbortSignal) => {
       const res = await fetch(
-        `${API_BASE_URL}/api/guardians?query=${encodeURIComponent(query)}`,
+        `${API_BASE_URL}/api/guardians/search?query=${encodeURIComponent(
+          query
+        )}`,
         {
           signal,
           headers: {

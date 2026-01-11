@@ -11,6 +11,8 @@ import StudentPage from "./pages/StudentPage";
 import ClassesPage from "./pages/ClassesPage";
 import ClassDetailPage from "./pages/ClassDetailPage";
 import AttendanceRegisterPage from "./pages/AttendanceRegisterPage";
+import GuardiansSearchPage from "./pages/GuardiansSearchPage";
+import GuardianDetailPage from "./pages/GuardianDetailPage";
 import AppLayout from "./layouts/AppLayout";
 import AuthLayout from "./layouts/AuthLayout";
 
@@ -34,6 +36,15 @@ export default function App() {
     Permissions.CREATE_STUDENT
   );
   const canCreateUser = hasPermission(permissionLevel, Permissions.CREATE_USER);
+  const isAdmin = (user?.roleName ?? "").toUpperCase() === "ADMIN";
+  const canAccessGuardians =
+    isAdmin ||
+    user?.guardianId != null ||
+    hasPermission(permissionLevel, Permissions.VIEW_GUARDIAN_CONTACT);
+  const canSearchGuardians =
+    isAdmin ||
+    (hasPermission(permissionLevel, Permissions.VIEW_GUARDIAN_CONTACT) &&
+      user?.guardianId == null);
 
   return (
     <Routes>
@@ -96,6 +107,25 @@ export default function App() {
           <Route
             path="/attendance/:classId"
             element={canViewClasses ? <AttendanceRegisterPage /> : <Forbidden />}
+          />
+
+          <Route
+            path="/guardians"
+            element={canSearchGuardians ? <GuardiansSearchPage /> : <Forbidden />}
+          />
+          <Route
+            path="/guardians/:guardianId"
+            element={canAccessGuardians ? <GuardianDetailPage /> : <Forbidden />}
+          />
+          <Route
+            path="/guardian/me"
+            element={
+              user?.guardianId != null ? (
+                <GuardianDetailPage self />
+              ) : (
+                <Forbidden />
+              )
+            }
           />
         </Route>
       </Route>
