@@ -1,24 +1,27 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { API_BASE_URL } from "../config/env";
 import { Button } from "../components/Button";
 import { TextField } from "../components/TextField";
-import {
-  extractErrorMessage,
-  getAuthHeader,
-  getErrorMessage,
-  safeReadJson,
-} from "../utils/utilFuncs";
+import { getErrorMessage } from "../utils/utilFuncs";
 import type {
   AcademicYearResponse,
-  AttendanceRecordListItemResponse,
-  AttendanceRecordResponse,
   AttendanceSessionResponse,
   ClassResponse,
-  EnrolmentListItemResponse,
   SessionPart,
   StudentResponse,
 } from "../utils/responses";
+import {
+  createAttendanceRecord,
+  createAttendanceSession,
+  getAttendanceRecord,
+  getAttendanceRecordsForSession,
+  getAttendanceSessionsForClass,
+  getClass,
+  getClassEnrolments,
+  getCurrentAcademicYear,
+  getStudent,
+  updateAttendanceRecord,
+} from "../services/backend";
 
 // Attendance register with session creation + record updates.
 type AttendanceRecordState = {
@@ -64,31 +67,10 @@ export default function AttendanceRegisterPage() {
       setError(null);
 
       try {
-        const [classRes, yearRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/classes/${parsedId}`, {
-            headers: { ...getAuthHeader() },
-            signal,
-          }),
-          fetch(`${API_BASE_URL}/api/academic-years/current`, {
-            headers: { ...getAuthHeader() },
-            signal,
-          }),
+        const [classPayload, yearPayload] = await Promise.all([
+          getClass(parsedId, signal),
+          getCurrentAcademicYear(signal),
         ]);
-
-        if (!classRes.ok) {
-          const payload = await safeReadJson(classRes);
-          throw new Error(extractErrorMessage(payload));
-        }
-
-        if (!yearRes.ok) {
-          const payload = await safeReadJson(yearRes);
-          throw new Error(extractErrorMessage(payload));
-        }
-
-        const classPayload = (await safeReadJson(classRes)) as ClassResponse;
-        const yearPayload = (await safeReadJson(
-          yearRes
-        )) as AcademicYearResponse;
 
         setClazz(classPayload);
         setAcademicYear(yearPayload);
@@ -111,43 +93,17 @@ export default function AttendanceRegisterPage() {
       setError(null);
 
       try {
-        const res = await fetch(
-          `${API_BASE_URL}/api/enrolments/classes/${clazz.id}/enrolments?academicYearId=${academicYear.id}`,
-          {
-            headers: { ...getAuthHeader() },
-            signal,
-          }
+        const enrolments = await getClassEnrolments(
+          clazz.id,
+          academicYear.id,
+          signal
         );
-
-        if (!res.ok) {
-          const payload = await safeReadJson(res);
-          throw new Error(extractErrorMessage(payload));
-        }
-
-        const enrolments = (await safeReadJson(
-          res
-        )) as EnrolmentListItemResponse[];
         const studentIds = Array.from(
           new Set((enrolments ?? []).map((e) => e.studentId))
         );
 
         const studentDetails = await Promise.all(
-          studentIds.map(async (id) => {
-            const studentRes = await fetch(
-              `${API_BASE_URL}/api/students/${id}`,
-              {
-                headers: { ...getAuthHeader() },
-                signal,
-              }
-            );
-
-            if (!studentRes.ok) {
-              const payload = await safeReadJson(studentRes);
-              throw new Error(extractErrorMessage(payload));
-            }
-
-            return (await safeReadJson(studentRes)) as StudentResponse;
-          })
+          studentIds.map((id) => getStudent(id, signal))
         );
 
         setStudents(studentDetails);
@@ -164,22 +120,7 @@ export default function AttendanceRegisterPage() {
 
   const loadRecords = useCallback(
     async (sessionId: number, signal: AbortSignal) => {
-      const res = await fetch(
-        `${API_BASE_URL}/api/attendance-sessions/${sessionId}/attendance-records`,
-        {
-          headers: { ...getAuthHeader() },
-          signal,
-        }
-      );
-
-      if (!res.ok) {
-        const payload = await safeReadJson(res);
-        throw new Error(extractErrorMessage(payload));
-      }
-
-      const payload = (await safeReadJson(
-        res
-      )) as AttendanceRecordListItemResponse[];
+      const payload = await getAttendanceRecordsForSession(sessionId, signal);
       const nextRecords: Record<number, AttendanceRecordState> = {};
       const lateRecords = (payload ?? []).filter((r) => r.status === "LATE");
 
@@ -194,17 +135,7 @@ export default function AttendanceRegisterPage() {
       if (lateRecords.length > 0) {
         const lateDetails = await Promise.all(
           lateRecords.map(async (record) => {
-            const detailRes = await fetch(
-              `${API_BASE_URL}/api/attendance-records/${record.id}`,
-              { headers: { ...getAuthHeader() }, signal }
-            );
-
-            if (!detailRes.ok) {
-              const payload = await safeReadJson(detailRes);
-              throw new Error(extractErrorMessage(payload));
-            }
-
-            return (await safeReadJson(detailRes)) as AttendanceRecordResponse;
+            return getAttendanceRecord(record.id, signal);
           })
         );
 
@@ -231,24 +162,12 @@ export default function AttendanceRegisterPage() {
       setSaveMessage(null);
 
       try {
-        const params = new URLSearchParams({
-          classId: String(parsedId),
-          from: sessionDate,
-          to: sessionDate,
-        });
-        const res = await fetch(
-          `${API_BASE_URL}/api/attendance-sessions?${params.toString()}`,
-          { headers: { ...getAuthHeader() }, signal }
+        const payload = await getAttendanceSessionsForClass(
+          parsedId,
+          sessionDate,
+          sessionDate,
+          signal
         );
-
-        if (!res.ok) {
-          const payload = await safeReadJson(res);
-          throw new Error(extractErrorMessage(payload));
-        }
-
-        const payload = (await safeReadJson(
-          res
-        )) as AttendanceSessionResponse[];
         const match = (payload ?? []).find(
           (item) => item.session === sessionPart
         );
@@ -296,25 +215,11 @@ export default function AttendanceRegisterPage() {
   const ensureSession = useCallback(async () => {
     if (session) return session;
 
-    const res = await fetch(`${API_BASE_URL}/api/attendance-sessions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeader(),
-      },
-      body: JSON.stringify({
-        classId: parsedId,
-        sessionDate,
-        session: sessionPart,
-      }),
+    const created = await createAttendanceSession({
+      classId: parsedId,
+      sessionDate,
+      session: sessionPart,
     });
-
-    if (!res.ok) {
-      const payload = await safeReadJson(res);
-      throw new Error(extractErrorMessage(payload));
-    }
-
-    const created = (await safeReadJson(res)) as AttendanceSessionResponse;
     setSession(created);
     return created;
   }, [parsedId, session, sessionDate, sessionPart]);
@@ -369,26 +274,7 @@ export default function AttendanceRegisterPage() {
           };
 
           if (record.id) {
-            const res = await fetch(
-              `${API_BASE_URL}/api/attendance-records/${record.id}`,
-              {
-                method: "PUT",
-                headers: {
-                  "Content-Type": "application/json",
-                  ...getAuthHeader(),
-                },
-                body: JSON.stringify(payload),
-              }
-            );
-
-            if (!res.ok) {
-              const responsePayload = await safeReadJson(res);
-              throw new Error(extractErrorMessage(responsePayload));
-            }
-
-            const updated = (await safeReadJson(
-              res
-            )) as AttendanceRecordResponse;
+            const updated = await updateAttendanceRecord(record.id, payload);
             return {
               studentId,
               record: {
@@ -399,25 +285,11 @@ export default function AttendanceRegisterPage() {
             };
           }
 
-          const res = await fetch(`${API_BASE_URL}/api/attendance-records`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...getAuthHeader(),
-            },
-            body: JSON.stringify({
-              attendanceSessionId: activeSession.id,
-              studentId,
-              ...payload,
-            }),
+          const created = await createAttendanceRecord({
+            attendanceSessionId: activeSession.id,
+            studentId,
+            ...payload,
           });
-
-          if (!res.ok) {
-            const responsePayload = await safeReadJson(res);
-            throw new Error(extractErrorMessage(responsePayload));
-          }
-
-          const created = (await safeReadJson(res)) as AttendanceRecordResponse;
           return {
             studentId,
             record: {

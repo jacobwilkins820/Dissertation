@@ -5,17 +5,16 @@ import type {
 } from "../utils/responses";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { API_BASE_URL } from "../config/env";
 import { Button } from "../components/Button";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../auth/UseAuth";
 import { hasPermission, Permissions } from "../utils/permissions";
+import { getErrorMessage } from "../utils/utilFuncs";
 import {
-  extractErrorMessage,
-  getAuthHeader,
-  getErrorMessage,
-  safeReadJson,
-} from "../utils/utilFuncs";
+  getGuardianDetail,
+  getGuardianStudents,
+  updateGuardian,
+} from "../services/backend";
 
 // Guardian profile view with self-editing if a parent user. parents are unable to see others details.
 const emptyForm: GuardianForm = {
@@ -85,50 +84,14 @@ export default function GuardianDetailPage({
 
   const loadGuardian = useCallback(
     async (id: number, signal?: AbortSignal) => {
-      const endpoint = shouldLoadFull
-        ? `${API_BASE_URL}/api/guardians/${id}`
-        : `${API_BASE_URL}/api/guardians/${id}/contact`;
-
-      const res = await fetch(endpoint, {
-        signal,
-        headers: {
-          ...getAuthHeader(),
-        },
-      });
-
-      if (!res.ok) {
-        const payload = await safeReadJson(res);
-        throw new Error(extractErrorMessage(payload));
-      }
-
-      const data = (await safeReadJson(res)) as GuardianDetail | null;
-      if (!data || typeof data !== "object") {
-        throw new Error("Unexpected response from server.");
-      }
-
-      return data;
+      return getGuardianDetail(id, { full: shouldLoadFull }, signal);
     },
     [shouldLoadFull]
   );
 
   const loadGuardianStudents = useCallback(
     async (id: number, signal?: AbortSignal) => {
-      const res = await fetch(`${API_BASE_URL}/api/guardians/${id}/students`, {
-        signal,
-        headers: {
-          ...getAuthHeader(),
-        },
-      });
-
-      if (!res.ok) {
-        const payload = await safeReadJson(res);
-        throw new Error(extractErrorMessage(payload));
-      }
-
-      const data = (await safeReadJson(res)) as
-        | StudentGuardianResponse[]
-        | null;
-      return Array.isArray(data) ? data : [];
+      return getGuardianStudents(id, signal);
     },
     []
   );
@@ -232,21 +195,7 @@ export default function GuardianDetailPage({
         postcode: formValues.postcode.trim() || null,
       };
 
-      const res = await fetch(`${API_BASE_URL}/api/guardians/${guardian.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeader(),
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const errorPayload = await safeReadJson(res);
-        throw new Error(extractErrorMessage(errorPayload));
-      }
-
-      await safeReadJson(res);
+      await updateGuardian(guardian.id, payload);
 
       const refreshed = await loadGuardian(guardian.id);
       setGuardian(refreshed);

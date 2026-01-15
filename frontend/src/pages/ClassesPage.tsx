@@ -1,22 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "../config/env";
 import { Button } from "../components/Button";
 import { SearchSelect } from "../components/SearchSelect";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../auth/UseAuth";
 import { hasPermission, Permissions } from "../utils/permissions";
-import {
-  extractErrorMessage,
-  getAuthHeader,
-  getErrorMessage,
-  safeReadJson,
-} from "../utils/utilFuncs";
+import { getErrorMessage } from "../utils/utilFuncs";
 import type {
   ClassListItemResponse,
-  ClassResponse,
   UserListItemResponse,
 } from "../utils/responses";
+import {
+  createClass,
+  getClass,
+  getClasses,
+  getUsers,
+} from "../services/backend";
 
 // Classes directory with admin-only create flow.
 export default function ClassesPage() {
@@ -54,20 +53,7 @@ export default function ClassesPage() {
       setError(null);
 
       try {
-        const res = await fetch(`${API_BASE_URL}/api/classes`, {
-          headers: {
-            ...getAuthHeader(),
-          },
-          signal: controller.signal,
-        });
-
-        if (!res.ok) {
-          const payload = await safeReadJson(res);
-          throw new Error(extractErrorMessage(payload));
-        }
-
-        const payload = (await safeReadJson(res)) as ClassListItemResponse[];
-        const list = Array.isArray(payload) ? payload : [];
+        const list = await getClasses(controller.signal);
 
         if (isAdmin || !user?.id) {
           setVisibleClasses(list);
@@ -75,19 +61,7 @@ export default function ClassesPage() {
         }
 
         const details = await Promise.all(
-          list.map(async (item) => {
-            const detailRes = await fetch(
-              `${API_BASE_URL}/api/classes/${item.id}`,
-              { headers: { ...getAuthHeader() }, signal: controller.signal }
-            );
-
-            if (!detailRes.ok) {
-              const detailPayload = await safeReadJson(detailRes);
-              throw new Error(extractErrorMessage(detailPayload));
-            }
-
-            return (await safeReadJson(detailRes)) as ClassResponse;
-          })
+          list.map((item) => getClass(item.id, controller.signal))
         );
 
         const allowed = list.filter((_, idx) => {
@@ -113,20 +87,7 @@ export default function ClassesPage() {
   const fetchTeachers = useCallback(
     async (query: string, signal: AbortSignal) => {
       if (!teachersCacheRef.current) {
-        const res = await fetch(`${API_BASE_URL}/api/users`, {
-          headers: {
-            ...getAuthHeader(),
-          },
-          signal,
-        });
-
-        if (!res.ok) {
-          const payload = await safeReadJson(res);
-          throw new Error(extractErrorMessage(payload));
-        }
-
-        const payload = (await safeReadJson(res)) as UserListItemResponse[];
-        const list = Array.isArray(payload) ? payload : [];
+        const list = await getUsers(signal);
         teachersCacheRef.current = list.filter(
           (item) => (item.roleName ?? "").toUpperCase() === "TEACHER"
         );
@@ -161,21 +122,7 @@ export default function ClassesPage() {
 
     setSubmitting(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/classes`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeader(),
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const responsePayload = await safeReadJson(res);
-        throw new Error(extractErrorMessage(responsePayload));
-      }
-
-      await safeReadJson(res);
+      await createClass(payload);
 
       setSuccessMsg("Class created successfully.");
       setName("");
@@ -185,16 +132,8 @@ export default function ClassesPage() {
       setTeacherResetKey((prev) => prev + 1);
 
       setLoading(true);
-      const listRes = await fetch(`${API_BASE_URL}/api/classes`, {
-        headers: { ...getAuthHeader() },
-      });
-      if (listRes.ok) {
-        const listPayload = (await safeReadJson(
-          listRes
-        )) as ClassListItemResponse[];
-        const list = Array.isArray(listPayload) ? listPayload : [];
-        setVisibleClasses(list);
-      }
+      const list = await getClasses();
+      setVisibleClasses(list);
     } catch (err: unknown) {
       setFormError(getErrorMessage(err, "Failed to create class."));
     } finally {

@@ -126,6 +126,7 @@ export type CreateStudentRequest = {
 
 export type StudentGuardianResponse = {
   studentId: number;
+  guardianId: number;
   studentFirstName: string;
   studentLastName: string;
   guardianFirstName: string;

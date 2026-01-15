@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { API_BASE_URL } from "../config/env";
 import { Button } from "../components/Button";
 import { TextField } from "../components/TextField";
 import { SearchSelect } from "../components/SearchSelect";
@@ -10,12 +9,15 @@ import type {
   RoleDto,
 } from "../utils/responses";
 import {
-  getAuthHeader,
-  safeReadJson,
-  extractErrorMessage,
   getErrorMessage,
   type BackendErrorPayload,
 } from "../utils/utilFuncs";
+import {
+  createUser,
+  getRoles,
+  isFetchJsonError,
+  searchGuardians,
+} from "../services/backend";
 
 // User creation form with role-based guardian linking. should be SQL injection safe.
 type FieldErrors = Partial<
@@ -116,19 +118,7 @@ export default function RegisterUserPage() {
       setRolesLoading(true);
       setRolesError(null);
       try {
-        const res = await fetch(`${API_BASE_URL}/api/roles`, {
-          headers: {
-            "Content-Type": "application/json",
-            ...getAuthHeader(),
-          },
-        });
-
-        if (!res.ok) {
-          const payload = await safeReadJson(res);
-          throw new Error(extractErrorMessage(payload));
-        }
-
-        const data = (await res.json()) as RoleDto[];
+        const data = await getRoles();
         setRoles(data);
       } catch (e: unknown) {
         setRolesError(getErrorMessage(e, "Failed to load roles."));
@@ -148,26 +138,7 @@ export default function RegisterUserPage() {
 
   const fetchGuardians = useCallback(
     async (query: string, signal: AbortSignal) => {
-      const res = await fetch(
-        `${API_BASE_URL}/api/guardians/search?query=${encodeURIComponent(
-          query
-        )}`,
-        {
-          signal,
-          headers: {
-            "Content-Type": "application/json",
-            ...getAuthHeader(),
-          },
-        }
-      );
-
-      if (!res.ok) {
-        const payload = await safeReadJson(res);
-        throw new Error(extractErrorMessage(payload));
-      }
-
-      const data = (await res.json()) as GuardianDto[];
-      return Array.isArray(data) ? data : [];
+      return searchGuardians<GuardianDto>(query, signal);
     },
     []
   );
@@ -215,23 +186,7 @@ export default function RegisterUserPage() {
 
     setSubmitting(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/users`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeader(),
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        const payload = await safeReadJson(res);
-        setFieldErrors((prev) => ({ ...prev, ...extractFieldErrors(payload) }));
-        throw new Error(extractErrorMessage(payload));
-      }
-
-      // summary DTO returned
-      await safeReadJson(res);
+      await createUser(body);
 
       setSuccessMsg("User created successfully.");
 
@@ -248,6 +203,12 @@ export default function RegisterUserPage() {
       setSelectedGuardian(null);
       setGuardianResetKey((prev) => prev + 1);
     } catch (e: unknown) {
+      if (isFetchJsonError(e)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          ...extractFieldErrors(e.payload),
+        }));
+      }
       setGlobalError(getErrorMessage(e, "Failed to create user."));
     } finally {
       setSubmitting(false);

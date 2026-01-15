@@ -1,16 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { API_BASE_URL } from "../config/env";
 import { Button } from "../components/Button";
 import { SearchSelect } from "../components/SearchSelect";
-import {
-  extractErrorMessage,
-  getAuthHeader,
-  safeReadJson,
-} from "../utils/utilFuncs";
 import { useNavigate } from "react-router-dom";
 import { hasPermission, Permissions } from "../utils/permissions";
 import { useAuth } from "../auth/UseAuth";
-import type { PageResponse, Student } from "../utils/responses";
+import type { Student } from "../utils/responses";
+import { getStudentsPage, searchStudents } from "../services/backend";
 
 // Student directory with search, filters, and pagination.
 const sortOptions = [
@@ -46,31 +41,7 @@ export default function StudentPage() {
 
   const fetchStudentMatches = useCallback(
     async (query: string, signal: AbortSignal) => {
-      const params = new URLSearchParams();
-      params.set("q", query);
-      params.set("page", "0");
-      params.set("size", "10");
-
-      const res = await fetch(
-        `${API_BASE_URL}/api/students?${params.toString()}`,
-        {
-          headers: {
-            ...getAuthHeader(),
-          },
-          signal,
-        }
-      );
-
-      if (!res.ok) {
-        const payload = await safeReadJson(res);
-        throw new Error(extractErrorMessage(payload));
-      }
-
-      const payload = (await safeReadJson(res)) as PageResponse<Student> | null;
-      if (!payload || !Array.isArray(payload.content)) {
-        return [];
-      }
-      return payload.content;
+      return searchStudents<Student>(query, signal);
     },
     []
   );
@@ -92,33 +63,15 @@ export default function StudentPage() {
       setError(null);
 
       try {
-        const params = new URLSearchParams();
-        if (searchQuery) params.set("q", searchQuery);
-        params.set("page", String(page));
-        params.set("size", String(pageSize));
-        if (sortValue) params.set("sort", sortValue);
-
-        const res = await fetch(
-          `${API_BASE_URL}/api/students?${params.toString()}`,
+        const payload = await getStudentsPage<Student>(
           {
-            headers: {
-              ...getAuthHeader(),
-            },
-            signal: controller.signal,
-          }
+            query: searchQuery || undefined,
+            page,
+            size: pageSize,
+            sort: sortValue || undefined,
+          },
+          controller.signal
         );
-
-        if (!res.ok) {
-          const payload = await safeReadJson(res);
-          throw new Error(extractErrorMessage(payload));
-        }
-
-        const payload = (await safeReadJson(
-          res
-        )) as PageResponse<Student> | null;
-        if (!payload || !Array.isArray(payload.content)) {
-          throw new Error("Unexpected response from server.");
-        }
 
         setStudents(payload.content);
         setTotalElements(payload.totalElements ?? 0);

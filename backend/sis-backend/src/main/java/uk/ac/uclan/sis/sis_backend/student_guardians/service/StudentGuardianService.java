@@ -127,8 +127,12 @@ public class StudentGuardianService {
         Long studentId = link.getId() != null
                 ? link.getId().getStudentId()
                 : link.getStudent().getId();
+        Long guardianId = link.getId() != null
+                ? link.getId().getGuardianId()
+                : link.getGuardian().getId();
         return new StudentGuardianResponse(
                 studentId,
+                guardianId,
                 link.getStudent().getFirstName(),
                 link.getStudent().getLastName(),
                 link.getGuardian().getFirstName(),

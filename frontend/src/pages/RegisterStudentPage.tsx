@@ -1,16 +1,13 @@
 import React, { useState } from "react";
-import { API_BASE_URL } from "../config/env";
 import { Button } from "../components/Button";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../auth/UseAuth";
 import type { CreateStudentRequest } from "../utils/responses";
 import {
-  getAuthHeader,
-  safeReadJson,
-  extractErrorMessage,
   getErrorMessage,
   type BackendErrorPayload,
 } from "../utils/utilFuncs";
+import { createStudent, isFetchJsonError } from "../services/backend";
 
 // Student registration form with client + server validation. Should be SQL injection safe.
 type FieldErrors = Partial<Record<keyof CreateStudentRequest, string>>;
@@ -99,22 +96,7 @@ export default function RegisterStudent() {
 
     setSubmitting(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/students`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeader(),
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        const payload = await safeReadJson(res);
-        setFieldErrors((prev) => ({ ...prev, ...extractFieldErrors(payload) }));
-        throw new Error(extractErrorMessage(payload));
-      }
-
-      await safeReadJson(res);
+      await createStudent(body);
 
       setSuccessMsg("Student created successfully.");
 
@@ -127,6 +109,12 @@ export default function RegisterStudent() {
       setFieldErrors({});
       setGlobalError(null);
     } catch (e: unknown) {
+      if (isFetchJsonError(e)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          ...extractFieldErrors(e.payload),
+        }));
+      }
       setGlobalError(getErrorMessage(e, "Failed to create student."));
     } finally {
       setSubmitting(false);

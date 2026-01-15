@@ -10,6 +10,7 @@ public class StudentGuardianResponse {
     public StudentGuardianResponse() {}
 
     private Long studentId;
+    private Long guardianId;
     private String studentFirstName;
     private String studentLastName;
     private String guardianFirstName;
@@ -18,8 +19,9 @@ public class StudentGuardianResponse {
     private String relationship;
     private boolean isPrimary;
 
-    public StudentGuardianResponse(Long studentId, String studentFirstName, String studentLastName, String guardianFirstName, String guardianLastName, String relationship, boolean isPrimary) {
+    public StudentGuardianResponse(Long studentId, Long guardianId, String studentFirstName, String studentLastName, String guardianFirstName, String guardianLastName, String relationship, boolean isPrimary) {
         this.studentId = studentId;
+        this.guardianId = guardianId;
         this.studentFirstName = studentFirstName;
         this.studentLastName = studentLastName;
         this.guardianFirstName = guardianFirstName;
@@ -30,6 +32,10 @@ public class StudentGuardianResponse {
 
     public Long getStudentId() {
         return studentId;
+    }
+
+    public Long getGuardianId() {
+        return guardianId;
     }
 
     public String getStudentFirstName() {

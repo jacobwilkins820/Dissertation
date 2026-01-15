@@ -1,23 +1,25 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useParams } from "react-router-dom";
-import { API_BASE_URL } from "../config/env";
 import { useAuth } from "../auth/UseAuth";
 import { SearchSelect } from "../components/SearchSelect";
 import { Button } from "../components/Button";
 import { useNavigate } from "react-router-dom";
-import {
-  extractErrorMessage,
-  getAuthHeader,
-  getErrorMessage,
-  safeReadJson,
-} from "../utils/utilFuncs";
+import { getErrorMessage } from "../utils/utilFuncs";
 import type {
   AcademicYearResponse,
   ClassResponse,
-  EnrolmentListItemResponse,
   StudentResponse,
 } from "../utils/responses";
+import {
+  createEnrolment,
+  getClass,
+  getClassEnrolments,
+  getCurrentAcademicYear,
+  getStudent,
+  getStudentEnrolments,
+  searchStudents,
+} from "../services/backend";
 
 // Class detail page with roster + enrolment modal.
 export default function ClassDetailPage() {
@@ -62,33 +64,7 @@ export default function ClassDetailPage() {
 
   const fetchStudentMatches = useCallback(
     async (query: string, signal: AbortSignal) => {
-      const params = new URLSearchParams();
-      params.set("q", query);
-      params.set("page", "0");
-      params.set("size", "10");
-
-      const res = await fetch(
-        `${API_BASE_URL}/api/students?${params.toString()}`,
-        {
-          headers: {
-            ...getAuthHeader(),
-          },
-          signal,
-        }
-      );
-
-      if (!res.ok) {
-        const payload = await safeReadJson(res);
-        throw new Error(extractErrorMessage(payload));
-      }
-
-      const payload = (await safeReadJson(res)) as {
-        content?: StudentResponse[];
-      } | null;
-      if (!payload || !Array.isArray(payload.content)) {
-        return [];
-      }
-      return payload.content;
+      return searchStudents<StudentResponse>(query, signal);
     },
     []
   );
@@ -99,31 +75,10 @@ export default function ClassDetailPage() {
       setError(null);
 
       try {
-        const [classRes, yearRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/classes/${parsedId}`, {
-            headers: { ...getAuthHeader() },
-            signal,
-          }),
-          fetch(`${API_BASE_URL}/api/academic-years/current`, {
-            headers: { ...getAuthHeader() },
-            signal,
-          }),
+        const [classPayload, yearPayload] = await Promise.all([
+          getClass(parsedId, signal),
+          getCurrentAcademicYear(signal),
         ]);
-
-        if (!classRes.ok) {
-          const payload = await safeReadJson(classRes);
-          throw new Error(extractErrorMessage(payload));
-        }
-
-        if (!yearRes.ok) {
-          const payload = await safeReadJson(yearRes);
-          throw new Error(extractErrorMessage(payload));
-        }
-
-        const classPayload = (await safeReadJson(classRes)) as ClassResponse;
-        const yearPayload = (await safeReadJson(
-          yearRes
-        )) as AcademicYearResponse;
 
         setClazz(classPayload);
         setAcademicYear(yearPayload);
@@ -146,43 +101,17 @@ export default function ClassDetailPage() {
       setError(null);
 
       try {
-        const res = await fetch(
-          `${API_BASE_URL}/api/enrolments/classes/${clazz.id}/enrolments?academicYearId=${academicYear.id}`,
-          {
-            headers: { ...getAuthHeader() },
-            signal,
-          }
+        const enrolments = await getClassEnrolments(
+          clazz.id,
+          academicYear.id,
+          signal
         );
-
-        if (!res.ok) {
-          const payload = await safeReadJson(res);
-          throw new Error(extractErrorMessage(payload));
-        }
-
-        const enrolments = (await safeReadJson(
-          res
-        )) as EnrolmentListItemResponse[];
         const studentIds = Array.from(
           new Set((enrolments ?? []).map((e) => e.studentId))
         );
 
         const studentDetails = await Promise.all(
-          studentIds.map(async (id) => {
-            const studentRes = await fetch(
-              `${API_BASE_URL}/api/students/${id}`,
-              {
-                headers: { ...getAuthHeader() },
-                signal,
-              }
-            );
-
-            if (!studentRes.ok) {
-              const payload = await safeReadJson(studentRes);
-              throw new Error(extractErrorMessage(payload));
-            }
-
-            return (await safeReadJson(studentRes)) as StudentResponse;
-          })
+          studentIds.map((id) => getStudent(id, signal))
         );
 
         setStudents(studentDetails);
@@ -228,24 +157,10 @@ export default function ClassDetailPage() {
     };
 
     try {
-      const enrolmentRes = await fetch(
-        `${API_BASE_URL}/api/enrolments/students/${selectedStudent.id}/enrolments?academicYearId=${academicYear.id}`,
-        {
-          method: "GET",
-          headers: {
-            ...getAuthHeader(),
-          },
-        }
+      const enrolments = await getStudentEnrolments(
+        selectedStudent.id,
+        academicYear.id
       );
-
-      if (!enrolmentRes.ok) {
-        const payload = await safeReadJson(enrolmentRes);
-        throw new Error(extractErrorMessage(payload));
-      }
-
-      const enrolments = (await safeReadJson(enrolmentRes)) as
-        | EnrolmentListItemResponse[]
-        | null;
       const alreadyEnrolled =
         Array.isArray(enrolments) &&
         enrolments.some((enrolment) => enrolment.classId === clazz.id);
@@ -255,21 +170,7 @@ export default function ClassDetailPage() {
         return;
       }
 
-      const res = await fetch(`${API_BASE_URL}/api/enrolments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeader(),
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        const payload = await safeReadJson(res);
-        throw new Error(extractErrorMessage(payload));
-      }
-
-      await safeReadJson(res);
+      await createEnrolment(body);
       setSelectedStudent(null);
       setShowAddStudent(false);
       const controller = new AbortController();

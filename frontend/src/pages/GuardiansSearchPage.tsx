@@ -1,15 +1,10 @@
 import type { GuardianSearch } from "../utils/responses";
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "../config/env";
 import { SearchSelect } from "../components/SearchSelect";
 import { useAuth } from "../auth/UseAuth";
 import { hasPermission, Permissions } from "../utils/permissions";
-import {
-  extractErrorMessage,
-  getAuthHeader,
-  safeReadJson,
-} from "../utils/utilFuncs";
+import { searchGuardians } from "../services/backend";
 
 // Guardian search page with permission-aware access.
 export default function GuardiansSearchPage() {
@@ -28,25 +23,7 @@ export default function GuardiansSearchPage() {
 
   const fetchGuardians = useCallback(
     async (query: string, signal: AbortSignal) => {
-      const res = await fetch(
-        `${API_BASE_URL}/api/guardians/search?query=${encodeURIComponent(
-          query
-        )}`,
-        {
-          signal,
-          headers: {
-            ...getAuthHeader(),
-          },
-        }
-      );
-
-      if (!res.ok) {
-        const payload = await safeReadJson(res);
-        throw new Error(extractErrorMessage(payload));
-      }
-
-      const data = (await safeReadJson(res)) as GuardianSearch[] | null;
-      return Array.isArray(data) ? data : [];
+      return searchGuardians<GuardianSearch>(query, signal);
     },
     []
   );
