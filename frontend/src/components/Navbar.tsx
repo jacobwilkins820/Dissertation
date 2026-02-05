@@ -38,10 +38,7 @@ export default function Navbar() {
   return (
     <nav className="fixed w-full shadow-lg top-0 z-20 border-b border-slate-800/80 bg-slate-950/80 px-6 py-4 text-white backdrop-blur">
       <div className="flex items-center gap-4">
-        <Link
-          to="/studentDirectory"
-          className="text-lg font-semibold text-white no-underline"
-        >
+        <Link to="/home" className="text-lg font-semibold text-white no-underline">
           ACORN
         </Link>
 
@@ -54,12 +51,15 @@ export default function Navbar() {
           </Link>
         )}
         {canViewClasses && (
-          <Link
-            to="/classes"
-            className="text-sm uppercase tracking-[0.2em] text-slate-300 no-underline transition hover:text-white"
+          <FlyoutLink
+            FlyoutContent={ClassesFlyout}
+            className="text-sm uppercase tracking-[0.2em] text-slate-300 hover:text-white"
+            underlineClassName="bg-amber-300/60"
+            flyoutClassName="rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl shadow-black/30"
+            caretClassName="bg-slate-950 border-t border-l border-slate-800/80"
           >
             Classes
-          </Link>
+          </FlyoutLink>
         )}
         {canAccessGuardians && (
           <Link
@@ -74,7 +74,7 @@ export default function Navbar() {
             FlyoutContent={RegisterFlyout}
             className="text-sm uppercase tracking-[0.2em] text-slate-300 hover:text-white"
             underlineClassName="bg-amber-300/60"
-            flyoutClassName="rounded-2xl border border-slate-800/80 bg-slate-950/90 shadow-2xl shadow-black/30"
+            flyoutClassName="rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl shadow-black/30"
             caretClassName="bg-slate-950 border-t border-l border-slate-800/80"
           >
             Register
@@ -119,6 +119,41 @@ function RegisterFlyout() {
           className="block px-4 py-2 text-xs uppercase tracking-[0.2em] text-slate-200 transition hover:bg-slate-900 hover:text-white"
         >
           Register a user
+        </Link>
+      )}
+    </div>
+  );
+}
+
+// Classes menu content for the navbar flyout.
+function ClassesFlyout() {
+  const { user } = useAuth();
+  const permissionLevel = user?.permissionLevel ?? 0;
+  const canViewClasses = hasPermission(
+    permissionLevel,
+    Permissions.VIEW_CLASSES
+  );
+  const isAdmin = (user?.roleName ?? "").toUpperCase() === "ADMIN";
+  const canCreateClass = isAdmin && canViewClasses;
+
+  if (!canViewClasses) {
+    return null;
+  }
+
+  return (
+    <div className="min-w-[200px] py-2 text-sm text-white">
+      <Link
+        to="/classes"
+        className="block px-4 py-2 text-xs uppercase tracking-[0.2em] text-slate-200 transition hover:bg-slate-900 hover:text-white"
+      >
+        View classes
+      </Link>
+      {canCreateClass && (
+        <Link
+          to="/classes/new"
+          className="block px-4 py-2 text-xs uppercase tracking-[0.2em] text-slate-200 transition hover:bg-slate-900 hover:text-white"
+        >
+          Create a class
         </Link>
       )}
     </div>

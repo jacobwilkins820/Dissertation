@@ -19,47 +19,64 @@ public class SecurityConfig {
 
   private final JwtAuthFilter jwtAuthFilter;
 
+  /**
+   * Creates the security configuration with the JWT filter.
+   *
+   * @param jwtAuthFilter filter that authenticates bearer tokens
+   */
   public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
     this.jwtAuthFilter = jwtAuthFilter;
   }
 
-    @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-      return http
-        .cors(cors -> {})
-        .csrf(csrf -> csrf.disable())
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(auth -> auth
-          .requestMatchers("/api/auth/login", "/api/auth/logout", "/actuator/**").permitAll()
-          .requestMatchers("/api/auth/me").authenticated()
-          .anyRequest().authenticated()
-        )
-        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-        .build();
-    }
+  /**
+   * Builds the Spring Security filter chain for API requests.
+   *
+   * @param http security builder
+   * @return configured filter chain
+   * @throws Exception if security configuration fails
+   */
+  @Bean
+  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    return http
+      .cors(cors -> {})
+      .csrf(csrf -> csrf.disable())
+      .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+      .authorizeHttpRequests(auth -> auth
+        .requestMatchers("/api/auth/login", "/api/auth/logout", "/actuator/**").permitAll()
+        .requestMatchers("/api/auth/me").authenticated()
+        .anyRequest().authenticated()
+      )
+      .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+      .build();
+  }
 
+  /**
+   * Defines CORS rules for the API.
+   *
+   * @return CORS configuration source
+   */
+  @Bean
+  public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration config = new CorsConfiguration();
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
+    // Frontend dev server origin.
+    config.setAllowedOrigins(List.of("http://localhost:5173"));
 
-        // frontend dev server
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+    // Allowed HTTP methods.
+    config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
-        // Methods the frontend will use
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+    // Allowed request headers.
+    config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 
-        // Headers the browser may send
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+    // Expose auth header to clients.
+    config.setExposedHeaders(List.of("Authorization"));
 
-        config.setExposedHeaders(List.of("Authorization"));
+    // Credentials are not used for bearer token auth.
+    config.setAllowCredentials(false);
 
-        // For Bearer token, keep false.
-        config.setAllowCredentials(false);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+    return source;
   }
 
 }

@@ -40,34 +40,183 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
 
-    // getters/setters
-    public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
+    /**
+     * Returns the role for the user.
+     *
+     * @return role entity
+     */
+    public Role getRole() {
+        return role;
+    }
 
-    public Long getLinkedGuardianId() { return linkedGuardianId; }
-    public void setLinkedGuardianId(Long linkedGuardianId) { this.linkedGuardianId = linkedGuardianId; }
+    /**
+     * Sets the role for the user.
+     *
+     * @param role role entity
+     */
+    public void setRole(Role role) {
+        this.role = role;
+    }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    /**
+     * Returns the linked guardian id.
+     *
+     * @return linked guardian id
+     */
+    public Long getLinkedGuardianId() {
+        return linkedGuardianId;
+    }
 
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
+    /**
+     * Sets the linked guardian id.
+     *
+     * @param linkedGuardianId linked guardian id
+     */
+    public void setLinkedGuardianId(Long linkedGuardianId) {
+        this.linkedGuardianId = linkedGuardianId;
+    }
 
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
+    /**
+     * Returns the user id.
+     *
+     * @return user id
+     */
+    public Long getId() {
+        return id;
+    }
+
+    /**
+     * Sets the user id.
+     *
+     * @param id user id
+     */
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    /**
+     * Returns the first name.
+     *
+     * @return first name
+     */
+    public String getFirstName() {
+        return firstName;
+    }
+
+    /**
+     * Sets the first name.
+     *
+     * @param firstName first name
+     */
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    /**
+     * Returns the last name.
+     *
+     * @return last name
+     */
+    public String getLastName() {
+        return lastName;
+    }
+
+    /**
+     * Sets the last name.
+     *
+     * @param lastName last name
+     */
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
     
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    /**
+     * Returns the email address.
+     *
+     * @return email address
+     */
+    public String getEmail() {
+        return email;
+    }
 
-    public String getPasswordHash() { return passwordHash; }
-    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+    /**
+     * Sets the email address.
+     *
+     * @param email email address
+     */
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-    public boolean isEnabled() { return enabled; }
-    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    /**
+     * Returns the password hash.
+     *
+     * @return password hash
+     */
+    public String getPasswordHash() {
+        return passwordHash;
+    }
 
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    /**
+     * Sets the password hash.
+     *
+     * @param passwordHash password hash
+     */
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
 
-    public Instant getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    /**
+     * Returns whether the user is enabled.
+     *
+     * @return true when enabled
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    /**
+     * Sets whether the user is enabled.
+     *
+     * @param enabled enabled flag
+     */
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    /**
+     * Returns the created timestamp.
+     *
+     * @return created timestamp
+     */
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    /**
+     * Sets the created timestamp.
+     *
+     * @param createdAt created timestamp
+     */
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    /**
+     * Returns the updated timestamp.
+     *
+     * @return updated timestamp
+     */
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    /**
+     * Sets the updated timestamp.
+     *
+     * @param updatedAt updated timestamp
+     */
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

@@ -12,11 +12,11 @@ const variants = {
   primary:
     "border-amber-400/40 bg-amber-300/10 text-amber-100 hover:bg-amber-300/20 focus:ring-amber-400/40",
   secondary:
-    "border-slate-700/60 bg-slate-900/60 text-slate-100 hover:bg-slate-900 focus:ring-slate-600/60",
+    "border-slate-700/60 bg-slate-800/60 text-slate-100 hover:bg-slate-700 focus:ring-slate-600/60",
   danger:
     "border-rose-400/40 bg-rose-500/10 text-rose-100 hover:bg-rose-500/20 focus:ring-rose-400/40",
   ghost:
-    "border-transparent bg-transparent text-slate-200 hover:bg-slate-900/60 focus:ring-slate-600/60",
+    "border-transparent bg-transparent text-slate-200 hover:bg-slate-800/60 focus:ring-slate-600/60",
 };
 
 const sizes = {

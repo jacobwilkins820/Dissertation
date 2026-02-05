@@ -9,16 +9,19 @@ import { getErrorMessage } from "../utils/utilFuncs";
 import type {
   AcademicYearResponse,
   ClassResponse,
+  EnrolmentListItemResponse,
   StudentResponse,
 } from "../utils/responses";
 import {
   createEnrolment,
+  deleteEnrolment,
   getClass,
   getClassEnrolments,
   getCurrentAcademicYear,
   getStudent,
   getStudentEnrolments,
   searchStudents,
+  updateClass,
 } from "../services/backend";
 
 // Class detail page with roster + enrolment modal.
@@ -33,16 +36,24 @@ export default function ClassDetailPage() {
   const [academicYear, setAcademicYear] = useState<AcademicYearResponse | null>(
     null
   );
+  const [enrolments, setEnrolments] = useState<EnrolmentListItemResponse[]>([]);
   const [students, setStudents] = useState<StudentResponse[]>([]);
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [statusUpdating, setStatusUpdating] = useState(false);
   const [showAddStudent, setShowAddStudent] = useState(false);
+  const [showRemoveStudent, setShowRemoveStudent] = useState(false);
   const [selectedStudent, setSelectedStudent] =
     useState<StudentResponse | null>(null);
+  const [selectedRemoveStudent, setSelectedRemoveStudent] =
+    useState<StudentResponse | null>(null);
   const [addError, setAddError] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [removing, setRemoving] = useState(false);
   const [addResetKey, setAddResetKey] = useState(0);
+  const [removeResetKey, setRemoveResetKey] = useState(0);
   const navigate = useNavigate();
 
   const accessDenied = useMemo(() => {
@@ -67,6 +78,20 @@ export default function ClassDetailPage() {
       return searchStudents<StudentResponse>(query, signal);
     },
     []
+  );
+
+  const fetchRosterMatches = useCallback(
+    async (query: string, signal: AbortSignal) => {
+      if (signal.aborted) return [];
+      const q = query.trim().toLowerCase();
+      return students.filter((student) => {
+        const label = `${student.firstName ?? ""} ${student.lastName ?? ""} ${
+          student.upn ?? ""
+        }`;
+        return label.toLowerCase().includes(q);
+      });
+    },
+    [students]
   );
 
   const loadClassData = useCallback(
@@ -101,19 +126,20 @@ export default function ClassDetailPage() {
       setError(null);
 
       try {
-        const enrolments = await getClassEnrolments(
+        const classEnrolments = await getClassEnrolments(
           clazz.id,
           academicYear.id,
           signal
         );
         const studentIds = Array.from(
-          new Set((enrolments ?? []).map((e) => e.studentId))
+          new Set((classEnrolments ?? []).map((e) => e.studentId))
         );
 
         const studentDetails = await Promise.all(
           studentIds.map((id) => getStudent(id, signal))
         );
 
+        setEnrolments(classEnrolments ?? []);
         setStudents(studentDetails);
       } catch (err: unknown) {
         if (!(err instanceof DOMException && err.name === "AbortError")) {
@@ -182,6 +208,50 @@ export default function ClassDetailPage() {
     }
   };
 
+  const handleRemoveStudent = async () => {
+    if (!selectedRemoveStudent || !clazz || !academicYear) return;
+    setRemoveError(null);
+    setRemoving(true);
+
+    const enrolment = enrolments.find(
+      (item) => item.studentId === selectedRemoveStudent.id
+    );
+    if (!enrolment) {
+      setRemoveError("No enrolment found for this student.");
+      setRemoving(false);
+      return;
+    }
+
+    try {
+      await deleteEnrolment(enrolment.id);
+      setSelectedRemoveStudent(null);
+      setShowRemoveStudent(false);
+      setStudents((prev) =>
+        prev.filter((student) => student.id !== enrolment.studentId)
+      );
+      setEnrolments((prev) => prev.filter((item) => item.id !== enrolment.id));
+    } catch (err: unknown) {
+      setRemoveError(getErrorMessage(err, "Failed to remove student."));
+    } finally {
+      setRemoving(false);
+    }
+  };
+
+  const handleToggleActive = async () => {
+    if (!clazz || !isAdmin) return;
+    setStatusUpdating(true);
+    setError(null);
+
+    try {
+      const updated = await updateClass(clazz.id, { active: !clazz.active });
+      setClazz(updated);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to update class status."));
+    } finally {
+      setStatusUpdating(false);
+    }
+  };
+
   if (error) {
     return (
       <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-6 py-4 text-sm text-rose-200">
@@ -220,9 +290,25 @@ export default function ClassDetailPage() {
           <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
             Status
           </p>
-          <p className="mt-2 text-lg text-white">
-            {clazz?.active ? "Active" : "Inactive"}
-          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <p className="text-lg text-white">
+              {clazz?.active ? "Active" : "Inactive"}
+            </p>
+            {isAdmin && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleToggleActive}
+                disabled={statusUpdating || !clazz}
+              >
+                {statusUpdating
+                  ? "Updating..."
+                  : clazz?.active
+                    ? "Set inactive"
+                    : "Set active"}
+              </Button>
+            )}
+          </div>
         </div>
         <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 p-4 text-sm text-slate-300 shadow-2xl shadow-black/30">
           <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
@@ -263,13 +349,26 @@ export default function ClassDetailPage() {
           />
         </div>
         {canAddStudent && (
-          <Button
-            variant="primary"
-            size="md"
-            onClick={() => setShowAddStudent(true)}
-          >
-            Add student
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => setShowAddStudent(true)}
+            >
+              Add student
+            </Button>
+            <Button
+              variant="danger"
+              size="md"
+              onClick={() => {
+                setShowRemoveStudent(true);
+                setRemoveError(null);
+              }}
+              disabled={loading || students.length === 0}
+            >
+              Remove student
+            </Button>
+          </div>
         )}
       </div>
 
@@ -409,6 +508,86 @@ export default function ClassDetailPage() {
                     disabled={!selectedStudent || adding}
                   >
                     {adding ? "Adding..." : "Add to class"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.getElementById("modal-root") ?? document.body
+        )}
+      {canAddStudent &&
+        showRemoveStudent &&
+        createPortal(
+          <div className="fixed inset-0 z-[99] flex items-center justify-center bg-black/60 px-6 py-8 backdrop-blur-sm">
+            <div className="w-full max-w-xl rounded-3xl border border-slate-800/80 bg-slate-950 p-6 text-slate-200 shadow-2xl shadow-black/40">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                    Remove student
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold text-white">
+                    Remove from class
+                  </h2>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowRemoveStudent(false);
+                    setSelectedRemoveStudent(null);
+                    setRemoveError(null);
+                    setRemoveResetKey((prev) => prev + 1);
+                  }}
+                >
+                  Close
+                </Button>
+              </div>
+
+              <div className="mt-6 space-y-4">
+                <SearchSelect
+                  label="Find student"
+                  placeholder="Search by name or UPN"
+                  selected={selectedRemoveStudent}
+                  onSelect={setSelectedRemoveStudent}
+                  fetchOptions={fetchRosterMatches}
+                  getOptionKey={(student) => student.id}
+                  getOptionLabel={(student) =>
+                    `${student.firstName ?? ""} ${student.lastName ?? ""}${
+                      student.upn ? ` · ${student.upn}` : ""
+                    }`
+                  }
+                  minChars={2}
+                  idleLabel="Type at least 2 characters."
+                  loadingLabel="Searching..."
+                  resultsLabel="Matches"
+                  emptyLabel="No matches."
+                  resetKey={removeResetKey}
+                  maxResults={5}
+                />
+
+                {removeError && (
+                  <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-200">
+                    {removeError}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center justify-end gap-3">
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setSelectedRemoveStudent(null);
+                      setRemoveError(null);
+                      setRemoveResetKey((prev) => prev + 1);
+                    }}
+                  >
+                    Clear
+                  </Button>
+                  <Button
+                    variant="danger"
+                    onClick={handleRemoveStudent}
+                    disabled={!selectedRemoveStudent || removing}
+                  >
+                    {removing ? "Removing..." : "Remove from class"}
                   </Button>
                 </div>
               </div>

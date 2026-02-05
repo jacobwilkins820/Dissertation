@@ -56,6 +56,9 @@ public class Guardian {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    /**
+     * Sets audit timestamps on insert.
+     */
     @PrePersist
     void onCreate() {
         Instant now = Instant.now();
@@ -63,41 +66,189 @@ public class Guardian {
         this.updatedAt = now;
     }
 
+    /**
+     * Updates the audit timestamp on update.
+     */
     @PreUpdate
     void onUpdate() {
         this.updatedAt = Instant.now();
     }
 
+    /**
+     * Creates a guardian entity for JPA.
+     */
     public Guardian() {}
 
     // --- getters/setters ---
 
-    public Long getId() { return id; }
+    /**
+     * Returns the guardian id.
+     *
+     * @return guardian id
+     */
+    public Long getId() {
+        return id;
+    }
 
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
+    /**
+     * Returns the first name.
+     *
+     * @return first name
+     */
+    public String getFirstName() {
+        return firstName;
+    }
 
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
+    /**
+     * Sets the first name.
+     *
+     * @param firstName first name
+     */
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    /**
+     * Returns the last name.
+     *
+     * @return last name
+     */
+    public String getLastName() {
+        return lastName;
+    }
 
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
+    /**
+     * Sets the last name.
+     *
+     * @param lastName last name
+     */
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
 
-    public String getAddressLine1() { return addressLine1; }
-    public void setAddressLine1(String addressLine1) { this.addressLine1 = addressLine1; }
+    /**
+     * Returns the email address.
+     *
+     * @return email address
+     */
+    public String getEmail() {
+        return email;
+    }
 
-    public String getAddressLine2() { return addressLine2; }
-    public void setAddressLine2(String addressLine2) { this.addressLine2 = addressLine2; }
+    /**
+     * Sets the email address.
+     *
+     * @param email email address
+     */
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-    public String getCity() { return city; }
-    public void setCity(String city) { this.city = city; }
+    /**
+     * Returns the phone number.
+     *
+     * @return phone number
+     */
+    public String getPhone() {
+        return phone;
+    }
 
-    public String getPostcode() { return postcode; }
-    public void setPostcode(String postcode) { this.postcode = postcode; }
+    /**
+     * Sets the phone number.
+     *
+     * @param phone phone number
+     */
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 
-    public Instant getCreatedAt() { return createdAt; }
-    public Instant getUpdatedAt() { return updatedAt; }
+    /**
+     * Returns address line 1.
+     *
+     * @return address line 1
+     */
+    public String getAddressLine1() {
+        return addressLine1;
+    }
+
+    /**
+     * Sets address line 1.
+     *
+     * @param addressLine1 address line 1
+     */
+    public void setAddressLine1(String addressLine1) {
+        this.addressLine1 = addressLine1;
+    }
+
+    /**
+     * Returns address line 2.
+     *
+     * @return address line 2
+     */
+    public String getAddressLine2() {
+        return addressLine2;
+    }
+
+    /**
+     * Sets address line 2.
+     *
+     * @param addressLine2 address line 2
+     */
+    public void setAddressLine2(String addressLine2) {
+        this.addressLine2 = addressLine2;
+    }
+
+    /**
+     * Returns the city.
+     *
+     * @return city
+     */
+    public String getCity() {
+        return city;
+    }
+
+    /**
+     * Sets the city.
+     *
+     * @param city city
+     */
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    /**
+     * Returns the postcode.
+     *
+     * @return postcode
+     */
+    public String getPostcode() {
+        return postcode;
+    }
+
+    /**
+     * Sets the postcode.
+     *
+     * @param postcode postcode
+     */
+    public void setPostcode(String postcode) {
+        this.postcode = postcode;
+    }
+
+    /**
+     * Returns the created timestamp.
+     *
+     * @return created timestamp
+     */
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    /**
+     * Returns the updated timestamp.
+     *
+     * @return updated timestamp
+     */
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
 }

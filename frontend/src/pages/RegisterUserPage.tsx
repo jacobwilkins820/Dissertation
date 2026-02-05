@@ -1,17 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "../components/Button";
-import { TextField } from "../components/TextField";
 import { SearchSelect } from "../components/SearchSelect";
+import { SelectDropdown } from "../components/SelectDropdown";
+import { TextField } from "../components/TextField";
 import { useAuth } from "../auth/UseAuth";
 import type {
   CreateUserRequest,
   GuardianDto,
   RoleDto,
 } from "../utils/responses";
-import {
-  getErrorMessage,
-  type BackendErrorPayload,
-} from "../utils/utilFuncs";
+import { getErrorMessage, type BackendErrorPayload } from "../utils/utilFuncs";
 import {
   createUser,
   getRoles,
@@ -330,23 +328,22 @@ export default function RegisterUserPage() {
 
         <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
           Role
-          <select
-            className="w-full rounded-2xl border border-slate-800/80 bg-slate-950/70 px-4 py-2 text-sm text-slate-100 transition focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400/40 disabled:opacity-60"
+          <SelectDropdown
             value={roleId === "" ? "" : String(roleId)}
-            onChange={(e) =>
-              setRoleId(e.target.value ? Number(e.target.value) : "")
-            }
+            options={[
+              {
+                value: "",
+                label: rolesLoading ? "Loading roles..." : "Select a role...",
+              },
+              ...roles.map((r) => ({
+                value: String(r.id),
+                label: r.name,
+              })),
+            ]}
+            onChange={(value) => setRoleId(value ? Number(value) : "")}
             disabled={rolesLoading || roles.length === 0}
-          >
-            <option value="">
-              {rolesLoading ? "Loading roles..." : "Select a role..."}
-            </option>
-            {roles.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name}
-              </option>
-            ))}
-          </select>
+            className="w-full"
+          />
           {fieldErrors.roleId && (
             <small className="text-rose-200">{fieldErrors.roleId}</small>
           )}

@@ -28,6 +28,14 @@ public class StudentService {
     private final AuthorizationService authorizationService;
     private final StudentGuardianRepository studentGuardianRepository;
 
+    /**
+     * Creates the student service.
+     *
+     * @param repo repository for students
+     * @param mapper mapper for DTO conversions
+     * @param authorizationService service for permission checks
+     * @param studentGuardianRepository repository for guardian links
+     */
     public StudentService(
             StudentRepository repo,
             StudentMapper mapper,
@@ -40,6 +48,12 @@ public class StudentService {
         this.studentGuardianRepository = studentGuardianRepository;
     }
 
+    /**
+     * Returns a student by id with access checks.
+     *
+     * @param id student id
+     * @return student response
+     */
     public StudentResponse getById(Long id) {
         User user = currentUser();
         authorizationService.require(user, Permissions.VIEW_STUDENT_DETAILS);
@@ -57,6 +71,13 @@ public class StudentService {
         return mapper.toResponse(student);
     }
 
+    /**
+     * Returns a paged list of students filtered by query.
+     *
+     * @param q search term
+     * @param pageable paging request
+     * @return page of student responses
+     */
     @Transactional(readOnly = true)
     public Page<StudentResponse> list(String q, Pageable pageable) {
         User user = currentUser();
@@ -86,10 +107,16 @@ public class StudentService {
     }
 
 
+    /**
+     * Creates a student record.
+     *
+     * @param request create request payload
+     * @return created student response
+     */
     @Transactional
     public StudentResponse create(CreateStudentRequest request) {
         authorizationService.require(currentUser(), Permissions.CREATE_STUDENT);
-        // check before we hit the DB unique constraint.
+        // Check before hitting the DB unique constraint.
         if (repo.existsByUpn(request.getUpn())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "UPN already exists");
         }
@@ -98,6 +125,13 @@ public class StudentService {
         return mapper.toResponse(saved);
     }
 
+    /**
+     * Updates a student record.
+     *
+     * @param id student id
+     * @param request update request payload
+     * @return updated student response
+     */
     @Transactional
     public StudentResponse update(Long id, UpdateStudentRequest request) {
         authorizationService.require(currentUser(), Permissions.EDIT_STUDENT_DETAILS);
@@ -116,6 +150,11 @@ public class StudentService {
         return mapper.toResponse(saved);
     }
 
+    /**
+     * Deletes a student record.
+     *
+     * @param id student id
+     */
     @Transactional
     public void delete(Long id) {
         authorizationService.require(currentUser(), Permissions.CREATE_STUDENT);
@@ -125,6 +164,11 @@ public class StudentService {
         repo.deleteById(id);
     }
 
+    /**
+     * Returns the current authenticated user.
+     *
+     * @return current user principal
+     */
     private User currentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !(auth.getPrincipal() instanceof User)) {

@@ -32,8 +32,19 @@ public class StudentGuardian {
     @Column(name = "is_primary", nullable = false)
     private boolean isPrimary;
 
+    /**
+     * Creates a student-guardian entity for JPA.
+     */
     protected StudentGuardian() {}
 
+    /**
+     * Creates a student-guardian link entity.
+     *
+     * @param student student entity
+     * @param guardian guardian entity
+     * @param relationship relationship label
+     * @param isPrimary primary flag
+     */
     public StudentGuardian(Student student, Guardian guardian, String relationship, boolean isPrimary) {
         this.student = student;
         this.guardian = guardian;
@@ -42,30 +53,65 @@ public class StudentGuardian {
         this.isPrimary = isPrimary;
     }
 
+    /**
+     * Returns the composite id.
+     *
+     * @return composite id
+     */
     public StudentGuardianId getId() {
         return id;
     }
 
+    /**
+     * Returns the student entity.
+     *
+     * @return student entity
+     */
     public Student getStudent() {
         return student;
     }
 
+    /**
+     * Returns the guardian entity.
+     *
+     * @return guardian entity
+     */
     public Guardian getGuardian() {
         return guardian;
     }
 
+    /**
+     * Returns the relationship label.
+     *
+     * @return relationship label
+     */
     public String getRelationship() {
         return relationship;
     }
 
+    /**
+     * Sets the relationship label.
+     *
+     * @param relationship relationship label
+     */
     public void setRelationship(String relationship) {
         this.relationship = relationship;
     }
 
+    /**
+     * Returns whether the link is primary.
+     *
+     * @return true when primary
+     */
     public boolean isPrimary() {
         return isPrimary;
     }
 
+    /**
+     * Sets whether the link is primary.
+     *
+     * @param primary primary flag
+     */
     public void setPrimary(boolean primary) {
         isPrimary = primary;
     }

@@ -10,13 +10,36 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
+    /**
+     * Returns true when an email already exists (case-insensitive).
+     *
+     * @param email email address
+     * @return true when email exists
+     */
     boolean existsByEmailIgnoreCase(String email);
 
+    /**
+     * Finds a user by email (case-insensitive).
+     *
+     * @param email email address
+     * @return matching user, when present
+     */
     Optional<User> findByEmailIgnoreCase(String email);
 
+    /**
+     * Returns all users with roles eagerly loaded.
+     *
+     * @return list of users with roles
+     */
     @Query("select u from User u join fetch u.role")
     List<User> findAllWithRole();
 
+    /**
+     * Returns a user by id with the role eagerly loaded.
+     *
+     * @param id user id
+     * @return matching user, when present
+     */
     @Query("select u from User u join fetch u.role where u.id = :id")
     Optional<User> findByIdWithRole(@Param("id") Long id);
 }

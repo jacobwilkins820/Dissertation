@@ -21,6 +21,12 @@ public class AuditLogService {
     private final AuditLogRepository auditLogRepository;
     private final AuthorizationService authorizationService;
 
+    /**
+     * Creates the audit log service.
+     *
+     * @param auditLogRepository repository for audit logs
+     * @param authorizationService service for permission checks
+     */
     public AuditLogService(
             AuditLogRepository auditLogRepository,
             AuthorizationService authorizationService
@@ -29,6 +35,15 @@ public class AuditLogService {
         this.authorizationService = authorizationService;
     }
 
+    /**
+     * Writes an audit log entry.
+     *
+     * @param actorUserId actor user id
+     * @param action action name
+     * @param entityType entity type
+     * @param entityId entity id
+     * @param details details payload
+     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void log(Long actorUserId, String action, String entityType, Long entityId, String details) {
         authorizationService.requireAdmin(currentUser());
@@ -40,24 +55,51 @@ public class AuditLogService {
         auditLogRepository.save(entry);
     }
 
+    /**
+     * Returns all audit logs.
+     *
+     * @param pageable paging request
+     * @return page of audit log responses
+     */
     @Transactional(readOnly = true)
     public Page<AuditLogResponse> getAll(Pageable pageable) {
         authorizationService.requireAdmin(currentUser());
         return auditLogRepository.findAll(pageable).map(this::toResponse);
     }
 
+    /**
+     * Returns audit logs by actor user id.
+     *
+     * @param actorUserId actor user id
+     * @param pageable paging request
+     * @return page of audit log responses
+     */
     @Transactional(readOnly = true)
     public Page<AuditLogResponse> getByActorUserId(Long actorUserId, Pageable pageable) {
         authorizationService.requireAdmin(currentUser());
         return auditLogRepository.findByActorUserId(actorUserId, pageable).map(this::toResponse);
     }
 
+    /**
+     * Returns audit logs by entity.
+     *
+     * @param entityType entity type
+     * @param entityId entity id
+     * @param pageable paging request
+     * @return page of audit log responses
+     */
     @Transactional(readOnly = true)
     public Page<AuditLogResponse> getByEntity(String entityType, Long entityId, Pageable pageable) {
         authorizationService.requireAdmin(currentUser());
         return auditLogRepository.findByEntityTypeIgnoreCaseAndEntityId(entityType, entityId, pageable).map(this::toResponse);
     }
 
+    /**
+     * Maps an audit log entity to a response.
+     *
+     * @param e audit log entity
+     * @return audit log response
+     */
     private AuditLogResponse toResponse(AuditLog e) {
         return new AuditLogResponse(
                 e.getId(),
@@ -70,6 +112,11 @@ public class AuditLogService {
         );
     }
 
+    /**
+     * Returns the current authenticated user.
+     *
+     * @return current user principal
+     */
     private User currentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !(auth.getPrincipal() instanceof User)) {

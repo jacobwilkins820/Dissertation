@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "../components/Button";
+import { DatePicker } from "../components/DatePicker";
 import { TextField } from "../components/TextField";
 import { getErrorMessage } from "../utils/utilFuncs";
 import type {
@@ -352,11 +353,10 @@ export default function AttendanceRegisterPage() {
             Session date
           </p>
           <div className="mt-2 max-w-xs">
-            <TextField
-              type="date"
+            <DatePicker
               size="md"
               value={sessionDate}
-              onChange={(e) => setSessionDate(e.target.value)}
+              onChange={setSessionDate}
               disabled={loading || saving}
             />
           </div>

@@ -12,6 +12,12 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * Maps not found errors to a 404 response body.
+     *
+     * @param ex thrown exception
+     * @return error response
+     */
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<?> handleNotFound(NotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
@@ -22,6 +28,12 @@ public class GlobalExceptionHandler {
         ));
     }
 
+    /**
+     * Maps forbidden errors to a 403 response body.
+     *
+     * @param ex thrown exception
+     * @return error response
+     */
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<?> handleForbidden(ForbiddenException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
@@ -32,6 +44,12 @@ public class GlobalExceptionHandler {
         ));
     }
 
+    /**
+     * Maps authentication errors to a 401 response body.
+     *
+     * @param ex thrown exception
+     * @return error response
+     */
     @ExceptionHandler(AuthException.class)
     public ResponseEntity<?> handleAuthException(AuthException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
@@ -42,6 +60,12 @@ public class GlobalExceptionHandler {
         ));
     }
 
+    /**
+     * Maps bad request errors to a 400 response body.
+     *
+     * @param ex thrown exception
+     * @return error response
+     */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<?> handleBadRequest(IllegalArgumentException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
@@ -52,6 +76,12 @@ public class GlobalExceptionHandler {
         ));
     }
 
+    /**
+     * Maps data integrity violations to a 409 response body.
+     *
+     * @param ex thrown exception
+     * @return error response
+     */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<?> handleConflict(DataIntegrityViolationException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(

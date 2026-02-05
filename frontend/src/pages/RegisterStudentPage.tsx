@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import { Button } from "../components/Button";
+import { SelectDropdown } from "../components/SelectDropdown";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../auth/UseAuth";
 import type { CreateStudentRequest } from "../utils/responses";
-import {
-  getErrorMessage,
-  type BackendErrorPayload,
-} from "../utils/utilFuncs";
+import { getErrorMessage, type BackendErrorPayload } from "../utils/utilFuncs";
 import { createStudent, isFetchJsonError } from "../services/backend";
 
 // Student registration form with client + server validation. Should be SQL injection safe.
@@ -225,16 +223,17 @@ export default function RegisterStudent() {
 
         <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
           Status
-          <select
-            className="w-full rounded-2xl border border-slate-800/80 bg-slate-950/70 px-4 py-2 text-sm text-slate-100 transition focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400/40"
+          <SelectDropdown
             value={status}
-            onChange={(e) => setStatus(e.target.value)}
-          >
-            <option value="">Default (ACTIVE)</option>
-            <option value="ACTIVE">ACTIVE</option>
-            <option value="INACTIVE">INACTIVE</option>
-            <option value="WITHDRAWN">WITHDRAWN</option>
-          </select>
+            options={[
+              { value: "", label: "Default (ACTIVE)" },
+              { value: "ACTIVE", label: "ACTIVE" },
+              { value: "INACTIVE", label: "INACTIVE" },
+              { value: "WITHDRAWN", label: "WITHDRAWN" },
+            ]}
+            onChange={setStatus}
+            className="w-full"
+          />
           {fieldErrors.status && (
             <small className="text-rose-200">{fieldErrors.status}</small>
           )}

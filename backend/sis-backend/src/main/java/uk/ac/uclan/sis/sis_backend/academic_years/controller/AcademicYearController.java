@@ -14,10 +14,20 @@ public class AcademicYearController {
 
     private final AcademicYearService academicYearService;
 
+    /**
+     * Creates the academic year controller.
+     *
+     * @param academicYearService service for academic year access
+     */
     public AcademicYearController(AcademicYearService academicYearService) {
         this.academicYearService = academicYearService;
     }
 
+    /**
+     * Returns the current academic year.
+     *
+     * @return academic year response
+     */
     @GetMapping("/current")
     public AcademicYearResponse getCurrent() {
         AcademicYear current = academicYearService.getCurrentOrThrow();

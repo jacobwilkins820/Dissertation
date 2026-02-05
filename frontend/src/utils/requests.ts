@@ -30,6 +30,13 @@ export type CreateClassRequest = {
   teacherId?: number;
 };
 
+export type UpdateClassRequest = {
+  name?: string;
+  code?: string | null;
+  active?: boolean;
+  teacherId?: number | null;
+};
+
 export type CreateEnrolmentRequest = {
   studentId: number;
   classId: number;

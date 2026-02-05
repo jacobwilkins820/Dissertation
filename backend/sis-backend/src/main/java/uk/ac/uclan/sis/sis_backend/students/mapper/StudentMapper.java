@@ -9,12 +9,18 @@ import uk.ac.uclan.sis.sis_backend.students.entity.Student;
 import uk.ac.uclan.sis.sis_backend.students.entity.StudentStatus;
 
 /**
- * Mapping lives here so controllers/services don't end up full of repetitive code.
- * It also makes it very obvious what fields we expose in API responses.
+ * Mapping lives here to keep controllers and services concise.
+ * It also makes it explicit which fields are exposed in API responses.
  */
 @Component
 public class StudentMapper {
 
+    /**
+     * Maps a create request to a student entity.
+     *
+     * @param req create request
+     * @return student entity
+     */
     public Student toEntity(CreateStudentRequest req) {
         StudentStatus status = parseStatusOrDefault(req.getStatus());
         return new Student(
@@ -27,6 +33,12 @@ public class StudentMapper {
         );
     }
 
+    /**
+     * Applies an update request to an existing student.
+     *
+     * @param existing student entity to update
+     * @param req update request
+     */
     public void applyUpdate(Student existing, UpdateStudentRequest req) {
         existing.setUpn(req.getUpn());
         existing.setFirstName(req.getFirstName());
@@ -36,6 +48,12 @@ public class StudentMapper {
         existing.setStatus(StudentStatus.valueOf(req.getStatus()));
     }
 
+    /**
+     * Maps a student entity to an API response.
+     *
+     * @param s student entity
+     * @return student response
+     */
     public StudentResponse toResponse(Student s) {
         return new StudentResponse(
                 s.getId(),
@@ -50,6 +68,12 @@ public class StudentMapper {
         );
     }
 
+    /**
+     * Parses a status string or returns the default.
+     *
+     * @param status status name
+     * @return student status
+     */
     private StudentStatus parseStatusOrDefault(String status) {
         if (status == null || status.isBlank()) {
             return StudentStatus.ACTIVE;

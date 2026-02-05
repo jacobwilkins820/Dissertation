@@ -12,15 +12,38 @@ import java.util.Optional;
 
 public interface StudentGuardianRepository extends JpaRepository<StudentGuardian, StudentGuardianId> {
 
+    /**
+     * Returns links by student id.
+     *
+     * @param studentId student id
+     * @return list of links
+     */
     List<StudentGuardian> findByIdStudentId(Long studentId);
 
+    /**
+     * Returns links by guardian id.
+     *
+     * @param guardianId guardian id
+     * @return list of links
+     */
     List<StudentGuardian> findByIdGuardianId(Long guardianId);
 
+    /**
+     * Finds a link by student id and guardian id.
+     *
+     * @param studentId student id
+     * @param guardianId guardian id
+     * @return matching link, when present
+     */
     Optional<StudentGuardian> findByIdStudentIdAndIdGuardianId(Long studentId, Long guardianId);
 
     /**
-     * When a link is set to primary, we clear primary flags for other guardians on that student.
-     * This keeps "primary" meaning something, without needing extra DB constraints.
+     * Clears primary flags for other guardians on a student.
+     * This keeps "primary" meaningful without extra DB constraints.
+     *
+     * @param studentId student id
+     * @param guardianId guardian id to keep as primary
+     * @return number of rows updated
      */
     @Modifying
     @Query("""

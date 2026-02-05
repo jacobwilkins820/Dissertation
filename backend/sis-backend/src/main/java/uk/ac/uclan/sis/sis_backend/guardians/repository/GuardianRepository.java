@@ -10,7 +10,7 @@ import uk.ac.uclan.sis.sis_backend.guardians.entity.Guardian;
 public interface GuardianRepository extends JpaRepository<Guardian, Long> {
 
     /**
-     * search used for:
+     * Search used for:
      * - admin paginated lists
      * - autocomplete / linking (with small page size)
      *
@@ -19,6 +19,10 @@ public interface GuardianRepository extends JpaRepository<Guardian, Long> {
      * - last name
      * - full name
      * - email
+     *
+     * @param query search term
+     * @param pageable paging request
+     * @return page of guardians
      */
     @Query("""
         SELECT g
@@ -33,5 +37,11 @@ public interface GuardianRepository extends JpaRepository<Guardian, Long> {
             Pageable pageable
     );
 
+    /**
+     * Returns true when an email already exists (case-insensitive).
+     *
+     * @param email email address
+     * @return true when email exists
+     */
     boolean existsByEmailIgnoreCase(String email);
 }

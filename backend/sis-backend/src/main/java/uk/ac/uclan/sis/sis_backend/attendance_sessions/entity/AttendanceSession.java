@@ -36,10 +36,19 @@ public class AttendanceSession {
     @Column(name = "session", nullable = false, length = 10)
     private SessionPart session;
 
-    protected AttendanceSession() {
-        // default constructor
-    }
+    /**
+     * Creates an attendance session entity for JPA.
+     */
+    protected AttendanceSession() {}
 
+    /**
+     * Creates an attendance session entity.
+     *
+     * @param academicYear academic year entity
+     * @param clazz class entity
+     * @param sessionDate session date
+     * @param session session part
+     */
     public AttendanceSession(AcademicYear academicYear, Class clazz, LocalDate sessionDate, SessionPart session) {
         this.academicYear = academicYear;
         this.clazz = clazz;
@@ -47,22 +56,47 @@ public class AttendanceSession {
         this.session = session;
     }
 
+    /**
+     * Returns the session id.
+     *
+     * @return session id
+     */
     public Long getId() {
         return id;
     }
 
+    /**
+     * Returns the academic year entity.
+     *
+     * @return academic year entity
+     */
     public AcademicYear getAcademicYear() {
         return academicYear;
     }
 
+    /**
+     * Returns the class entity.
+     *
+     * @return class entity
+     */
     public Class getClazz() {
         return clazz;
     }
 
+    /**
+     * Returns the session date.
+     *
+     * @return session date
+     */
     public LocalDate getSessionDate() {
         return sessionDate;
     }
 
+    /**
+     * Returns the session part.
+     *
+     * @return session part
+     */
     public SessionPart getSession() {
         return session;
     }

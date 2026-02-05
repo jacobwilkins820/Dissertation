@@ -24,11 +24,19 @@ public class JwtService {
     private final String issuer;
     private final Duration tokenTtl;
 
+    /**
+     * Creates the JWT service from configuration.
+     *
+     * @param secret signing key material
+     * @param issuer expected issuer value
+     * @param ttlMinutes token lifetime in minutes
+     */
     public JwtService(
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.issuer:}") String issuer,
             @Value("${jwt.ttl-minutes:60}") long ttlMinutes
     ) {
+        // Fail fast when the secret is missing.
         if (secret == null || secret.isBlank()) {
             throw new IllegalStateException("jwt.secret must be set");
         }
@@ -37,7 +45,14 @@ public class JwtService {
         this.tokenTtl = Duration.ofMinutes(ttlMinutes);
     }
 
+    /**
+     * Extracts the user id from a token subject.
+     *
+     * @param token JWT string
+     * @return optional user id
+     */
     public Optional<Long> extractUserId(String token) {
+        // Parse claims before reading the subject.
         Claims claims = parse(token);
         String subject = claims.getSubject();
         if (subject == null || subject.isBlank()) {
@@ -50,6 +65,13 @@ public class JwtService {
         }
     }
 
+    /**
+     * Parses a token and validates its signature and issuer.
+     *
+     * @param token JWT string
+     * @return parsed claims
+     * @throws JwtException when validation fails
+     */
     public Claims parse(String token) throws JwtException {
         Claims claims = Jwts.parser()
                 .verifyWith(key)
@@ -57,6 +79,7 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload();
 
+        // Enforce issuer when configured.
         if (!issuer.isBlank() && !issuer.equals(claims.getIssuer())) {
             throw new JwtException("Invalid token issuer");
         }
@@ -64,10 +87,17 @@ public class JwtService {
         return claims;
     }
 
+    /**
+     * Generates a signed JWT for the user.
+     *
+     * @param user authenticated user
+     * @return signed token string
+     */
     public String generateToken(User user) {
         Instant now = Instant.now();
         Instant exp = now.plus(tokenTtl);
 
+        // Build a token with subject and expiry.
         return Jwts.builder()
                 .subject(String.valueOf(user.getId()))
                 .issuer(issuer.isBlank() ? null : issuer)

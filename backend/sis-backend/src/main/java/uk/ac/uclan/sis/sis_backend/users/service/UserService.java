@@ -26,6 +26,14 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final AuthorizationService authorizationService;
 
+    /**
+     * Creates the user service with required dependencies.
+     *
+     * @param userRepository repository for user access
+     * @param roleRepository repository for role access
+     * @param passwordEncoder encoder for password hashing
+     * @param authorizationService service for permission checks
+     */
     public UserService(UserRepository userRepository,
                     RoleRepository roleRepository,
                     PasswordEncoder passwordEncoder,
@@ -36,6 +44,11 @@ public class UserService {
         this.authorizationService = authorizationService;
     }
 
+    /**
+     * Returns all users as list items.
+     *
+     * @return list of users
+     */
     public List<UserListItemResponse> list() {
         authorizationService.requireAdmin(currentUser());
         return userRepository.findAllWithRole()
@@ -44,6 +57,12 @@ public class UserService {
                 .toList();
     }
 
+    /**
+     * Returns detailed user information by id.
+     *
+     * @param id user id
+     * @return user details
+     */
     public UserDetailResponse get(Long id) {
         authorizationService.requireAdmin(currentUser());
         User user = userRepository.findByIdWithRole(id)
@@ -52,6 +71,12 @@ public class UserService {
     }
 
 
+    /**
+     * Creates a new user.
+     *
+     * @param req create request payload
+     * @return created user list item
+     */
     @Transactional
     public UserListItemResponse create(CreateUserRequest req) {
         authorizationService.require(currentUser(), Permissions.CREATE_USER);
@@ -125,6 +150,13 @@ public class UserService {
         return toListItem(saved);
     }
 
+    /**
+     * Updates an existing user.
+     *
+     * @param id user id
+     * @param req update request payload
+     * @return updated user list item
+     */
     @Transactional
     public UserListItemResponse update(Long id, UpdateUserRequest req) {
     authorizationService.requireAdmin(currentUser());
@@ -192,6 +224,11 @@ public class UserService {
         return toListItem(user);
     }
 
+    /**
+     * Deletes a user by id.
+     *
+     * @param id user id
+     */
     @Transactional
     public void delete(Long id) {
         authorizationService.requireAdmin(currentUser());
@@ -201,10 +238,22 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
+    /**
+     * Normalizes email for consistent storage.
+     *
+     * @param email raw email
+     * @return normalized email
+     */
     private String normalizeEmail(String email) {
         return email == null ? null : email.trim().toLowerCase();
     }
 
+    /**
+     * Maps a user to a list item response.
+     *
+     * @param u user entity
+     * @return list item response
+     */
     private UserListItemResponse toListItem(User u) {
         UserListItemResponse dto = new UserListItemResponse();
         dto.id = u.getId();
@@ -216,6 +265,12 @@ public class UserService {
         return dto;
     }
 
+    /**
+     * Maps a user to a detail response.
+     *
+     * @param u user entity
+     * @return detail response
+     */
     private UserDetailResponse toDetail(User u) {
         UserDetailResponse dto = new UserDetailResponse();
         dto.id = u.getId();
@@ -227,6 +282,11 @@ public class UserService {
         return dto;
     }
 
+    /**
+     * Returns the current authenticated user.
+     *
+     * @return current user principal
+     */
     private User currentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !(auth.getPrincipal() instanceof User)) {
@@ -235,6 +295,12 @@ public class UserService {
         return (User) auth.getPrincipal();
     }
 
+    /**
+     * Performs a basic email validity check.
+     *
+     * @param email email address
+     * @return true when the email is minimally valid
+     */
     private boolean isValidEmail(String email) {
     if (email == null) return false;
     String e = email.trim();

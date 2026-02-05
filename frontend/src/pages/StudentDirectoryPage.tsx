@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "../components/Button";
 import { SearchSelect } from "../components/SearchSelect";
+import { SelectDropdown } from "../components/SelectDropdown";
 import { useNavigate } from "react-router-dom";
 import { hasPermission, Permissions } from "../utils/permissions";
 import { useAuth } from "../auth/UseAuth";
@@ -156,40 +157,33 @@ export default function StudentPage() {
               showResults={false}
             />
 
-            <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+            <label className=" grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
               Sort by
-              <select
-                className="w-full rounded-2xl border border-slate-800/80 bg-slate-950/70 px-4 py-2 text-sm text-slate-100 transition focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400/40"
+              <SelectDropdown
                 value={sortValue}
-                onChange={(e) => {
-                  setSortValue(e.target.value);
+                options={sortOptions}
+                onChange={(value) => {
+                  setSortValue(value);
                   setPage(0);
                 }}
-              >
-                {sortOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                className="w-full"
+              />
             </label>
 
             <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
               Results
-              <select
-                className="w-full rounded-2xl border border-slate-800/80 bg-slate-950/70 px-4 py-2 text-sm text-slate-100 transition focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400/40"
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
+              <SelectDropdown
+                value={String(pageSize)}
+                options={pageSizeOptions.map((size) => ({
+                  value: String(size),
+                  label: `${size} per page`,
+                }))}
+                onChange={(value) => {
+                  setPageSize(Number(value));
                   setPage(0);
                 }}
-              >
-                {pageSizeOptions.map((size) => (
-                  <option key={size} value={size}>
-                    {size} per page
-                  </option>
-                ))}
-              </select>
+                className="w-full"
+              />
             </label>
           </div>
 

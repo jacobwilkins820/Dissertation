@@ -32,6 +32,12 @@ public class GuardianService {
     private final GuardianRepository guardianRepository;
     private final AuthorizationService authorizationService;
 
+    /**
+     * Creates the guardian service.
+     *
+     * @param guardianRepository repository for guardian access
+     * @param authorizationService service for permission checks
+     */
     public GuardianService(
             GuardianRepository guardianRepository,
             AuthorizationService authorizationService
@@ -40,6 +46,12 @@ public class GuardianService {
         this.authorizationService = authorizationService;
     }
 
+    /**
+     * Creates a guardian.
+     *
+     * @param request create request payload
+     * @return created guardian summary
+     */
     @Transactional
     public CreateGuardianResponse create(CreateGuardianRequest request) {
         authorizationService.requireAdmin(currentUser());
@@ -50,6 +62,12 @@ public class GuardianService {
         return new CreateGuardianResponse(saved.getId(), saved.getFirstName(), saved.getLastName());
     }
 
+    /**
+     * Returns a guardian by id with access checks.
+     *
+     * @param id guardian id
+     * @return guardian response
+     */
     @Transactional(readOnly = true)
     public GuardianResponse getById(Long id) {
         User user = currentUser();
@@ -60,6 +78,12 @@ public class GuardianService {
         return GuardianMapper.response(guardian);
     }
 
+    /**
+     * Returns contact details for a guardian by id.
+     *
+     * @param id guardian id
+     * @return guardian contact response
+     */
     @Transactional(readOnly = true)
     public GuardianContactResponse getContactById(Long id) {
         authorizationService.require(currentUser(), Permissions.VIEW_GUARDIAN_CONTACT);
@@ -69,7 +93,11 @@ public class GuardianService {
     }
 
     /**
-     * Admin list view (paged).
+     * Returns a paged list of guardians for admins.
+     *
+     * @param q search term
+     * @param pageable paging request
+     * @return page of guardian responses
      */
     @Transactional(readOnly = true)
     public Page<GuardianResponse> list(String q, Pageable pageable) {
@@ -85,10 +113,10 @@ public class GuardianService {
     }
 
     /**
-     * Lightweight search for linking during user creation.
-     * GET /api/guardians?query=<text>
+     * Returns a limited guardian search result list.
      *
-     * Returns a small capped list.
+     * @param query search term
+     * @return list of guardian search responses
      */
     @Transactional(readOnly = true)
     public List<GuardianSearchResponse> search(String query) {
@@ -108,6 +136,13 @@ public class GuardianService {
                 .getContent();
     }
 
+    /**
+     * Updates a guardian by id.
+     *
+     * @param id guardian id
+     * @param request update request payload
+     * @return updated guardian summary
+     */
     @Transactional
     public CreateGuardianResponse update(Long id, UpdateGuardianRequest request) {
         User user = currentUser();
@@ -121,6 +156,11 @@ public class GuardianService {
         return new CreateGuardianResponse(saved.getId(), saved.getFirstName(), saved.getLastName());
     }
 
+    /**
+     * Deletes a guardian by id.
+     *
+     * @param id guardian id
+     */
     @Transactional
     public void delete(Long id) {
         authorizationService.requireAdmin(currentUser());
@@ -132,6 +172,11 @@ public class GuardianService {
         guardianRepository.deleteById(id);
     }
 
+    /**
+     * Returns the current authenticated user.
+     *
+     * @return current user principal
+     */
     private User currentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !(auth.getPrincipal() instanceof User)) {
@@ -140,11 +185,23 @@ public class GuardianService {
         return (User) auth.getPrincipal();
     }
 
+    /**
+     * Returns true when the user has an admin role.
+     *
+     * @param user current user
+     * @return true when admin
+     */
     private boolean isAdmin(User user) {
         String roleName = user.getRole() == null ? null : user.getRole().getName();
         return roleName != null && roleName.equalsIgnoreCase("ADMIN");
     }
 
+    /**
+     * Requires the user to be admin or the linked guardian.
+     *
+     * @param user current user
+     * @param guardianId guardian id
+     */
     private void requireAdminOrSelf(User user, Long guardianId) {
         if (isAdmin(user)) {
             return;

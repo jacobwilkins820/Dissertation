@@ -31,7 +31,7 @@ public class Enrolment {
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "class_id", nullable = false)
-    private Class clazz; //cant be class due to java key word
+    private Class clazz; // "class" reserved; use clazz instead.
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "academic_year_id", nullable = false)
@@ -49,6 +49,9 @@ public class Enrolment {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    /**
+     * Sets audit timestamps on insert.
+     */
     @PrePersist
     void onCreate() {
         LocalDateTime now = LocalDateTime.now();
@@ -56,28 +59,128 @@ public class Enrolment {
         this.updatedAt = now;
     }
 
+    /**
+     * Updates the audit timestamp on update.
+     */
     @PreUpdate
     void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public Long getId() { return id; }
+    /**
+     * Returns the enrolment id.
+     *
+     * @return enrolment id
+     */
+    public Long getId() {
+        return id;
+    }
 
-    public Student getStudent() { return student; }
-    public void setStudent(Student student) { this.student = student; }
+    /**
+     * Returns the student entity.
+     *
+     * @return student entity
+     */
+    public Student getStudent() {
+        return student;
+    }
 
-    public Class getClazz() { return clazz; }
-    public void setClazz(Class clazz) { this.clazz = clazz; }
+    /**
+     * Sets the student entity.
+     *
+     * @param student student entity
+     */
+    public void setStudent(Student student) {
+        this.student = student;
+    }
 
-    public AcademicYear getAcademicYear() { return academicYear; }
-    public void setAcademicYear(AcademicYear academicYear) { this.academicYear = academicYear; }
+    /**
+     * Returns the class entity.
+     *
+     * @return class entity
+     */
+    public Class getClazz() {
+        return clazz;
+    }
 
-    public LocalDate getStartDate() { return startDate; }
-    public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
+    /**
+     * Sets the class entity.
+     *
+     * @param clazz class entity
+     */
+    public void setClazz(Class clazz) {
+        this.clazz = clazz;
+    }
 
-    public LocalDate getEndDate() { return endDate; }
-    public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
+    /**
+     * Returns the academic year entity.
+     *
+     * @return academic year entity
+     */
+    public AcademicYear getAcademicYear() {
+        return academicYear;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    /**
+     * Sets the academic year entity.
+     *
+     * @param academicYear academic year entity
+     */
+    public void setAcademicYear(AcademicYear academicYear) {
+        this.academicYear = academicYear;
+    }
+
+    /**
+     * Returns the start date.
+     *
+     * @return start date
+     */
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    /**
+     * Sets the start date.
+     *
+     * @param startDate start date
+     */
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    /**
+     * Returns the end date.
+     *
+     * @return end date
+     */
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    /**
+     * Sets the end date.
+     *
+     * @param endDate end date
+     */
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    /**
+     * Returns the created timestamp.
+     *
+     * @return created timestamp
+     */
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    /**
+     * Returns the updated timestamp.
+     *
+     * @return updated timestamp
+     */
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
 }

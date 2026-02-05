@@ -11,8 +11,20 @@ import java.util.Optional;
 
 public interface AcademicYearRepository extends JpaRepository<AcademicYear, Long> {
 
+    /**
+     * Finds an academic year by name.
+     *
+     * @param name academic year name
+     * @return matching academic year, when present
+     */
     Optional<AcademicYear> findByName(String name);
 
+    /**
+     * Finds the academic year covering a date.
+     *
+     * @param date target date
+     * @return matching academic year, when present
+     */
     @Query("""
         SELECT ay
         FROM AcademicYear ay

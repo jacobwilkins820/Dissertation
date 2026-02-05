@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "../components/Button";
 import { SearchSelect } from "../components/SearchSelect";
+import { SelectDropdown } from "../components/SelectDropdown";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../auth/UseAuth";
 import { hasPermission, Permissions } from "../utils/permissions";
@@ -21,6 +22,7 @@ import {
   getStudentEnrolments,
   getStudentGuardians,
   searchGuardians,
+  deleteStudentGuardianLink,
   updateStudent,
   updateStudentGuardianLink,
 } from "../services/backend";
@@ -110,6 +112,9 @@ export default function StudentPage() {
   const [guardianSaveState, setGuardianSaveState] = useState<
     Record<number, boolean>
   >({});
+  const [guardianRemoveState, setGuardianRemoveState] = useState<
+    Record<number, boolean>
+  >({});
   const [guardianSaveError, setGuardianSaveError] = useState<string | null>(
     null
   );
@@ -142,12 +147,9 @@ export default function StudentPage() {
   const [accessError, setAccessError] = useState<string | null>(null);
 
   // Load a single student by id.
-  const loadStudent = useCallback(
-    async (id: number, signal?: AbortSignal) => {
-      return getStudent(id, signal);
-    },
-    []
-  );
+  const loadStudent = useCallback(async (id: number, signal?: AbortSignal) => {
+    return getStudent(id, signal);
+  }, []);
 
   // Load guardians linked to the student.
   const loadGuardians = useCallback(
@@ -156,6 +158,31 @@ export default function StudentPage() {
     },
     []
   );
+
+  const applyGuardianList = useCallback((list: StudentGuardianResponse[]) => {
+    const sorted = [...list].sort((a, b) => {
+      const lastA = (a.guardianLastName ?? "").toLowerCase();
+      const lastB = (b.guardianLastName ?? "").toLowerCase();
+      if (lastA !== lastB) return lastA.localeCompare(lastB);
+      const firstA = (a.guardianFirstName ?? "").toLowerCase();
+      const firstB = (b.guardianFirstName ?? "").toLowerCase();
+      return firstA.localeCompare(firstB);
+    });
+
+    setGuardians(sorted);
+
+    const nextEdits: Record<number, GuardianEditState> = {};
+    sorted.forEach((guardian) => {
+      nextEdits[guardian.guardianId] = {
+        relationship: guardian.relationship ?? "",
+        isPrimary: guardian.isPrimary,
+      };
+    });
+    setGuardianEdits(nextEdits);
+
+    const primary = sorted.find((guardian) => guardian.isPrimary);
+    setPrimaryGuardianId(primary ? primary.guardianId : null);
+  }, []);
 
   const loadGuardianStudents = useCallback(
     async (id: number, signal?: AbortSignal) => {
@@ -268,20 +295,7 @@ export default function StudentPage() {
     loadGuardians(parsedId, controller.signal)
       .then((data) => {
         const list = Array.isArray(data) ? data : [];
-        setGuardians(list);
-
-        // Seed the edit map for guardian fields.
-        const nextEdits: Record<number, GuardianEditState> = {};
-        list.forEach((guardian) => {
-          nextEdits[guardian.guardianId] = {
-            relationship: guardian.relationship ?? "",
-            isPrimary: guardian.isPrimary,
-          };
-        });
-        setGuardianEdits(nextEdits);
-
-        const primary = list.find((guardian) => guardian.isPrimary);
-        setPrimaryGuardianId(primary ? primary.guardianId : null);
+        applyGuardianList(list);
       })
       .catch((err: unknown) => {
         if (!(err instanceof DOMException && err.name === "AbortError")) {
@@ -291,7 +305,7 @@ export default function StudentPage() {
       .finally(() => setGuardiansLoading(false));
 
     return () => controller.abort();
-  }, [canViewGuardians, loadGuardians, parsedId]);
+  }, [applyGuardianList, canViewGuardians, loadGuardians, parsedId]);
 
   // Save core student updates.
   const handleStudentSave = async () => {
@@ -332,11 +346,52 @@ export default function StudentPage() {
       return;
     }
 
+    const currentPrimaryId =
+      guardians.find((guardian) => guardian.isPrimary)?.guardianId ?? null;
+    const needsPrimarySwitch =
+      primaryGuardianId === guardianId &&
+      currentPrimaryId !== null &&
+      currentPrimaryId !== guardianId;
+
+    if (needsPrimarySwitch) {
+      const currentPrimaryRelationship =
+        guardianEdits[currentPrimaryId]?.relationship ??
+        guardians.find((guardian) => guardian.guardianId === currentPrimaryId)
+          ?.relationship ??
+        "";
+
+      if (!currentPrimaryRelationship.trim()) {
+        setGuardianSaveError(
+          "Primary guardian relationship is required before switching."
+        );
+        return;
+      }
+    }
+
     setGuardianSaveError(null);
     setGuardianSaveSuccess(null);
-    setGuardianSaveState((prev) => ({ ...prev, [guardianId]: true }));
+    setGuardianSaveState((prev) => ({
+      ...prev,
+      [guardianId]: true,
+      ...(needsPrimarySwitch && currentPrimaryId !== null
+        ? { [currentPrimaryId]: true }
+        : {}),
+    }));
 
     try {
+      if (needsPrimarySwitch && currentPrimaryId !== null) {
+        const currentPrimaryRelationship =
+          guardianEdits[currentPrimaryId]?.relationship ??
+          guardians.find((guardian) => guardian.guardianId === currentPrimaryId)
+            ?.relationship ??
+          "";
+
+        await updateStudentGuardianLink(student.id, currentPrimaryId, {
+          relationship: currentPrimaryRelationship.trim(),
+          isPrimary: false,
+        });
+      }
+
       await updateStudentGuardianLink(student.id, guardianId, {
         relationship: edit.relationship.trim(),
         isPrimary: primaryGuardianId === guardianId,
@@ -344,13 +399,87 @@ export default function StudentPage() {
 
       setGuardianSaveSuccess("Guardian link updated.");
       const refreshed = await loadGuardians(student.id);
-      setGuardians(refreshed);
+      applyGuardianList(refreshed);
     } catch (err: unknown) {
       setGuardianSaveError(
         getErrorMessage(err, "Failed to update guardian link.")
       );
     } finally {
-      setGuardianSaveState((prev) => ({ ...prev, [guardianId]: false }));
+      setGuardianSaveState((prev) => ({
+        ...prev,
+        [guardianId]: false,
+        ...(needsPrimarySwitch && currentPrimaryId !== null
+          ? { [currentPrimaryId]: false }
+          : {}),
+      }));
+    }
+  };
+
+  const handlePrimaryChange = async (guardianId: number) => {
+    if (!student || !canEditGuardians) return;
+
+    const currentPrimaryId =
+      guardians.find((guardian) => guardian.isPrimary)?.guardianId ?? null;
+
+    if (guardianId === currentPrimaryId) return;
+
+    const getRelationship = (id: number) =>
+      guardianEdits[id]?.relationship ??
+      guardians.find((guardian) => guardian.guardianId === id)?.relationship ??
+      "";
+
+    const nextRelationship = getRelationship(guardianId);
+    if (!nextRelationship.trim()) {
+      setGuardianSaveError("Relationship is required.");
+      return;
+    }
+
+    if (currentPrimaryId !== null) {
+      const currentRelationship = getRelationship(currentPrimaryId);
+      if (!currentRelationship.trim()) {
+        setGuardianSaveError(
+          "Primary guardian relationship is required before switching."
+        );
+        return;
+      }
+    }
+
+    setGuardianSaveError(null);
+    setGuardianSaveSuccess(null);
+    setPrimaryGuardianId(guardianId);
+    setGuardianSaveState((prev) => ({
+      ...prev,
+      [guardianId]: true,
+      ...(currentPrimaryId !== null ? { [currentPrimaryId]: true } : {}),
+    }));
+
+    try {
+      if (currentPrimaryId !== null) {
+        await updateStudentGuardianLink(student.id, currentPrimaryId, {
+          relationship: getRelationship(currentPrimaryId).trim(),
+          isPrimary: false,
+        });
+      }
+
+      await updateStudentGuardianLink(student.id, guardianId, {
+        relationship: nextRelationship.trim(),
+        isPrimary: true,
+      });
+
+      setGuardianSaveSuccess("Primary guardian updated.");
+      const refreshed = await loadGuardians(student.id);
+      applyGuardianList(refreshed);
+    } catch (err: unknown) {
+      setPrimaryGuardianId(currentPrimaryId);
+      setGuardianSaveError(
+        getErrorMessage(err, "Failed to update guardian link.")
+      );
+    } finally {
+      setGuardianSaveState((prev) => ({
+        ...prev,
+        [guardianId]: false,
+        ...(currentPrimaryId !== null ? { [currentPrimaryId]: false } : {}),
+      }));
     }
   };
 
@@ -367,6 +496,33 @@ export default function StudentPage() {
     setLinkSuccess(null);
 
     try {
+      const currentPrimaryId =
+        guardians.find((guardian) => guardian.isPrimary)?.guardianId ?? null;
+      const needsPrimarySwitch =
+        linkIsPrimary &&
+        currentPrimaryId !== null &&
+        currentPrimaryId !== selectedGuardian.id;
+
+      if (needsPrimarySwitch && currentPrimaryId !== null) {
+        const currentPrimaryRelationship =
+          guardianEdits[currentPrimaryId]?.relationship ??
+          guardians.find((guardian) => guardian.guardianId === currentPrimaryId)
+            ?.relationship ??
+          "";
+
+        if (!currentPrimaryRelationship.trim()) {
+          setLinkError(
+            "Primary guardian relationship is required before switching."
+          );
+          return;
+        }
+
+        await updateStudentGuardianLink(student.id, currentPrimaryId, {
+          relationship: currentPrimaryRelationship.trim(),
+          isPrimary: false,
+        });
+      }
+
       await updateStudentGuardianLink(student.id, selectedGuardian.id, {
         relationship: linkRelationship.trim(),
         isPrimary: linkIsPrimary,
@@ -380,11 +536,40 @@ export default function StudentPage() {
       setAddResetKey((prev) => prev + 1);
 
       const refreshed = await loadGuardians(student.id);
-      setGuardians(refreshed);
+      applyGuardianList(refreshed);
     } catch (err: unknown) {
       setLinkError(getErrorMessage(err, "Failed to link guardian."));
     } finally {
       setLinking(false);
+    }
+  };
+
+  const handleGuardianRemove = async (guardianId: number) => {
+    if (!student || !canEditGuardians) return;
+    const target = guardians.find(
+      (guardian) => guardian.guardianId === guardianId
+    );
+    if (!target) return;
+    if (target.isPrimary) {
+      setGuardianSaveError("Primary guardian cannot be removed.");
+      return;
+    }
+
+    setGuardianSaveError(null);
+    setGuardianSaveSuccess(null);
+    setGuardianRemoveState((prev) => ({ ...prev, [guardianId]: true }));
+
+    try {
+      await deleteStudentGuardianLink(student.id, guardianId);
+      const next = guardians.filter(
+        (guardian) => guardian.guardianId !== guardianId
+      );
+      applyGuardianList(next);
+      setGuardianSaveSuccess("Guardian removed.");
+    } catch (err: unknown) {
+      setGuardianSaveError(getErrorMessage(err, "Failed to remove guardian."));
+    } finally {
+      setGuardianRemoveState((prev) => ({ ...prev, [guardianId]: false }));
     }
   };
 
@@ -435,12 +620,7 @@ export default function StudentPage() {
 
         const sessionLists = await Promise.all(
           classIds.map((classId) =>
-            getAttendanceSessionsForClass(
-              classId,
-              from,
-              to,
-              controller.signal
-            )
+            getAttendanceSessionsForClass(classId, from, to, controller.signal)
           )
         );
 
@@ -720,20 +900,21 @@ export default function StudentPage() {
                       Status
                     </p>
                     {editingStudent ? (
-                      <select
+                      <SelectDropdown
                         value={formValues.status}
-                        onChange={(event) =>
+                        options={[
+                          { value: "ACTIVE", label: "Active" },
+                          { value: "INACTIVE", label: "Inactive" },
+                          { value: "WITHDRAWN", label: "Withdrawn" },
+                        ]}
+                        onChange={(value) =>
                           setFormValues((prev) => ({
                             ...prev,
-                            status: event.target.value,
+                            status: value,
                           }))
                         }
-                        className="w-full rounded-2xl border border-slate-800/80 bg-slate-950/70 px-4 py-2 text-sm text-slate-100 transition focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400/40"
-                      >
-                        <option value="ACTIVE">Active</option>
-                        <option value="INACTIVE">Inactive</option>
-                        <option value="WITHDRAWN">Withdrawn</option>
-                      </select>
+                        className="w-full"
+                      />
                     ) : (
                       <p className="text-sm text-slate-100">
                         {student.status ?? "-"}
@@ -804,8 +985,9 @@ export default function StudentPage() {
                 <p className="text-lg font-semibold text-white">
                   {guardians.find((g) => g.guardianId === primaryGuardianId)
                     ? `${guardians.find((g) => g.guardianId === primaryGuardianId)?.guardianFirstName ?? ""} ${
-                        guardians.find((g) => g.guardianId === primaryGuardianId)
-                          ?.guardianLastName ?? ""
+                        guardians.find(
+                          (g) => g.guardianId === primaryGuardianId
+                        )?.guardianLastName ?? ""
                       }`
                     : "No primary guardian"}
                 </p>
@@ -900,7 +1082,7 @@ export default function StudentPage() {
                           name="primaryGuardian"
                           checked={primaryGuardianId === guardian.guardianId}
                           onChange={() =>
-                            setPrimaryGuardianId(guardian.guardianId)
+                            handlePrimaryChange(guardian.guardianId)
                           }
                           className="h-3 w-3 accent-slate-200"
                         />
@@ -950,6 +1132,23 @@ export default function StudentPage() {
                         {isSaving ? "Saving..." : "Save link"}
                       </Button>
                     )}
+                    {canEditGuardians && (
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() =>
+                          handleGuardianRemove(guardian.guardianId)
+                        }
+                        disabled={
+                          guardian.isPrimary ||
+                          guardianRemoveState[guardian.guardianId]
+                        }
+                      >
+                        {guardianRemoveState[guardian.guardianId]
+                          ? "Removing..."
+                          : "Remove"}
+                      </Button>
+                    )}
                   </div>
                 </div>
               );
@@ -988,17 +1187,18 @@ export default function StudentPage() {
           {/* Range selector for attendance summaries. */}
           <label className="space-y-1 text-xs text-slate-400">
             Range
-            <select
+            <SelectDropdown
               value={attendanceRange}
-              onChange={(event) =>
-                setAttendanceRange(event.target.value as AttendanceRange)
+              options={[
+                { value: "last-week", label: "Last week" },
+                { value: "last-month", label: "Last month" },
+              ]}
+              onChange={(value) =>
+                setAttendanceRange(value as AttendanceRange)
               }
               disabled={!canViewAttendance}
-              className="w-full rounded-2xl border border-slate-700/60 bg-slate-950/70 px-3 py-2 text-sm text-slate-100 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <option value="last-week">Last week</option>
-              <option value="last-month">Last month</option>
-            </select>
+              className="w-full"
+            />
           </label>
         </div>
 

@@ -31,6 +31,14 @@ public class AttendanceSessionService {
     private final ClassRepository classRepository;
     private final AuthorizationService authorizationService;
 
+    /**
+     * Creates the attendance session service.
+     *
+     * @param attendanceSessionRepository repository for sessions
+     * @param academicYearService service for academic year lookup
+     * @param classRepository repository for class access
+     * @param authorizationService service for permission checks
+     */
     public AttendanceSessionService(
             AttendanceSessionRepository attendanceSessionRepository,
             AcademicYearService academicYearService,
@@ -43,6 +51,12 @@ public class AttendanceSessionService {
         this.authorizationService = authorizationService;
     }
 
+    /**
+     * Creates an attendance session.
+     *
+     * @param request create request payload
+     * @return created attendance session response
+     */
     public AttendanceSessionResponse create(CreateAttendanceSessionRequest request) {
         authorizationService.require(currentUser(), Permissions.EDIT_ATTENDANCE);
         if (request.getClassId() == null || request.getSessionDate() == null || request.getSession() == null) {
@@ -73,6 +87,12 @@ public class AttendanceSessionService {
         }
     }
 
+    /**
+     * Returns an attendance session by id.
+     *
+     * @param id session id
+     * @return attendance session response
+     */
     public AttendanceSessionResponse getById(long id) {
         authorizationService.require(currentUser(), Permissions.VIEW_ATTENDANCE);
         AttendanceSession s = attendanceSessionRepository.findById(id)
@@ -80,6 +100,14 @@ public class AttendanceSessionService {
         return toResponse(s);
     }
 
+    /**
+     * Returns sessions for a class between two dates.
+     *
+     * @param classId class id
+     * @param from start date
+     * @param to end date
+     * @return list of attendance session responses
+     */
     public List<AttendanceSessionResponse> listForClassBetween(long classId, LocalDate from, LocalDate to) {
         authorizationService.require(currentUser(), Permissions.VIEW_ATTENDANCE);
         if (from == null || to == null) {
@@ -93,6 +121,12 @@ public class AttendanceSessionService {
                 .toList();
     }
 
+    /**
+     * Maps a session entity to a response.
+     *
+     * @param s session entity
+     * @return attendance session response
+     */
     private AttendanceSessionResponse toResponse(AttendanceSession s) {
         return new AttendanceSessionResponse(
                 s.getId(),
@@ -104,6 +138,11 @@ public class AttendanceSessionService {
         );
     }
 
+    /**
+     * Returns the current authenticated user.
+     *
+     * @return current user principal
+     */
     private User currentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !(auth.getPrincipal() instanceof User)) {

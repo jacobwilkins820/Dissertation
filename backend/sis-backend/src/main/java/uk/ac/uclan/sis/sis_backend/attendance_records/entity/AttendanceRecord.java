@@ -51,6 +51,9 @@ public class AttendanceRecord {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    /**
+     * Sets audit timestamps on insert.
+     */
     @PrePersist
     void onCreate() {
         LocalDateTime now = LocalDateTime.now();
@@ -58,31 +61,146 @@ public class AttendanceRecord {
         this.updatedAt = now;
     }
 
+    /**
+     * Updates the audit timestamp on update.
+     */
     @PreUpdate
     void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public Long getId() { return id; }
+    /**
+     * Returns the attendance record id.
+     *
+     * @return attendance record id
+     */
+    public Long getId() {
+        return id;
+    }
 
-    public AttendanceSession getAttendanceSession() { return attendanceSession; }
-    public void setAttendanceSession(AttendanceSession attendanceSession) { this.attendanceSession = attendanceSession; }
+    /**
+     * Returns the attendance session entity.
+     *
+     * @return attendance session entity
+     */
+    public AttendanceSession getAttendanceSession() {
+        return attendanceSession;
+    }
 
-    public Student getStudent() { return student; }
-    public void setStudent(Student student) { this.student = student; }
+    /**
+     * Sets the attendance session entity.
+     *
+     * @param attendanceSession attendance session entity
+     */
+    public void setAttendanceSession(AttendanceSession attendanceSession) {
+        this.attendanceSession = attendanceSession;
+    }
 
-    public User getMarkedByUser() { return markedByUser; }
-    public void setMarkedByUser(User markedByUser) { this.markedByUser = markedByUser; }
+    /**
+     * Returns the student entity.
+     *
+     * @return student entity
+     */
+    public Student getStudent() {
+        return student;
+    }
 
-    public AttendanceStatus getStatus() { return status; }
-    public void setStatus(AttendanceStatus status) { this.status = status; }
+    /**
+     * Sets the student entity.
+     *
+     * @param student student entity
+     */
+    public void setStudent(Student student) {
+        this.student = student;
+    }
 
-    public String getReason() { return reason; }
-    public void setReason(String reason) { this.reason = reason; }
+    /**
+     * Returns the user who marked the record.
+     *
+     * @return marking user
+     */
+    public User getMarkedByUser() {
+        return markedByUser;
+    }
 
-    public LocalDateTime getMarkedAt() { return markedAt; }
-    public void setMarkedAt(LocalDateTime markedAt) { this.markedAt = markedAt; }
+    /**
+     * Sets the user who marked the record.
+     *
+     * @param markedByUser marking user
+     */
+    public void setMarkedByUser(User markedByUser) {
+        this.markedByUser = markedByUser;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    /**
+     * Returns the attendance status.
+     *
+     * @return attendance status
+     */
+    public AttendanceStatus getStatus() {
+        return status;
+    }
+
+    /**
+     * Sets the attendance status.
+     *
+     * @param status attendance status
+     */
+    public void setStatus(AttendanceStatus status) {
+        this.status = status;
+    }
+
+    /**
+     * Returns the status reason.
+     *
+     * @return status reason
+     */
+    public String getReason() {
+        return reason;
+    }
+
+    /**
+     * Sets the status reason.
+     *
+     * @param reason status reason
+     */
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
+    /**
+     * Returns the marked timestamp.
+     *
+     * @return marked timestamp
+     */
+    public LocalDateTime getMarkedAt() {
+        return markedAt;
+    }
+
+    /**
+     * Sets the marked timestamp.
+     *
+     * @param markedAt marked timestamp
+     */
+    public void setMarkedAt(LocalDateTime markedAt) {
+        this.markedAt = markedAt;
+    }
+
+    /**
+     * Returns the created timestamp.
+     *
+     * @return created timestamp
+     */
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    /**
+     * Returns the updated timestamp.
+     *
+     * @return updated timestamp
+     */
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
 }

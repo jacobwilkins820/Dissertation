@@ -29,6 +29,14 @@ public class StudentGuardianService {
     private final GuardianRepository guardianRepository;
     private final AuthorizationService authorizationService;
 
+    /**
+     * Creates the student-guardian service.
+     *
+     * @param studentGuardianRepository repository for link access
+     * @param studentRepository repository for students
+     * @param guardianRepository repository for guardians
+     * @param authorizationService service for permission checks
+     */
     public StudentGuardianService(
             StudentGuardianRepository studentGuardianRepository,
             StudentRepository studentRepository,
@@ -42,7 +50,12 @@ public class StudentGuardianService {
     }
 
     /**
-     * Create or update the link between a student and guardian.
+     * Creates or updates a student-guardian link.
+     *
+     * @param studentId student id
+     * @param guardianId guardian id
+     * @param request link request payload
+     * @return student-guardian response
      */
     @Transactional
     public StudentGuardianResponse upsertLink(Long studentId, Long guardianId, UpsertStudentGuardianLinkRequest request) {
@@ -54,6 +67,10 @@ public class StudentGuardianService {
                 .orElseThrow(() -> new NotFoundException("Guardian", "Guardian not found: " + guardianId));
 
         boolean primary = request.getIsPrimary() != null && request.getIsPrimary();
+
+        if (primary) {
+            studentGuardianRepository.clearOtherPrimaryGuardians(studentId, guardianId);
+        }
 
         StudentGuardian link = studentGuardianRepository
                 .findByIdStudentIdAndIdGuardianId(studentId, guardianId)
@@ -74,6 +91,12 @@ public class StudentGuardianService {
         return toResponse(saved);
     }
 
+    /**
+     * Returns links for a student.
+     *
+     * @param studentId student id
+     * @return list of student-guardian responses
+     */
     @Transactional(readOnly = true)
     public List<StudentGuardianResponse> listByStudent(Long studentId) {
         authorizationService.requireAdmin(currentUser());
@@ -88,6 +111,12 @@ public class StudentGuardianService {
                 .toList();
     }
 
+    /**
+     * Returns links for a guardian.
+     *
+     * @param guardianId guardian id
+     * @return list of student-guardian responses
+     */
     @Transactional(readOnly = true)
     public List<StudentGuardianResponse> listByGuardian(Long guardianId) {
         User user = currentUser();
@@ -110,19 +139,31 @@ public class StudentGuardianService {
                 .toList();
     }
 
+    /**
+     * Deletes a student-guardian link.
+     *
+     * @param studentId student id
+     * @param guardianId guardian id
+     */
     @Transactional
     public void deleteLink(Long studentId, Long guardianId) {
         authorizationService.requireAdmin(currentUser());
         StudentGuardianId id = new StudentGuardianId(studentId, guardianId);
 
         if (!studentGuardianRepository.existsById(id)) {
-            // Join-table delete should still be strict: if you asked to delete a link that isn't there, that's a client bug.
+            // Join-table delete remains strict when the link is missing.
             throw new NotFoundException("StudentGuardian", "Student-Guardian link not found: studentId=" + studentId + ", guardianId=" + guardianId);
         }
 
         studentGuardianRepository.deleteById(id);
     }
 
+    /**
+     * Maps a link entity to a response.
+     *
+     * @param link student-guardian link
+     * @return student-guardian response
+     */
     private StudentGuardianResponse toResponse(StudentGuardian link) {
         Long studentId = link.getId() != null
                 ? link.getId().getStudentId()
@@ -142,6 +183,11 @@ public class StudentGuardianService {
         );
     }
 
+    /**
+     * Returns the current authenticated user.
+     *
+     * @return current user principal
+     */
     private User currentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !(auth.getPrincipal() instanceof User)) {
@@ -150,11 +196,23 @@ public class StudentGuardianService {
         return (User) auth.getPrincipal();
     }
 
+    /**
+     * Returns true when the user has an admin role.
+     *
+     * @param user current user
+     * @return true when admin
+     */
     private boolean isAdmin(User user) {
         String roleName = user.getRole() == null ? null : user.getRole().getName();
         return roleName != null && roleName.equalsIgnoreCase("ADMIN");
     }
 
+    /**
+     * Returns true when the user has a parent role.
+     *
+     * @param user current user
+     * @return true when parent
+     */
     private boolean isParent(User user) {
         String roleName = user.getRole() == null ? null : user.getRole().getName();
         return roleName != null && roleName.equalsIgnoreCase("PARENT");

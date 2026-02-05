@@ -29,6 +29,7 @@ import type {
   CreateClassRequest,
   CreateEnrolmentRequest,
   StudentGuardianUpdateRequest,
+  UpdateClassRequest,
   UpdateAttendanceRecordRequest,
   UpdateGuardianRequest,
   UpdateStudentRequest,
@@ -159,6 +160,15 @@ export function updateStudentGuardianLink(
   );
 }
 
+export async function deleteStudentGuardianLink(
+  studentId: number,
+  guardianId: number
+): Promise<void> {
+  await fetchJson<unknown>(`/api/students/${studentId}/guardians/${guardianId}`, {
+    method: "DELETE",
+  });
+}
+
 export async function getGuardianDetail(
   id: number,
   options: { full: boolean },
@@ -258,6 +268,14 @@ export async function createClass(payload: CreateClassRequest): Promise<void> {
   });
 }
 
+export function updateClass(id: number, payload: UpdateClassRequest) {
+  return fetchJson<ClassResponse>(`/api/classes/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
 export function getCurrentAcademicYear(signal?: AbortSignal) {
   return fetchJson<AcademicYearResponse>(
     "/api/academic-years/current",
@@ -299,6 +317,12 @@ export async function createEnrolment(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteEnrolment(id: number): Promise<void> {
+  await fetchJson<unknown>(`/api/enrolments/${id}`, {
+    method: "DELETE",
   });
 }
 

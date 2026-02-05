@@ -17,10 +17,21 @@ public class AcademicYearService {
 
     private final AcademicYearRepository academicYearRepository;
 
+    /**
+     * Creates the academic year service.
+     *
+     * @param academicYearRepository repository for academic years
+     */
     public AcademicYearService(AcademicYearRepository academicYearRepository) {
         this.academicYearRepository = academicYearRepository;
     }
 
+    /**
+     * Returns the academic year covering the given date.
+     *
+     * @param date target date
+     * @return academic year entity
+     */
     public AcademicYear getForDateOrThrow(LocalDate date) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !(auth.getPrincipal() instanceof User)) {
@@ -33,6 +44,11 @@ public class AcademicYearService {
                 ));
     }
 
+    /**
+     * Returns the academic year covering the current date.
+     *
+     * @return academic year entity
+     */
     public AcademicYear getCurrentOrThrow() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !(auth.getPrincipal() instanceof User)) {

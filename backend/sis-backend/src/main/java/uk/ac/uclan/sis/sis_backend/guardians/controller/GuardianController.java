@@ -20,26 +20,56 @@ public class GuardianController {
 
     private final GuardianService guardianService;
 
+    /**
+     * Creates the guardian controller.
+     *
+     * @param guardianService service for guardian operations
+     */
     public GuardianController(GuardianService guardianService) {
         this.guardianService = guardianService;
     }
 
+    /**
+     * Creates a guardian.
+     *
+     * @param request create request payload
+     * @return created guardian summary
+     */
     @PostMapping
     public ResponseEntity<CreateGuardianResponse> create(@Valid @RequestBody CreateGuardianRequest request) {
         CreateGuardianResponse response = guardianService.create(request);
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Returns a guardian by id.
+     *
+     * @param id guardian id
+     * @return guardian response
+     */
     @GetMapping("/{id}")
     public ResponseEntity<GuardianResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(guardianService.getById(id));
     }
 
+    /**
+     * Returns guardian contact details by id.
+     *
+     * @param id guardian id
+     * @return guardian contact response
+     */
     @GetMapping("/{id}/contact")
     public ResponseEntity<GuardianContactResponse> getContact(@PathVariable Long id) {
         return ResponseEntity.ok(guardianService.getContactById(id));
     }
 
+    /**
+     * Returns a paged list of guardians with optional search.
+     *
+     * @param q search term
+     * @param pageable paging request
+     * @return page of guardians
+     */
     @GetMapping
     public ResponseEntity<Page<GuardianResponse>> list(
             @RequestParam(value = "q", required = false) String q,
@@ -48,6 +78,12 @@ public class GuardianController {
         return ResponseEntity.ok(guardianService.list(q, pageable));
     }
 
+    /**
+     * Returns a limited search list for guardian linking.
+     *
+     * @param query search term
+     * @return guardian search responses
+     */
     @GetMapping(params = "query")
     public ResponseEntity<List<GuardianSearchResponse>> search(
             @RequestParam("query") String query
@@ -55,6 +91,12 @@ public class GuardianController {
         return ResponseEntity.ok(guardianService.search(query));
     }
 
+    /**
+     * Returns a limited search list for guardian linking.
+     *
+     * @param query search term
+     * @return guardian search responses
+     */
     @GetMapping("/search")
     public ResponseEntity<List<GuardianSearchResponse>> searchByPath(
             @RequestParam("query") String query
@@ -62,16 +104,28 @@ public class GuardianController {
         return ResponseEntity.ok(guardianService.search(query));
     }
 
+    /**
+     * Updates a guardian by id.
+     *
+     * @param id guardian id
+     * @param request update request payload
+     * @return updated guardian summary
+     */
     @PutMapping("/{id}")
     public ResponseEntity<CreateGuardianResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody UpdateGuardianRequest request
     ) {
-        // Update returns CreateGuardianResponse in your service (id + name),
-        // which is totally fine as a lightweight "updated summary".
+        // Update returns a summary response (id + name).
         return ResponseEntity.ok(guardianService.update(id, request));
     }
 
+    /**
+     * Deletes a guardian by id.
+     *
+     * @param id guardian id
+     * @return empty response
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         guardianService.delete(id);

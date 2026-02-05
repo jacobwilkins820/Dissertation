@@ -20,28 +20,56 @@ public class AcademicYear {
     @Column(name = "ends_on", nullable = false)
     private LocalDate endsOn;
 
-    protected AcademicYear() {
-        // default constructor
-    }
+    /**
+     * Creates an academic year entity for JPA.
+     */
+    protected AcademicYear() {}
 
+    /**
+     * Creates an academic year entity.
+     *
+     * @param name academic year name
+     * @param startsOn start date
+     * @param endsOn end date
+     */
     public AcademicYear(String name, LocalDate startsOn, LocalDate endsOn) {
         this.name = name;
         this.startsOn = startsOn;
         this.endsOn = endsOn;
     }
 
+    /**
+     * Returns the academic year id.
+     *
+     * @return academic year id
+     */
     public Long getId() {
         return id;
     }
 
+    /**
+     * Returns the academic year name.
+     *
+     * @return academic year name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Returns the start date.
+     *
+     * @return start date
+     */
     public LocalDate getStartsOn() {
         return startsOn;
     }
 
+    /**
+     * Returns the end date.
+     *
+     * @return end date
+     */
     public LocalDate getEndsOn() {
         return endsOn;
     }

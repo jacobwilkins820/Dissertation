@@ -9,12 +9,15 @@ import RegisterStudent from "./pages/RegisterStudentPage";
 import StudentDirectoryPage from "./pages/StudentDirectoryPage";
 import StudentPage from "./pages/StudentPage";
 import ClassesPage from "./pages/ClassesPage";
+import AddClassPage from "./pages/AddClassPage";
 import ClassDetailPage from "./pages/ClassDetailPage";
 import AttendanceRegisterPage from "./pages/AttendanceRegisterPage";
 import GuardiansSearchPage from "./pages/GuardiansSearchPage";
 import GuardianDetailPage from "./pages/GuardianDetailPage";
 import AppLayout from "./layouts/AppLayout";
 import AuthLayout from "./layouts/AuthLayout";
+import StatisticsPage from "./pages/StatisticsPage";
+import HomePage from "./pages/HomePage";
 
 // App routes with permission gating + layout composition.
 // Main router tree and access control rules.
@@ -39,6 +42,7 @@ export default function App() {
   );
   const canCreateUser = hasPermission(permissionLevel, Permissions.CREATE_USER);
   const isAdmin = (user?.roleName ?? "").toUpperCase() === "ADMIN";
+  const canCreateClass = isAdmin && canViewClasses;
   const canAccessGuardians =
     isAdmin ||
     user?.guardianId != null ||
@@ -62,18 +66,11 @@ export default function App() {
           <Route
             path="/"
             element={
-              <Navigate
-                to={
-                  canViewStudents
-                    ? "/studentDirectory"
-                    : canViewClasses
-                      ? "/classes"
-                      : "/login"
-                }
-                replace
-              />
+              <Navigate to="/home" replace />
             }
           />
+
+          <Route path="/home" element={<HomePage />} />
 
           <Route
             path="/register-user"
@@ -90,17 +87,17 @@ export default function App() {
           />
           <Route
             path="/student/:studentId"
-            element={
-              canViewStudentDetails ? <StudentPage /> : <Forbidden />
-            }
+            element={canViewStudentDetails ? <StudentPage /> : <Forbidden />}
           />
 
           {/* placeholders */}
           <Route
             path="/classes"
-            element={
-              canViewClasses ? <ClassesPage /> : <Forbidden />
-            }
+            element={canViewClasses ? <ClassesPage /> : <Forbidden />}
+          />
+          <Route
+            path="/classes/new"
+            element={canCreateClass ? <AddClassPage /> : <Forbidden />}
           />
           <Route
             path="/classes/:classId"
@@ -108,16 +105,27 @@ export default function App() {
           />
           <Route
             path="/attendance/:classId"
-            element={canViewClasses ? <AttendanceRegisterPage /> : <Forbidden />}
+            element={
+              canViewClasses ? <AttendanceRegisterPage /> : <Forbidden />
+            }
+          />
+
+          <Route
+            path="/statistics/:classId"
+            element={canViewClasses ? <StatisticsPage /> : <Forbidden />}
           />
 
           <Route
             path="/guardians"
-            element={canSearchGuardians ? <GuardiansSearchPage /> : <Forbidden />}
+            element={
+              canSearchGuardians ? <GuardiansSearchPage /> : <Forbidden />
+            }
           />
           <Route
             path="/guardians/:guardianId"
-            element={canAccessGuardians ? <GuardianDetailPage /> : <Forbidden />}
+            element={
+              canAccessGuardians ? <GuardianDetailPage /> : <Forbidden />
+            }
           />
           <Route
             path="/guardian/me"

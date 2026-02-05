@@ -15,12 +15,24 @@ public class MeService {
     private final UserRepository userRepository;
     private final GuardianRepository guardianRepository;
 
+    /**
+     * Creates the service for current-user lookups.
+     *
+     * @param userRepository repository for user access
+     * @param guardianRepository repository for guardian links
+     */
     public MeService(UserRepository userRepository, GuardianRepository guardianRepository) {
         this.userRepository = userRepository;
         this.guardianRepository = guardianRepository;
     }
 
+    /**
+     * Returns profile details for the authenticated user.
+     *
+     * @return current user response
+     */
     public MeResponse getMe() {
+        // Read authentication from the security context.
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             throw new IllegalStateException("Unauthenticated");
@@ -28,20 +40,23 @@ public class MeService {
 
         Object principal = auth.getPrincipal();
 
-        User userPrinciple = (User) principal; // Cast principal to User
+        // Cast principal to User.
+        User userPrinciple = (User) principal;
         String email = userPrinciple.getEmail();
 
+        // Load the full user record.
         User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new NotFoundException("User", "User not found"));
 
-        // If the User has a Long field:
-        Long linkedGuardianId = user.getLinkedGuardianId(); // nullable
+        // Read linked guardian id if present.
+        Long linkedGuardianId = user.getLinkedGuardianId();
 
-        // Defensive check
+        // Drop invalid guardian references.
         if (linkedGuardianId != null && !guardianRepository.existsById(linkedGuardianId)) {
             linkedGuardianId = null;
         }
 
+        // Copy role details into the response.
         String roleName = user.getRole() != null ? user.getRole().getName() : null;
         Long roleId = user.getRole() != null ? user.getRole().getId() : null;
         long permissionLevel = user.getRole() != null ? user.getRole().getPermissionLevel() : 0L;

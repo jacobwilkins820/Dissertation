@@ -8,8 +8,17 @@ import uk.ac.uclan.sis.sis_backend.guardians.entity.Guardian;
  */
 public final class GuardianMapper {
 
+    /**
+     * Prevents instantiation.
+     */
     private GuardianMapper() {}
 
+    /**
+     * Maps a create request to a guardian entity.
+     *
+     * @param req create request
+     * @return guardian entity
+     */
     public static Guardian toEntity(CreateGuardianRequest req) {
         Guardian g = new Guardian();
         g.setFirstName(req.getFirstName().trim());
@@ -23,6 +32,12 @@ public final class GuardianMapper {
         return g;
     }
 
+    /**
+     * Applies an update request to a guardian entity.
+     *
+     * @param g guardian entity
+     * @param req update request
+     */
     public static void applyUpdate(Guardian g, UpdateGuardianRequest req) {
         g.setFirstName(req.getFirstName().trim());
         g.setLastName(req.getLastName().trim());
@@ -34,6 +49,12 @@ public final class GuardianMapper {
         g.setPostcode(trimOrNull(req.getPostcode()));
     }
 
+    /**
+     * Maps a guardian to a full response.
+     *
+     * @param g guardian entity
+     * @return guardian response
+     */
     public static GuardianResponse response(Guardian g) {
         return new GuardianResponse(
                 g.getId(),
@@ -50,6 +71,12 @@ public final class GuardianMapper {
         );
     }
 
+    /**
+     * Maps a guardian to a contact response.
+     *
+     * @param g guardian entity
+     * @return guardian contact response
+     */
     public static GuardianContactResponse contactResponse(Guardian g) {
         return new GuardianContactResponse(
                 g.getId(),
@@ -60,6 +87,12 @@ public final class GuardianMapper {
         );
     }
 
+    /**
+     * Maps a guardian to a search response.
+     *
+     * @param g guardian entity
+     * @return guardian search response
+     */
     public static GuardianSearchResponse searchResponse(Guardian g) {
         return new GuardianSearchResponse(
                 g.getId(),
@@ -70,18 +103,36 @@ public final class GuardianMapper {
     }
 
 
+    /**
+     * Trims a string or returns null when empty.
+     *
+     * @param s input string
+     * @return trimmed string or null
+     */
     private static String trimOrNull(String s) {
         if (s == null) return null;
         String t = s.trim();
         return t.isEmpty() ? null : t;
     }
 
+    /**
+     * Normalizes an email string.
+     *
+     * @param email email address
+     * @return normalized email
+     */
     private static String normaliseEmail(String email) {
         // Lowercase + trim helps avoid mess.
         String t = trimOrNull(email);
         return t == null ? null : t.toLowerCase();
     }
 
+    /**
+     * Normalizes a phone string.
+     *
+     * @param phone phone number
+     * @return normalized phone
+     */
     private static String normalisePhone(String phone) {
         return trimOrNull(phone);
     }

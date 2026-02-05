@@ -14,20 +14,46 @@ public class AuditLogController {
 
     private final AuditLogService auditLogService;
 
+    /**
+     * Creates the audit log controller.
+     *
+     * @param auditLogService service for audit logs
+     */
     public AuditLogController(AuditLogService auditLogService) {
         this.auditLogService = auditLogService;
     }
 
+    /**
+     * Returns all audit logs.
+     *
+     * @param pageable paging request
+     * @return page of audit log responses
+     */
     @GetMapping
     public Page<AuditLogResponse> getAll(Pageable pageable) {
         return auditLogService.getAll(pageable);
     }
 
+    /**
+     * Returns audit logs by actor user id.
+     *
+     * @param actorUserId actor user id
+     * @param pageable paging request
+     * @return page of audit log responses
+     */
     @GetMapping("/actor/{actorUserId}")
     public Page<AuditLogResponse> getByActor(@PathVariable Long actorUserId, Pageable pageable) {
         return auditLogService.getByActorUserId(actorUserId, pageable);
     }
 
+    /**
+     * Returns audit logs by entity type and id.
+     *
+     * @param entityType entity type
+     * @param entityId entity id
+     * @param pageable paging request
+     * @return page of audit log responses
+     */
     @GetMapping("/entity")
     public Page<AuditLogResponse> getByEntity(
             @RequestParam String entityType,
@@ -37,7 +63,11 @@ public class AuditLogController {
         return auditLogService.getByEntity(entityType, entityId, pageable);
     }
 
-    // Post for testing / internal use
+    /**
+     * Creates an audit log entry (internal/testing).
+     *
+     * @param req create request payload
+     */
     @PostMapping
     public void create(@Valid @RequestBody CreateAuditLogRequest req) {
         auditLogService.log(req.getActorUserId(), req.getAction(), req.getEntityType(), req.getEntityId(), req.getDetails());

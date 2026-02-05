@@ -1,6 +1,9 @@
 package uk.ac.uclan.sis.sis_backend.roles;
 
 public final class Permissions {
+    /**
+     * Prevents instantiation.
+     */
     private Permissions() {}
 
     public static final int VIEW_STUDENT_DIRECTORY = 1 << 0; // 1
@@ -19,6 +22,13 @@ public final class Permissions {
     public static final int VIEW_CLASSES           = 1 << 10; // 1024
     public static final int CREATE_USER            = 1 << 11; // 2048
 
+    /**
+     * Returns true when the permission bit is set in the mask.
+     *
+     * @param mask permission mask
+     * @param permission permission bit
+     * @return true when permission is present
+     */
     public static boolean has(int mask, int permission) {
         return (mask & permission) == permission;
     }

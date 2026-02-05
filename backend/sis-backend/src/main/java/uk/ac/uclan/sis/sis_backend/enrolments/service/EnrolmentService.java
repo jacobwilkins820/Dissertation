@@ -30,6 +30,13 @@ public class EnrolmentService {
     private final EntityManager em;
     private final AuthorizationService authorizationService;
 
+    /**
+     * Creates the enrolment service.
+     *
+     * @param repository repository for enrolments
+     * @param em entity manager for references
+     * @param authorizationService service for permission checks
+     */
     public EnrolmentService(
             EnrolmentRepository repository,
             EntityManager em,
@@ -40,6 +47,12 @@ public class EnrolmentService {
         this.authorizationService = authorizationService;
     }
 
+    /**
+     * Creates an enrolment record.
+     *
+     * @param req create request payload
+     * @return created enrolment response
+     */
     @Transactional
     public EnrolmentResponse create(CreateEnrolmentRequest req) {
         authorizationService.requireAdmin(currentUser());
@@ -64,6 +77,12 @@ public class EnrolmentService {
         }
     }
 
+    /**
+     * Returns an enrolment by id.
+     *
+     * @param id enrolment id
+     * @return enrolment response
+     */
     @Transactional(readOnly = true)
     public EnrolmentResponse getById(Long id) {
         authorizationService.require(currentUser(), 1);
@@ -72,6 +91,13 @@ public class EnrolmentService {
         return toResponse(e);
     }
 
+    /**
+     * Returns enrolments for a class and academic year.
+     *
+     * @param classId class id
+     * @param academicYearId academic year id
+     * @return list of enrolment list items
+     */
     @Transactional(readOnly = true)
     public List<EnrolmentListItemResponse> listByClass(Long classId, Long academicYearId) {
         authorizationService.require(currentUser(), 1);
@@ -87,6 +113,13 @@ public class EnrolmentService {
                 .toList();
     }
 
+    /**
+     * Returns enrolments for a student and academic year.
+     *
+     * @param studentId student id
+     * @param academicYearId academic year id
+     * @return list of enrolment list items
+     */
     @Transactional(readOnly = true)
     public List<EnrolmentListItemResponse> listByStudent(Long studentId, Long academicYearId) {
         authorizationService.require(currentUser(), 1);
@@ -102,6 +135,13 @@ public class EnrolmentService {
                 .toList();
     }
 
+    /**
+     * Updates an enrolment.
+     *
+     * @param id enrolment id
+     * @param req update request payload
+     * @return updated enrolment response
+     */
     @Transactional
     public EnrolmentResponse update(Long id, UpdateEnrolmentRequest req) {
         authorizationService.require(currentUser(), 4);
@@ -117,6 +157,11 @@ public class EnrolmentService {
         return toResponse(saved);
     }
 
+    /**
+     * Deletes an enrolment by id.
+     *
+     * @param id enrolment id
+     */
     @Transactional
     public void delete(Long id) {
         authorizationService.requireAdmin(currentUser());
@@ -126,12 +171,24 @@ public class EnrolmentService {
         repository.deleteById(id);
     }
 
+    /**
+     * Validates enrolment start and end dates.
+     *
+     * @param start start date
+     * @param end end date
+     */
     private void validateDates(LocalDate start, LocalDate end) {
         if (end != null && end.isBefore(start)) {
             throw new IllegalArgumentException("endDate cannot be before startDate.");
         }
     }
 
+    /**
+     * Maps an enrolment entity to a response.
+     *
+     * @param e enrolment entity
+     * @return enrolment response
+     */
     private EnrolmentResponse toResponse(Enrolment e) {
         return new EnrolmentResponse(
                 e.getId(),
@@ -145,6 +202,11 @@ public class EnrolmentService {
         );
     }
 
+    /**
+     * Returns the current authenticated user.
+     *
+     * @return current user principal
+     */
     private User currentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !(auth.getPrincipal() instanceof User)) {

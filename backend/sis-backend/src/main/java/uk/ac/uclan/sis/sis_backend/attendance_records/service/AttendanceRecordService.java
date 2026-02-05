@@ -28,6 +28,13 @@ public class AttendanceRecordService {
     private final EntityManager em;
     private final AuthorizationService authorizationService;
 
+    /**
+     * Creates the attendance record service.
+     *
+     * @param repository repository for attendance records
+     * @param em entity manager for references
+     * @param authorizationService service for permission checks
+     */
     public AttendanceRecordService(
             AttendanceRecordRepository repository,
             EntityManager em,
@@ -38,6 +45,12 @@ public class AttendanceRecordService {
         this.authorizationService = authorizationService;
     }
 
+    /**
+     * Returns an attendance record by id.
+     *
+     * @param id record id
+     * @return attendance record response
+     */
     @Transactional(readOnly = true)
     public AttendanceRecordResponse getById(Long id) {
         authorizationService.require(currentUser(), Permissions.VIEW_ATTENDANCE);
@@ -46,6 +59,12 @@ public class AttendanceRecordService {
         return toResponse(r);
     }
 
+    /**
+     * Returns records for a session.
+     *
+     * @param attendanceSessionId session id
+     * @return list of attendance record list items
+     */
     @Transactional(readOnly = true)
     public List<AttendanceRecordListItemResponse> listBySession(Long attendanceSessionId) {
         authorizationService.require(currentUser(), Permissions.VIEW_ATTENDANCE);
@@ -60,6 +79,12 @@ public class AttendanceRecordService {
                 .toList();
     }
 
+    /**
+     * Creates an attendance record.
+     *
+     * @param req create request payload
+     * @return created attendance record response
+     */
     @Transactional
     public AttendanceRecordResponse create(CreateAttendanceRecordRequest req) {
         authorizationService.require(currentUser(), Permissions.EDIT_ATTENDANCE);
@@ -87,6 +112,13 @@ public class AttendanceRecordService {
         }
     }
 
+    /**
+     * Updates an attendance record.
+     *
+     * @param id record id
+     * @param req update request payload
+     * @return updated attendance record response
+     */
     @Transactional
     public AttendanceRecordResponse update(Long id, UpdateAttendanceRecordRequest req) {
         authorizationService.require(currentUser(), Permissions.EDIT_ATTENDANCE);
@@ -103,6 +135,11 @@ public class AttendanceRecordService {
         return toResponse(saved);
     }
 
+    /**
+     * Deletes an attendance record by id.
+     *
+     * @param id record id
+     */
     @Transactional
     public void delete(Long id) {
         authorizationService.require(currentUser(), Permissions.EDIT_ATTENDANCE);
@@ -112,6 +149,12 @@ public class AttendanceRecordService {
         repository.deleteById(id);
     }
 
+    /**
+     * Maps an attendance record entity to a response.
+     *
+     * @param r attendance record entity
+     * @return attendance record response
+     */
     private AttendanceRecordResponse toResponse(AttendanceRecord r) {
         Long markedById = (r.getMarkedByUser() == null) ? null : r.getMarkedByUser().getId();
         return new AttendanceRecordResponse(
@@ -127,6 +170,11 @@ public class AttendanceRecordService {
         );
     }
 
+    /**
+     * Returns the current authenticated user.
+     *
+     * @return current user principal
+     */
     private User currentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !(auth.getPrincipal() instanceof User)) {
