@@ -329,10 +329,10 @@ export default function ClassDetailPage() {
       </div>
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="max-w-sm">
+        <div className="w-full md:w-[20rem]">
           <SearchSelect
             label="Search roster"
-            placeholder="Search by name, UPN, status"
+            placeholder="Search by name or UPN"
             selected={null}
             onSelect={() => {}}
             onQueryChange={setSearchInput}

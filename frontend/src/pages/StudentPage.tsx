@@ -281,6 +281,38 @@ export default function StudentPage() {
     return () => controller.abort();
   }, [guardianId, isGuardianUser, loadGuardianStudents, parsedId]);
 
+  useEffect(() => {
+    if (!guardianSaveError) return;
+    const timeoutId = window.setTimeout(() => {
+      setGuardianSaveError(null);
+    }, 5000);
+    return () => window.clearTimeout(timeoutId);
+  }, [guardianSaveError]);
+
+  useEffect(() => {
+    if (!guardianSaveSuccess) return;
+    const timeoutId = window.setTimeout(() => {
+      setGuardianSaveSuccess(null);
+    }, 5000);
+    return () => window.clearTimeout(timeoutId);
+  }, [guardianSaveSuccess]);
+
+  useEffect(() => {
+    if (!linkError) return;
+    const timeoutId = window.setTimeout(() => {
+      setLinkError(null);
+    }, 5000);
+    return () => window.clearTimeout(timeoutId);
+  }, [linkError]);
+
+  useEffect(() => {
+    if (!linkSuccess) return;
+    const timeoutId = window.setTimeout(() => {
+      setLinkSuccess(null);
+    }, 5000);
+    return () => window.clearTimeout(timeoutId);
+  }, [linkSuccess]);
+
   // Load guardians once the student is available.
   useEffect(() => {
     if (!Number.isFinite(parsedId) || !canViewGuardians) {
@@ -749,7 +781,7 @@ export default function StudentPage() {
       </div>
 
       {/* Main status and identity row. */}
-      <section className="grid gap-4 lg:grid-cols-[2fr,1fr]">
+      <section className="grid gap-4">
         {/* Student summary card. */}
         <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 p-6 text-sm text-slate-200 shadow-2xl shadow-black/30">
           {/* Header row for name and actions. */}
@@ -935,73 +967,6 @@ export default function StudentPage() {
           )}
         </div>
 
-        {/* Side column summary cards. */}
-        <aside className="space-y-4">
-          {/* Attendance snapshot card. */}
-          <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 p-6 text-sm text-slate-200 shadow-2xl shadow-black/30">
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-              Attendance snapshot
-            </p>
-            <p className="mt-2 text-3xl font-semibold text-white">
-              {attendanceSummary?.percent ?? "--"}
-            </p>
-            <p className="text-xs text-slate-400">
-              {attendanceSummary?.label ?? "Select a range"}
-            </p>
-            <div className="mt-4 grid grid-cols-3 gap-3 text-xs">
-              <div>
-                <p className="text-slate-400">Present</p>
-                <p className="text-base text-white">
-                  {attendanceSummary?.present ?? "-"}
-                </p>
-              </div>
-              <div>
-                <p className="text-slate-400">Late</p>
-                <p className="text-base text-white">
-                  {attendanceSummary?.late ?? "-"}
-                </p>
-              </div>
-              <div>
-                <p className="text-slate-400">Absent</p>
-                <p className="text-base text-white">
-                  {attendanceSummary?.absent ?? "-"}
-                </p>
-              </div>
-            </div>
-            {!canViewAttendance && (
-              <p className="mt-4 text-xs text-slate-500">
-                Attendance permissions required.
-              </p>
-            )}
-          </div>
-
-          {/* Primary guardian quick view. */}
-          {canViewGuardians && (
-            <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 p-6 text-sm text-slate-200 shadow-2xl shadow-black/30">
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                Primary guardian
-              </p>
-              <div className="mt-3 space-y-1">
-                <p className="text-lg font-semibold text-white">
-                  {guardians.find((g) => g.guardianId === primaryGuardianId)
-                    ? `${guardians.find((g) => g.guardianId === primaryGuardianId)?.guardianFirstName ?? ""} ${
-                        guardians.find(
-                          (g) => g.guardianId === primaryGuardianId
-                        )?.guardianLastName ?? ""
-                      }`
-                    : "No primary guardian"}
-                </p>
-                <p className="text-xs text-slate-400">
-                  {guardians.find((g) => g.guardianId === primaryGuardianId)
-                    ?.relationship ?? "Select from guardians list"}
-                </p>
-              </div>
-              <div className="mt-4 text-xs text-slate-400">
-                Update the primary guardian in the guardians section.
-              </div>
-            </div>
-          )}
-        </aside>
       </section>
 
       {/* Guardian management section. */}
@@ -1058,6 +1023,7 @@ export default function StudentPage() {
             {guardians.map((guardian) => {
               const edit = guardianEdits[guardian.guardianId];
               const isSaving = guardianSaveState[guardian.guardianId];
+              const isPrimary = primaryGuardianId === guardian.guardianId;
 
               return (
                 <div
@@ -1076,15 +1042,21 @@ export default function StudentPage() {
                     </div>
                     {/* Primary selector control. */}
                     {canEditGuardians && (
-                      <label className="flex items-center gap-2 text-xs text-slate-400">
+                      <label
+                        className={`flex items-center gap-2 text-xs ${
+                          isPrimary
+                            ? "text-amber-200 font-semibold"
+                            : "text-slate-400"
+                        }`}
+                      >
                         <input
                           type="radio"
                           name="primaryGuardian"
-                          checked={primaryGuardianId === guardian.guardianId}
+                          checked={isPrimary}
                           onChange={() =>
                             handlePrimaryChange(guardian.guardianId)
                           }
-                          className="h-3 w-3 accent-slate-200"
+                          className="h-4 w-4 accent-amber-400 focus:ring-0"
                         />
                         Primary
                       </label>
