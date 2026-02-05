@@ -107,7 +107,10 @@ export default function AttendanceRegisterPage() {
           studentIds.map((id) => getStudent(id, signal))
         );
 
-        setStudents(studentDetails);
+        const activeStudents = studentDetails.filter(
+          (student) => (student.status ?? "").toUpperCase() === "ACTIVE"
+        );
+        setStudents(activeStudents);
       } catch (err: unknown) {
         if (!(err instanceof DOMException && err.name === "AbortError")) {
           setError(getErrorMessage(err, "Failed to load class roster."));
