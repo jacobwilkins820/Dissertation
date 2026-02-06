@@ -6,6 +6,7 @@ import { useAuth } from "../auth/UseAuth";
 import type { CreateStudentRequest } from "../utils/responses";
 import { getErrorMessage, type BackendErrorPayload } from "../utils/utilFuncs";
 import { createStudent, isFetchJsonError } from "../services/backend";
+import { DatePicker } from "../components/DatePicker";
 
 // Student registration form with client + server validation. Should be SQL injection safe.
 type FieldErrors = Partial<Record<keyof CreateStudentRequest, string>>;
@@ -198,10 +199,10 @@ export default function RegisterStudent() {
         <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
           <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
             Date of birth
-            <TextField
-              type="date"
+            <DatePicker
+              size="sm"
               value={dateOfBirth}
-              onChange={(e) => setDateOfBirth(e.target.value)}
+              onChange={setDateOfBirth}
             />
             {fieldErrors.dateOfBirth && (
               <small className="text-rose-200">{fieldErrors.dateOfBirth}</small>

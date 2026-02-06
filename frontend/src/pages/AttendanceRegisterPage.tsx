@@ -12,16 +12,15 @@ import type {
   StudentResponse,
 } from "../utils/responses";
 import {
-  createAttendanceRecord,
   createAttendanceSession,
-  getAttendanceRecord,
   getAttendanceRecordsForSession,
   getAttendanceSessionsForClass,
   getClass,
   getClassEnrolments,
   getCurrentAcademicYear,
   getStudent,
-  updateAttendanceRecord,
+  getAttendanceRecord,
+  saveAttendanceForSession,
 } from "../services/backend";
 
 // Attendance register with session creation + record updates.
@@ -260,14 +259,15 @@ export default function AttendanceRegisterPage() {
     setSaving(true);
     try {
       const activeSession = await ensureSession();
-      const entries = Object.entries(records)
-        .map(([id, record]) => ({ studentId: Number(id), record }))
-        .filter((item) => item.record.status);
+      const entries = Object.entries(records).filter(
+        ([, record]) => !!record.status
+      );
 
-      const updates = await Promise.all(
-        entries.map(async ({ studentId, record }) => {
+      const savedRecords = await saveAttendanceForSession(activeSession.id, {
+        records: entries.map(([id, record]) => {
           const status = record.status!;
-          const payload = {
+          return {
+            studentId: Number(id),
             status,
             reason:
               status === "LATE"
@@ -276,40 +276,18 @@ export default function AttendanceRegisterPage() {
                   : null
                 : null,
           };
+        }),
+      });
 
-          if (record.id) {
-            const updated = await updateAttendanceRecord(record.id, payload);
-            return {
-              studentId,
-              record: {
-                id: updated.id,
-                status: updated.status,
-                reason: updated.reason ?? "",
-              } as AttendanceRecordState,
-            };
-          }
-
-          const created = await createAttendanceRecord({
-            attendanceSessionId: activeSession.id,
-            studentId,
-            ...payload,
-          });
-          return {
-            studentId,
-            record: {
-              id: created.id,
-              status: created.status,
-              reason: created.reason ?? "",
-            } as AttendanceRecordState,
-          };
-        })
-      );
-
-      if (updates.length > 0) {
+      if (savedRecords.length > 0) {
         setRecords((prev) => {
           const next = { ...prev };
-          updates.forEach((update) => {
-            next[update.studentId] = update.record;
+          savedRecords.forEach((saved) => {
+            next[saved.studentId] = {
+              id: saved.id,
+              status: saved.status,
+              reason: saved.reason ?? "",
+            };
           });
           return next;
         });

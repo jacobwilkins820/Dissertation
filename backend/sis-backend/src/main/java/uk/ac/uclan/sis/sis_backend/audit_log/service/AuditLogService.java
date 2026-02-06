@@ -46,12 +46,19 @@ public class AuditLogService {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void log(Long actorUserId, String action, String entityType, Long entityId, String details) {
-        authorizationService.requireAdmin(currentUser());
+        User user = currentUser();
+        Long effectiveActorUserId = resolveActorUserId(actorUserId, user);
         if (action == null || action.isBlank()) throw new IllegalArgumentException("action is required");
         if (entityType == null || entityType.isBlank()) throw new IllegalArgumentException("entityType is required");
         if (entityId == null) throw new IllegalArgumentException("entityId is required");
 
-        AuditLog entry = new AuditLog(actorUserId, action.trim(), entityType.trim().toUpperCase(), entityId, details);
+        AuditLog entry = new AuditLog(
+                effectiveActorUserId,
+                action.trim(),
+                entityType.trim().toUpperCase(),
+                entityId,
+                details
+        );
         auditLogRepository.save(entry);
     }
 
@@ -123,5 +130,22 @@ public class AuditLogService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
         }
         return (User) auth.getPrincipal();
+    }
+
+    /**
+     * Resolves the actor id for an audit entry.
+     * Non-admin users can only log as themselves.
+     */
+    private Long resolveActorUserId(Long requestedActorUserId, User user) {
+        if (requestedActorUserId == null) return user.getId();
+
+        String roleName = user.getRole() == null ? null : user.getRole().getName();
+        boolean isAdmin = roleName != null && roleName.equalsIgnoreCase("ADMIN");
+        if (isAdmin) return requestedActorUserId;
+
+        if (!requestedActorUserId.equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot set actor_user_id for another user");
+        }
+        return requestedActorUserId;
     }
 }

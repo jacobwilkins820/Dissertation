@@ -8,11 +8,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import uk.ac.uclan.sis.sis_backend.attendance_records.AttendanceStatus;
 import uk.ac.uclan.sis.sis_backend.attendance_records.dto.*;
 import uk.ac.uclan.sis.sis_backend.attendance_records.entity.AttendanceRecord;
 import uk.ac.uclan.sis.sis_backend.attendance_records.repository.AttendanceRecordRepository;
 import uk.ac.uclan.sis.sis_backend.attendance_sessions.entity.AttendanceSession;
+import uk.ac.uclan.sis.sis_backend.attendance_sessions.repository.AttendanceSessionRepository;
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
+import uk.ac.uclan.sis.sis_backend.audit_log.service.AuditLogService;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
 import uk.ac.uclan.sis.sis_backend.roles.Permissions;
 import uk.ac.uclan.sis.sis_backend.students.entity.Student;
@@ -25,8 +28,10 @@ import java.util.List;
 public class AttendanceRecordService {
 
     private final AttendanceRecordRepository repository;
+    private final AttendanceSessionRepository attendanceSessionRepository;
     private final EntityManager em;
     private final AuthorizationService authorizationService;
+    private final AuditLogService auditLogService;
 
     /**
      * Creates the attendance record service.
@@ -37,12 +42,16 @@ public class AttendanceRecordService {
      */
     public AttendanceRecordService(
             AttendanceRecordRepository repository,
+            AttendanceSessionRepository attendanceSessionRepository,
             EntityManager em,
-            AuthorizationService authorizationService
+            AuthorizationService authorizationService,
+            AuditLogService auditLogService
     ) {
         this.repository = repository;
+        this.attendanceSessionRepository = attendanceSessionRepository;
         this.em = em;
         this.authorizationService = authorizationService;
+        this.auditLogService = auditLogService;
     }
 
     /**
@@ -106,6 +115,15 @@ public class AttendanceRecordService {
 
         try {
             AttendanceRecord saved = repository.save(r);
+            auditLogService.log(
+                    null,
+                    "ATTENDANCE_RECORD_CREATED",
+                    "ATTENDANCE_RECORD",
+                    saved.getId(),
+                    "attendanceSessionId=" + saved.getAttendanceSession().getId()
+                            + ", studentId=" + saved.getStudent().getId()
+                            + ", status=" + saved.getStatus()
+            );
             return toResponse(saved);
         } catch (DataIntegrityViolationException ex) {
             throw new IllegalArgumentException("Invalid attendanceSessionId/studentId, or duplicate record.", ex);
@@ -132,6 +150,15 @@ public class AttendanceRecordService {
         r.setMarkedAt(LocalDateTime.now());
 
         AttendanceRecord saved = repository.save(r);
+        auditLogService.log(
+                null,
+                "ATTENDANCE_RECORD_UPDATED",
+                "ATTENDANCE_RECORD",
+                saved.getId(),
+                "attendanceSessionId=" + saved.getAttendanceSession().getId()
+                        + ", studentId=" + saved.getStudent().getId()
+                        + ", status=" + saved.getStatus()
+        );
         return toResponse(saved);
     }
 
@@ -143,10 +170,86 @@ public class AttendanceRecordService {
     @Transactional
     public void delete(Long id) {
         authorizationService.require(currentUser(), Permissions.EDIT_ATTENDANCE);
-        if (!repository.existsById(id)) {
-            throw new NotFoundException("Attendance record", "Attendance record not found: " + id);
-        }
+        AttendanceRecord existing = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Attendance record", "Attendance record not found: " + id));
         repository.deleteById(id);
+        auditLogService.log(
+                null,
+                "ATTENDANCE_RECORD_DELETED",
+                "ATTENDANCE_RECORD",
+                id,
+                "attendanceSessionId=" + existing.getAttendanceSession().getId()
+                        + ", studentId=" + existing.getStudent().getId()
+        );
+    }
+
+    /**
+     * Saves attendance records for a session in one operation.
+     * Existing records are updated and missing ones are created.
+     */
+    @Transactional
+    public List<AttendanceRecordResponse> saveForSession(
+            Long sessionId,
+            SaveAttendanceForSessionRequest req
+    ) {
+        authorizationService.require(currentUser(), Permissions.EDIT_ATTENDANCE);
+        User user = currentUser();
+        AttendanceSession session = attendanceSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new NotFoundException("Attendance session", "Attendance session not found: " + sessionId));
+
+        List<SaveAttendanceForSessionRequest.AttendanceMarkRequest> records =
+                req == null || req.getRecords() == null ? List.of() : req.getRecords();
+
+        int createdCount = 0;
+        int updatedCount = 0;
+        List<AttendanceRecordResponse> responses = new java.util.ArrayList<>();
+        for (SaveAttendanceForSessionRequest.AttendanceMarkRequest item : records) {
+            String reason = normalizeReason(item.getReason(), item.getStatus());
+            AttendanceRecord record = repository
+                    .findByAttendanceSession_IdAndStudent_Id(sessionId, item.getStudentId())
+                    .orElseGet(() -> {
+                        AttendanceRecord fresh = new AttendanceRecord();
+                        fresh.setAttendanceSession(session);
+                        fresh.setStudent(em.getReference(Student.class, item.getStudentId()));
+                        return fresh;
+                    });
+
+            boolean isNew = record.getId() == null;
+            record.setStatus(item.getStatus());
+            record.setReason(reason);
+            record.setMarkedByUser(user);
+            record.setMarkedAt(LocalDateTime.now());
+
+            AttendanceRecord saved = repository.save(record);
+            if (isNew) {
+                createdCount++;
+            } else {
+                updatedCount++;
+            }
+            responses.add(toResponse(saved));
+        }
+
+        auditLogService.log(
+                null,
+                "ATTENDANCE_SAVED",
+                "ATTENDANCE_SESSION",
+                sessionId,
+                "classId=" + session.getClazz().getId()
+                        + ", sessionDate=" + session.getSessionDate()
+                        + ", session=" + session.getSession()
+                        + ", markedStudents=" + records.size()
+                        + ", createdCount=" + createdCount
+                        + ", updatedCount=" + updatedCount
+        );
+
+        return responses;
+    }
+
+    private String normalizeReason(String reason, AttendanceStatus status) {
+        if (status != AttendanceStatus.LATE) return null;
+        if (reason == null) return null;
+        String trimmed = reason.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     /**

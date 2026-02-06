@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
+import uk.ac.uclan.sis.sis_backend.audit_log.service.AuditLogService;
 import uk.ac.uclan.sis.sis_backend.classes.dto.ClassListItemResponse;
 import uk.ac.uclan.sis.sis_backend.classes.dto.ClassResponse;
 import uk.ac.uclan.sis.sis_backend.classes.dto.CreateClassRequest;
@@ -26,6 +27,7 @@ public class ClassService {
     private final ClassRepository classRepository;
     private final UserRepository userRepository;
     private final AuthorizationService authorizationService;
+    private final AuditLogService auditLogService;
 
     /**
      * Creates the class service.
@@ -37,11 +39,13 @@ public class ClassService {
     public ClassService(
             ClassRepository classRepository,
             UserRepository userRepository,
-            AuthorizationService authorizationService
+            AuthorizationService authorizationService,
+            AuditLogService auditLogService
     ) {
         this.classRepository = classRepository;
         this.userRepository = userRepository;
         this.authorizationService = authorizationService;
+        this.auditLogService = auditLogService;
     }
 
     /**
@@ -68,6 +72,13 @@ public class ClassService {
         }
         
         Class saved = classRepository.save(classEntity);
+        auditLogService.log(
+                null,
+                "CLASS_CREATED",
+                "CLASS",
+                saved.getId(),
+                "name=" + saved.getName() + ", active=" + saved.isActive()
+        );
         return toResponse(saved);
     }
 
@@ -135,6 +146,13 @@ public class ClassService {
         }
 
         Class saved = classRepository.save(classEntity);
+        auditLogService.log(
+                null,
+                "CLASS_UPDATED",
+                "CLASS",
+                saved.getId(),
+                "name=" + saved.getName() + ", code=" + saved.getCode() + ", active=" + saved.isActive()
+        );
         return toResponse(saved);
     }
 
@@ -151,6 +169,13 @@ public class ClassService {
 
         classEntity.setTeacher(null);
         classRepository.save(classEntity);
+        auditLogService.log(
+                null,
+                "CLASS_TEACHER_UNASSIGNED",
+                "CLASS",
+                classEntity.getId(),
+                "name=" + classEntity.getName()
+        );
     }
 
     /**
@@ -161,10 +186,16 @@ public class ClassService {
     @Transactional
     public void delete(Long id) {
         authorizationService.requireAdmin(currentUser());
-        if (!classRepository.existsById(id)) {
-            throw new NotFoundException("Class", "Class not found with id: " + id);
-        }
+        Class classEntity = classRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Class", "Class not found with id: " + id));
         classRepository.deleteById(id);
+        auditLogService.log(
+                null,
+                "CLASS_DELETED",
+                "CLASS",
+                id,
+                "name=" + classEntity.getName()
+        );
     }
 
     /**

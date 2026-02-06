@@ -28,6 +28,7 @@ import type {
   CreateAttendanceSessionRequest,
   CreateClassRequest,
   CreateEnrolmentRequest,
+  SaveAttendanceForSessionRequest,
   StudentGuardianUpdateRequest,
   UpdateClassRequest,
   UpdateAttendanceRecordRequest,
@@ -397,4 +398,18 @@ export function createAttendanceRecord(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
+}
+
+export function saveAttendanceForSession(
+  sessionId: number,
+  payload: SaveAttendanceForSessionRequest
+): Promise<AttendanceRecordResponse[]> {
+  return fetchJson<AttendanceRecordResponse[]>(
+    `/api/attendance-sessions/${sessionId}/attendance-records`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }
+  );
 }

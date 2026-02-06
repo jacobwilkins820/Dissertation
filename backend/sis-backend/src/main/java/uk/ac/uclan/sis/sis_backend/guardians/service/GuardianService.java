@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
+import uk.ac.uclan.sis.sis_backend.audit_log.service.AuditLogService;
 import uk.ac.uclan.sis.sis_backend.common.exception.ForbiddenException;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.CreateGuardianRequest;
@@ -31,6 +32,7 @@ public class GuardianService {
 
     private final GuardianRepository guardianRepository;
     private final AuthorizationService authorizationService;
+    private final AuditLogService auditLogService;
 
     /**
      * Creates the guardian service.
@@ -40,10 +42,12 @@ public class GuardianService {
      */
     public GuardianService(
             GuardianRepository guardianRepository,
-            AuthorizationService authorizationService
+            AuthorizationService authorizationService,
+            AuditLogService auditLogService
     ) {
         this.guardianRepository = guardianRepository;
         this.authorizationService = authorizationService;
+        this.auditLogService = auditLogService;
     }
 
     /**
@@ -57,6 +61,13 @@ public class GuardianService {
         authorizationService.requireAdmin(currentUser());
         Guardian guardian = GuardianMapper.toEntity(request);
         Guardian saved = guardianRepository.save(guardian);
+        auditLogService.log(
+                null,
+                "GUARDIAN_CREATED",
+                "GUARDIAN",
+                saved.getId(),
+                "name=" + saved.getFirstName() + " " + saved.getLastName()
+        );
 
         // Return a small response.
         return new CreateGuardianResponse(saved.getId(), saved.getFirstName(), saved.getLastName());
@@ -152,6 +163,13 @@ public class GuardianService {
 
         GuardianMapper.applyUpdate(guardian, request);
         Guardian saved = guardianRepository.save(guardian);
+        auditLogService.log(
+                null,
+                "GUARDIAN_UPDATED",
+                "GUARDIAN",
+                saved.getId(),
+                "name=" + saved.getFirstName() + " " + saved.getLastName()
+        );
 
         return new CreateGuardianResponse(saved.getId(), saved.getFirstName(), saved.getLastName());
     }
@@ -165,11 +183,17 @@ public class GuardianService {
     public void delete(Long id) {
         authorizationService.requireAdmin(currentUser());
 
-        if (!guardianRepository.existsById(id)) {
-            throw new NotFoundException("Guardian", "id " + id + " not found");
-        }
+        Guardian guardian = guardianRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Guardian", "id " + id + " not found"));
 
         guardianRepository.deleteById(id);
+        auditLogService.log(
+                null,
+                "GUARDIAN_DELETED",
+                "GUARDIAN",
+                id,
+                "name=" + guardian.getFirstName() + " " + guardian.getLastName()
+        );
     }
 
     /**

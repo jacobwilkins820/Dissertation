@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "../components/Button";
+import { DatePicker } from "../components/DatePicker";
 import { SearchSelect } from "../components/SearchSelect";
 import { SelectDropdown } from "../components/SelectDropdown";
 import { TextField } from "../components/TextField";
@@ -1366,6 +1367,15 @@ function renderField({
   type?: string;
 }) {
   if (editing) {
+    if (type === "date") {
+      return (
+        <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+          {label}
+          <DatePicker value={inputValue} onChange={onChange} />
+        </label>
+      );
+    }
+
     return (
       <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
         {label}

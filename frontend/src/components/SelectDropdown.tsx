@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 
 type SelectOption = {
   value: string | number;
@@ -40,6 +46,20 @@ export function SelectDropdown({
     const match = options.find((option) => option.value === value);
     return match ? match.label : "Select";
   }, [options, value]);
+
+  const handleOptionSelect = (
+    event: ReactMouseEvent<HTMLButtonElement>,
+    optionValue: string | number
+  ) => {
+    // Prevent label/default click forwarding from reopening the dropdown.
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Close immediately so UI always collapses on selection.
+    // This keeps behavior consistent even if parent onChange work is slow.
+    setOpen(false);
+    onChange(String(optionValue));
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -99,9 +119,12 @@ export function SelectDropdown({
                     ? "bg-slate-900 text-slate-100"
                     : "text-slate-200 hover:bg-slate-900"
                 }`}
-                onClick={() => {
-                  onChange(String(option.value));
-                  setOpen(false);
+                onMouseDown={(event) => {
+                  // Avoid focus/label side effects before click dispatch.
+                  event.preventDefault();
+                }}
+                onClick={(event) => {
+                  handleOptionSelect(event, option.value);
                 }}
               >
                 {option.label}

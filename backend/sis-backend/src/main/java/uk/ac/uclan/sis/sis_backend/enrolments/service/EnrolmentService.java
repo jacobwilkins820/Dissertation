@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
+import uk.ac.uclan.sis.sis_backend.audit_log.service.AuditLogService;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
 import uk.ac.uclan.sis.sis_backend.enrolments.dto.*;
 import uk.ac.uclan.sis.sis_backend.enrolments.entity.Enrolment;
@@ -29,6 +30,7 @@ public class EnrolmentService {
     private final EnrolmentRepository repository;
     private final EntityManager em;
     private final AuthorizationService authorizationService;
+    private final AuditLogService auditLogService;
 
     /**
      * Creates the enrolment service.
@@ -40,11 +42,13 @@ public class EnrolmentService {
     public EnrolmentService(
             EnrolmentRepository repository,
             EntityManager em,
-            AuthorizationService authorizationService
+            AuthorizationService authorizationService,
+            AuditLogService auditLogService
     ) {
         this.repository = repository;
         this.em = em;
         this.authorizationService = authorizationService;
+        this.auditLogService = auditLogService;
     }
 
     /**
@@ -71,6 +75,15 @@ public class EnrolmentService {
 
         try {
             Enrolment saved = repository.save(e);
+            auditLogService.log(
+                    null,
+                    "ENROLMENT_CREATED",
+                    "ENROLMENT",
+                    saved.getId(),
+                    "studentId=" + saved.getStudent().getId()
+                            + ", classId=" + saved.getClazz().getId()
+                            + ", academicYearId=" + saved.getAcademicYear().getId()
+            );
             return toResponse(saved);
         } catch (DataIntegrityViolationException ex) {
             throw new IllegalArgumentException("Invalid FK (studentId/classId/academicYearId) or duplicate enrolment.", ex);
@@ -154,6 +167,16 @@ public class EnrolmentService {
         e.setEndDate(req.getEndDate());
 
         Enrolment saved = repository.save(e);
+        auditLogService.log(
+                null,
+                "ENROLMENT_UPDATED",
+                "ENROLMENT",
+                saved.getId(),
+                "studentId=" + saved.getStudent().getId()
+                        + ", classId=" + saved.getClazz().getId()
+                        + ", startDate=" + saved.getStartDate()
+                        + ", endDate=" + saved.getEndDate()
+        );
         return toResponse(saved);
     }
 
@@ -165,10 +188,17 @@ public class EnrolmentService {
     @Transactional
     public void delete(Long id) {
         authorizationService.requireAdmin(currentUser());
-        if (!repository.existsById(id)) {
-            throw new NotFoundException("Enrolment", "Enrolment not found: " + id);
-        }
+        Enrolment enrolment = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Enrolment", "Enrolment not found: " + id));
         repository.deleteById(id);
+        auditLogService.log(
+                null,
+                "ENROLMENT_DELETED",
+                "ENROLMENT",
+                id,
+                "studentId=" + enrolment.getStudent().getId()
+                        + ", classId=" + enrolment.getClazz().getId()
+        );
     }
 
     /**

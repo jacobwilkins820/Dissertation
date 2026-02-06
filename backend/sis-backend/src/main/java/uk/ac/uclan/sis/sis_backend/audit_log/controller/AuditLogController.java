@@ -3,24 +3,35 @@ package uk.ac.uclan.sis.sis_backend.audit_log.controller;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
 import uk.ac.uclan.sis.sis_backend.audit_log.dto.AuditLogResponse;
 import uk.ac.uclan.sis.sis_backend.audit_log.dto.CreateAuditLogRequest;
 import uk.ac.uclan.sis.sis_backend.audit_log.service.AuditLogService;
+import uk.ac.uclan.sis.sis_backend.users.entity.User;
 
 @RestController
 @RequestMapping("/api/audit-log")
 public class AuditLogController {
 
     private final AuditLogService auditLogService;
+    private final AuthorizationService authorizationService;
 
     /**
      * Creates the audit log controller.
      *
      * @param auditLogService service for audit logs
      */
-    public AuditLogController(AuditLogService auditLogService) {
+    public AuditLogController(
+            AuditLogService auditLogService,
+            AuthorizationService authorizationService
+    ) {
         this.auditLogService = auditLogService;
+        this.authorizationService = authorizationService;
     }
 
     /**
@@ -70,6 +81,15 @@ public class AuditLogController {
      */
     @PostMapping
     public void create(@Valid @RequestBody CreateAuditLogRequest req) {
+        authorizationService.requireAdmin(currentUser());
         auditLogService.log(req.getActorUserId(), req.getAction(), req.getEntityType(), req.getEntityId(), req.getDetails());
+    }
+
+    private User currentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof User)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
+        return (User) auth.getPrincipal();
     }
 }

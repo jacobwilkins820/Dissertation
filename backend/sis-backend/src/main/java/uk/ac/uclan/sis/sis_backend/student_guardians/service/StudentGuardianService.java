@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
+import uk.ac.uclan.sis.sis_backend.audit_log.service.AuditLogService;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
 import uk.ac.uclan.sis.sis_backend.guardians.entity.Guardian;
 import uk.ac.uclan.sis.sis_backend.guardians.repository.GuardianRepository;
@@ -28,6 +29,7 @@ public class StudentGuardianService {
     private final StudentRepository studentRepository;
     private final GuardianRepository guardianRepository;
     private final AuthorizationService authorizationService;
+    private final AuditLogService auditLogService;
 
     /**
      * Creates the student-guardian service.
@@ -41,12 +43,14 @@ public class StudentGuardianService {
             StudentGuardianRepository studentGuardianRepository,
             StudentRepository studentRepository,
             GuardianRepository guardianRepository,
-            AuthorizationService authorizationService
+            AuthorizationService authorizationService,
+            AuditLogService auditLogService
     ) {
         this.studentGuardianRepository = studentGuardianRepository;
         this.studentRepository = studentRepository;
         this.guardianRepository = guardianRepository;
         this.authorizationService = authorizationService;
+        this.auditLogService = auditLogService;
     }
 
     /**
@@ -72,9 +76,13 @@ public class StudentGuardianService {
             studentGuardianRepository.clearOtherPrimaryGuardians(studentId, guardianId);
         }
 
-        StudentGuardian link = studentGuardianRepository
+        StudentGuardian existingLink = studentGuardianRepository
                 .findByIdStudentIdAndIdGuardianId(studentId, guardianId)
-                .orElseGet(() -> new StudentGuardian(student, guardian, request.getRelationship().trim(), primary));
+                .orElse(null);
+
+        StudentGuardian link = existingLink != null
+                ? existingLink
+                : new StudentGuardian(student, guardian, request.getRelationship().trim(), primary);
 
         // If it already existed, apply updates.
         link.setRelationship(request.getRelationship().trim());
@@ -87,6 +95,15 @@ public class StudentGuardianService {
         if (saved.isPrimary()) {
             studentGuardianRepository.clearOtherPrimaryGuardians(studentId, guardianId);
         }
+        auditLogService.log(
+                null,
+                existingLink == null ? "STUDENT_GUARDIAN_LINK_CREATED" : "STUDENT_GUARDIAN_LINK_UPDATED",
+                "STUDENT",
+                studentId,
+                "guardianId=" + guardianId
+                        + ", relationship=" + saved.getRelationship()
+                        + ", isPrimary=" + saved.isPrimary()
+        );
 
         return toResponse(saved);
     }
@@ -150,12 +167,20 @@ public class StudentGuardianService {
         authorizationService.requireAdmin(currentUser());
         StudentGuardianId id = new StudentGuardianId(studentId, guardianId);
 
-        if (!studentGuardianRepository.existsById(id)) {
-            // Join-table delete remains strict when the link is missing.
-            throw new NotFoundException("StudentGuardian", "Student-Guardian link not found: studentId=" + studentId + ", guardianId=" + guardianId);
-        }
+        StudentGuardian existing = studentGuardianRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(
+                        "StudentGuardian",
+                        "Student-Guardian link not found: studentId=" + studentId + ", guardianId=" + guardianId
+                ));
 
         studentGuardianRepository.deleteById(id);
+        auditLogService.log(
+                null,
+                "STUDENT_GUARDIAN_LINK_DELETED",
+                "STUDENT",
+                studentId,
+                "guardianId=" + guardianId + ", relationship=" + existing.getRelationship()
+        );
     }
 
     /**

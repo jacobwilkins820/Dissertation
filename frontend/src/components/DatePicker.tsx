@@ -1,7 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "./Button";
 import { TextField } from "./TextField";
 
+// Public contract for the date picker.
+// The component is "controlled": parent owns the committed value.
+// - `value` is expected in ISO format: YYYY-MM-DD
+// - `onChange` emits ISO format when user clicks Apply
+// - `size` is passed straight through to TextField styling
+// - `className` lets parents control outer wrapper layout/width
 type DatePickerProps = {
   value: string;
   onChange: (value: string) => void;
@@ -10,7 +17,7 @@ type DatePickerProps = {
   className?: string;
 };
 
-// Month labels for the header.
+// Month labels shown in the popover header.
 const MONTHS = [
   "January",
   "February",
@@ -26,20 +33,34 @@ const MONTHS = [
   "December",
 ];
 
-// Week header uses a Monday-first calendar layout.
+// Calendar grid headers in Monday -> Sunday order.
+// This is intentionally different from JS Date.getDay() (Sunday-first),
+// so an offset conversion is performed later when building the grid.
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-// Pad a number to 2 digits for stable date formatting.
+// Popover layout constants.
+// - width: ideal panel width in px
+// - viewport padding: minimum distance from viewport edges
+// - gap: spacing between input (or navbar) and popover
+const POPOVER_WIDTH = 288;
+const VIEWPORT_PADDING = 12;
+const POPOVER_GAP = 8;
+
+// Utility used by both display and ISO formatters.
+// Ensures day/month are always two digits (e.g. 3 -> "03").
 function pad2(value: number) {
   return String(value).padStart(2, "0");
 }
 
-// Count days for a given month/year pair.
+// Returns number of days in a given month.
+// `monthIndex` is zero-based (0 = January, 11 = December).
 function getDaysInMonth(year: number, monthIndex: number) {
   return new Date(year, monthIndex + 1, 0).getDate();
 }
 
-// Parse YYYY-MM-DD into a Date for calendar math.
+// Strict parser for ISO date input.
+// Accepts only YYYY-MM-DD and rejects impossible dates.
+// Returns local Date object at local midnight (JS default for new Date(y,m,d)).
 function parseISODate(value: string): Date | null {
   if (!value) return null;
   const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -60,19 +81,19 @@ function parseISODate(value: string): Date | null {
   return new Date(year, month - 1, day);
 }
 
-// Keep the stored value as ISO YYYY-MM-DD.
+// Formats Date to canonical value format used by forms/backend.
 function formatISODate(date: Date) {
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(
     date.getDate()
   )}`;
 }
 
-// Displayed as DD-MM-YYYY while we store ISO values.
+// User-facing text format for the read-only input field and preview.
 function formatDisplayDate(date: Date) {
   return `${pad2(date.getDate())}-${pad2(date.getMonth() + 1)}-${date.getFullYear()}`;
 }
 
-// Compare dates without time components.
+// Day-level equality helper used for selected/today styling.
 function isSameDay(date: Date, year: number, month: number, day: number) {
   return (
     date.getFullYear() === year &&
@@ -81,7 +102,18 @@ function isSameDay(date: Date, year: number, month: number, day: number) {
   );
 }
 
-// Calendar-based date picker that requires an explicit Apply.
+// Calendar popover date picker with explicit "Apply" commit.
+//
+// Data model:
+// - Parent owns committed value (`value`) in ISO format.
+// - Component keeps a temporary `draftDate` while popover is open.
+// - Clicking a day changes only `draftDate`.
+// - Clicking Apply sends `onChange(formatISODate(draftDate))`.
+//
+// UX model:
+// - Input is read-only (calendar-only selection).
+// - Popover renders in a portal to avoid clipping/stacking issues.
+// - Future dates are blocked.
 export function DatePicker({
   value,
   onChange,
@@ -89,15 +121,32 @@ export function DatePicker({
   size = "md",
   className = "",
 }: DatePickerProps) {
+  // Anchor element around the input, used to position the portal popover.
   const containerRef = useRef<HTMLDivElement | null>(null);
-  // Parse the external value once for display and initialization.
+  // Popover root, used for outside-click detection.
+  const popoverRef = useRef<HTMLDivElement | null>(null);
+
+  // Absolute document-space position for portal content.
+  // Stored only while open; null means "not positioned yet".
+  const [popoverPosition, setPopoverPosition] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
+
+  // Derived value from parent-controlled ISO string.
+  // useMemo avoids reparsing unless `value` changes.
   const parsedValue = useMemo(() => parseISODate(value), [value]);
+  // What the user sees in the text field (DD-MM-YYYY).
   const displayValue = parsedValue ? formatDisplayDate(parsedValue) : "";
-  // Control the calendar popover visibility.
+
+  // Popover visibility state.
   const [open, setOpen] = useState(false);
-  // Draft selection stored until Apply is pressed.
+  // Uncommitted selection while popover is open.
   const [draftDate, setDraftDate] = useState<Date | null>(null);
-  // Calendar view state tracks the current month grid.
+
+  // Calendar month/year currently shown in the grid.
+  // Initialized from current value if available; otherwise today.
   const [viewYear, setViewYear] = useState(() =>
     (parsedValue ?? new Date()).getFullYear()
   );
@@ -105,56 +154,110 @@ export function DatePicker({
     (parsedValue ?? new Date()).getMonth()
   );
 
-  // closes the popover when clicking outside of it
+  // Recompute popover coordinates relative to viewport + page scroll.
+  // Why this exists:
+  // - The popover is portalled to <body>, so it needs explicit top/left.
+  // - We clamp horizontal position to keep it on screen.
+  // - We keep it below a fixed navbar if one overlaps the trigger area.
+  const updatePopoverPosition = useCallback(() => {
+    if (!containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const viewportWidth = Math.max(0, window.innerWidth - VIEWPORT_PADDING * 2);
+    const width = Math.min(POPOVER_WIDTH, viewportWidth);
+    const pageLeft = rect.left + window.scrollX;
+    const pageTop = rect.bottom + window.scrollY + POPOVER_GAP;
+    const minLeft = window.scrollX + VIEWPORT_PADDING;
+    const maxLeft = Math.max(
+      minLeft,
+      window.scrollX + window.innerWidth - width - VIEWPORT_PADDING
+    );
+    const left = Math.min(Math.max(pageLeft, minLeft), maxLeft);
+    const navElement = document.querySelector("nav");
+    const navBottomPage =
+      navElement instanceof HTMLElement
+        ? navElement.getBoundingClientRect().bottom + window.scrollY
+        : 0;
+    const top = Math.max(pageTop, navBottomPage + POPOVER_GAP);
+
+    setPopoverPosition({
+      top,
+      left,
+      width,
+    });
+  }, []);
+
+  // Register global listeners only while popover is open.
+  // Responsibilities:
+  // - close on outside click
+  // - close on Escape
+  // - reposition on viewport changes (resize/scroll)
   useEffect(() => {
     if (!open) return;
     const handleOutsideClick = (event: MouseEvent) => {
-      if (!containerRef.current) return;
-      if (containerRef.current.contains(event.target as Node)) return;
+      const targetNode = event.target as Node;
+      if (containerRef.current?.contains(targetNode)) return;
+      if (popoverRef.current?.contains(targetNode)) return;
       setOpen(false);
+    };
+    const handleViewportChange = () => {
+      updatePopoverPosition();
+    };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
     };
 
     document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleEscape);
+    window.addEventListener("resize", handleViewportChange);
+    window.addEventListener("scroll", handleViewportChange, true);
     return () => {
       document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("resize", handleViewportChange);
+      window.removeEventListener("scroll", handleViewportChange, true);
     };
-  }, [open]);
+  }, [open, updatePopoverPosition]);
 
+  // Opens the picker and syncs internal state from current value.
+  // Important: this sync only happens on open, so the user can browse/select
+  // inside the popover without immediately mutating the external form state.
   const handleOpen = () => {
     if (disabled || open) return;
-    // Initialize the draft and calendar view from the current value.
     const base = parsedValue ?? new Date();
     setDraftDate(base);
     setViewYear(base.getFullYear());
     setViewMonth(base.getMonth());
+    updatePopoverPosition();
     setOpen(true);
   };
 
-  // Navigate to the previous month, adjusting year when needed.
+  // Month navigation with year rollover.
+  // Example: Jan 2026 -> Prev -> Dec 2025.
   const handlePrevMonth = () => {
     if (disabled) return;
-    setViewMonth((prev) => {
-      if (prev === 0) {
-        setViewYear((year) => year - 1);
-        return 11;
-      }
-      return prev - 1;
-    });
+    if (viewMonth === 0) {
+      setViewMonth(11);
+      setViewYear(viewYear - 1);
+      return;
+    }
+    setViewMonth(viewMonth - 1);
   };
 
-  // Navigate to the next month, adjusting year when needed.
+  // Month navigation with year rollover.
+  // Example: Dec 2025 -> Next -> Jan 2026.
   const handleNextMonth = () => {
     if (disabled) return;
-    setViewMonth((prev) => {
-      if (prev === 11) {
-        setViewYear((year) => year + 1);
-        return 0;
-      }
-      return prev + 1;
-    });
+    if (viewMonth === 11) {
+      setViewMonth(0);
+      setViewYear(viewYear + 1);
+      return;
+    }
+    setViewMonth(viewMonth + 1);
   };
 
-  // Update the draft selection without committing it.
+  // Updates temporary selection only.
+  // Parent value is unchanged until handleApply().
   const handleDaySelect = (day: number) => {
     if (disabled) return;
     const selected = new Date(viewYear, viewMonth, day);
@@ -163,36 +266,50 @@ export function DatePicker({
     setDraftDate(selected);
   };
 
-  // Commit the draft selection and close the popover.
+  // Commits selected date to parent in ISO format and closes the popover.
   const handleApply = () => {
     if (!draftDate || draftDate > today) return;
     onChange(formatISODate(draftDate));
     setOpen(false);
   };
 
-  // Calendar grid calculations.
+  // Calendar grid math.
+  // - firstDay uses JS Sunday-first indexing (Sun=0...Sat=6)
+  // - offset converts to Monday-first grid:
+  //   Sun(0)->6, Mon(1)->0, Tue(2)->1, ... Sat(6)->5
+  // - totalSlots = leading blanks + real days
   const daysInMonth = getDaysInMonth(viewYear, viewMonth);
   const firstDay = new Date(viewYear, viewMonth, 1).getDay();
-  // Shift Sunday-based index so the grid starts on Monday.
   const offset = (firstDay + 6) % 7;
   const totalSlots = offset + daysInMonth;
-  // Normalize "today" to midnight for reliable comparisons.
+
+  // Normalize "today" to midnight so date-only comparisons are stable.
+  // Without this, comparing with current clock time could mark today's date
+  // as "future" until its exact time passes.
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // Portal target guard for non-browser environments.
+  const portalTarget =
+    typeof document === "undefined"
+      ? null
+      : document.body;
+
   return (
+    // Wrapper acts as trigger anchor for popover placement math.
     <div ref={containerRef} className={`relative ${className}`}>
       <TextField
         size={size}
         value={displayValue}
         placeholder="Select date"
-        // Enforce calendar-only selection.
+        // Input is intentionally read-only: value must come from calendar.
         readOnly
+        // Suppress virtual keyboard on touch devices.
         inputMode="none"
         className="cursor-pointer"
         onClick={handleOpen}
         onFocus={handleOpen}
-        // Support keyboard opening without allowing text input.
+        // Keyboard accessibility: Enter/Space opens picker.
         onKeyDown={(event) => {
           if (disabled) return;
           if (event.key === "Enter" || event.key === " ") {
@@ -205,13 +322,23 @@ export function DatePicker({
         disabled={disabled}
       />
 
-      {open && (
-        <div
-          role="dialog"
-          aria-label="Choose date"
-          className="absolute left-0 top-full z-20 mt-2 w-[18rem] rounded-3xl border border-slate-800 bg-slate-950 p-4 text-slate-200 shadow-2xl shadow-black/30"
-        >
-          {/* Month navigation header */}
+      {/* Popover is rendered in a portal to avoid clipping by parent containers. */}
+      {open &&
+        portalTarget &&
+        popoverPosition &&
+        createPortal(
+          <div
+            ref={popoverRef}
+            role="dialog"
+            aria-label="Choose date"
+            className="absolute z-10 rounded-3xl border border-slate-800 bg-slate-950 p-4 text-slate-200 shadow-2xl shadow-black/30"
+            style={{
+              top: popoverPosition.top,
+              left: popoverPosition.left,
+              width: popoverPosition.width,
+            }}
+          >
+          {/* Header: month navigation + current month/year label. */}
           <div className="flex items-center justify-between">
             <button
               type="button"
@@ -234,14 +361,17 @@ export function DatePicker({
             </button>
           </div>
 
-          {/* Weekday labels */}
+          {/* Static weekday heading row (Monday-first). */}
           <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[0.65rem] uppercase tracking-[0.2em] text-slate-400">
             {WEEKDAYS.map((day) => (
               <div key={day}>{day}</div>
             ))}
           </div>
 
-          {/* Calendar day grid */}
+          {/* Day cells:
+              - render leading blanks before day 1
+              - then render one button per day
+              - each day resolves selected/today/future visual state */}
           <div className="mt-2 grid grid-cols-7 gap-1">
             {Array.from({ length: totalSlots }).map((_, index) => {
               if (index < offset) {
@@ -261,8 +391,13 @@ export function DatePicker({
                   type="button"
                   onClick={() => handleDaySelect(day)}
                   disabled={disabled || isFuture}
+                  // `aria-pressed` communicates toggle-like selected state.
                   aria-pressed={isSelected}
-                  // Style priority: selected, today, then default.
+                  // Style priority:
+                  // 1) selected date
+                  // 2) today's date
+                  // 3) future (disabled look)
+                  // 4) normal selectable day
                   className={`flex h-9 w-9 items-center justify-center rounded-full border text-xs font-semibold transition ${
                     isSelected
                       ? "border-amber-400/40 bg-amber-300/20 text-amber-100"
@@ -279,7 +414,7 @@ export function DatePicker({
             })}
           </div>
 
-          {/* Preview of the draft selection */}
+          {/* Readout shows draft (uncommitted) selection for clarity. */}
           <div className="mt-4 flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-400">
             <span>Selected</span>
             <span className="text-sm font-semibold text-slate-100">
@@ -287,7 +422,7 @@ export function DatePicker({
             </span>
           </div>
 
-          {/* Apply is required to commit the selected date */}
+          {/* Commit action: without Apply, parent value remains unchanged. */}
           <div className="mt-3 flex justify-end">
             <Button
               size="sm"
@@ -298,8 +433,9 @@ export function DatePicker({
               Apply
             </Button>
           </div>
-        </div>
-      )}
+          </div>,
+          portalTarget
+        )}
     </div>
   );
 }

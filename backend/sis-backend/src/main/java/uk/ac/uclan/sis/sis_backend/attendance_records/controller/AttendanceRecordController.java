@@ -46,6 +46,21 @@ public class AttendanceRecordController {
     }
 
     /**
+     * Saves attendance marks for a session in one operation.
+     *
+     * @param sessionId session id
+     * @param req save request payload
+     * @return saved attendance record responses
+     */
+    @PutMapping("/attendance-sessions/{sessionId}/attendance-records")
+    public List<AttendanceRecordResponse> saveForSession(
+            @PathVariable Long sessionId,
+            @Valid @RequestBody SaveAttendanceForSessionRequest req
+    ) {
+        return service.saveForSession(sessionId, req);
+    }
+
+    /**
      * Creates an attendance record.
      *
      * @param req create request payload

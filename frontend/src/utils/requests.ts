@@ -62,3 +62,11 @@ export type CreateAttendanceRecordRequest = {
   status: "PRESENT" | "ABSENT" | "LATE";
   reason?: string | null;
 };
+
+export type SaveAttendanceForSessionRequest = {
+  records: Array<{
+    studentId: number;
+    status: "PRESENT" | "ABSENT" | "LATE";
+    reason?: string | null;
+  }>;
+};

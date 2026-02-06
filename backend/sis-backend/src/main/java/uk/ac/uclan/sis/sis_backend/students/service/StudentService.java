@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
+import uk.ac.uclan.sis.sis_backend.audit_log.service.AuditLogService;
 import uk.ac.uclan.sis.sis_backend.roles.Permissions;
 import uk.ac.uclan.sis.sis_backend.students.dto.CreateStudentRequest;
 import uk.ac.uclan.sis.sis_backend.students.dto.StudentResponse;
@@ -27,6 +28,7 @@ public class StudentService {
     private final StudentMapper mapper;
     private final AuthorizationService authorizationService;
     private final StudentGuardianRepository studentGuardianRepository;
+    private final AuditLogService auditLogService;
 
     /**
      * Creates the student service.
@@ -40,12 +42,14 @@ public class StudentService {
             StudentRepository repo,
             StudentMapper mapper,
             AuthorizationService authorizationService,
-            StudentGuardianRepository studentGuardianRepository
+            StudentGuardianRepository studentGuardianRepository,
+            AuditLogService auditLogService
     ) {
         this.repo = repo;
         this.mapper = mapper;
         this.authorizationService = authorizationService;
         this.studentGuardianRepository = studentGuardianRepository;
+        this.auditLogService = auditLogService;
     }
 
     /**
@@ -122,6 +126,13 @@ public class StudentService {
         }
 
         Student saved = repo.save(mapper.toEntity(request));
+        auditLogService.log(
+                null,
+                "STUDENT_CREATED",
+                "STUDENT",
+                saved.getId(),
+                "upn=" + saved.getUpn() + ", status=" + saved.getStatus()
+        );
         return mapper.toResponse(saved);
     }
 
@@ -147,6 +158,13 @@ public class StudentService {
 
         mapper.applyUpdate(existing, request);
         Student saved = repo.save(existing);
+        auditLogService.log(
+                null,
+                "STUDENT_UPDATED",
+                "STUDENT",
+                saved.getId(),
+                "upn=" + saved.getUpn() + ", status=" + saved.getStatus()
+        );
         return mapper.toResponse(saved);
     }
 
@@ -158,10 +176,16 @@ public class StudentService {
     @Transactional
     public void delete(Long id) {
         authorizationService.require(currentUser(), Permissions.CREATE_STUDENT);
-        if (!repo.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found");
-        }
+        Student existing = repo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found"));
         repo.deleteById(id);
+        auditLogService.log(
+                null,
+                "STUDENT_DELETED",
+                "STUDENT",
+                id,
+                "upn=" + existing.getUpn()
+        );
     }
 
     /**

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
+import uk.ac.uclan.sis.sis_backend.audit_log.service.AuditLogService;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
 import uk.ac.uclan.sis.sis_backend.roles.Permissions;
 import uk.ac.uclan.sis.sis_backend.roles.repository.RoleRepository;
@@ -25,6 +26,7 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthorizationService authorizationService;
+    private final AuditLogService auditLogService;
 
     /**
      * Creates the user service with required dependencies.
@@ -37,11 +39,13 @@ public class UserService {
     public UserService(UserRepository userRepository,
                     RoleRepository roleRepository,
                     PasswordEncoder passwordEncoder,
-                    AuthorizationService authorizationService) {
+                    AuthorizationService authorizationService,
+                    AuditLogService auditLogService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.authorizationService = authorizationService;
+        this.auditLogService = auditLogService;
     }
 
     /**
@@ -141,12 +145,14 @@ public class UserService {
         if (req.enabled != null) {
             user.setEnabled(req.enabled);
         }
-        System.out.println("user being saved");
-        System.out.println(user.getFirstName());
-        System.out.println(user.getLastName());
-        System.out.println(user.getEmail());
-
         User saved = userRepository.save(user);
+        auditLogService.log(
+                null,
+                "USER_CREATED",
+                "USER",
+                saved.getId(),
+                "email=" + saved.getEmail() + ", role=" + saved.getRole().getName()
+        );
         return toListItem(saved);
     }
 
@@ -221,6 +227,13 @@ public class UserService {
             user.setEnabled(req.enabled);
         }
 
+        auditLogService.log(
+                null,
+                "USER_UPDATED",
+                "USER",
+                user.getId(),
+                "email=" + user.getEmail() + ", role=" + user.getRole().getName() + ", enabled=" + user.isEnabled()
+        );
         return toListItem(user);
     }
 
@@ -232,10 +245,16 @@ public class UserService {
     @Transactional
     public void delete(Long id) {
         authorizationService.requireAdmin(currentUser());
-        if (!userRepository.existsById(id)) {
-            throw new NotFoundException("User","User not found: " + id);
-        }
+        User user = userRepository.findByIdWithRole(id)
+                .orElseThrow(() -> new NotFoundException("User","User not found: " + id));
         userRepository.deleteById(id);
+        auditLogService.log(
+                null,
+                "USER_DELETED",
+                "USER",
+                id,
+                "email=" + user.getEmail()
+        );
     }
 
     /**
