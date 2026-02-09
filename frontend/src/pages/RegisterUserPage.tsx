@@ -10,6 +10,9 @@ import type {
   RoleDto,
 } from "../utils/responses";
 import { getErrorMessage, type BackendErrorPayload } from "../utils/utilFuncs";
+import { AlertBanner } from "../components/AlertBanner";
+import { PageHeader } from "../components/PageHeader";
+import { SectionCard } from "../components/SectionCard";
 import {
   createUser,
   getRoles,
@@ -215,205 +218,201 @@ export default function RegisterUserPage() {
 
   if (user?.roleId !== 4) {
     return (
-      <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-6 py-4 text-sm text-rose-200">
+      <AlertBanner variant="error">
         You do not have permission to access this page.
-      </div>
+      </AlertBanner>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-          Administration
-        </p>
-        <h1 className="text-3xl font-semibold text-white">Create User</h1>
-        <p className="text-sm text-slate-300">
-          Add staff, teacher, or guardian access with role-aware linking.
-        </p>
-      </div>
+      <PageHeader
+        label="Administration"
+        title="Create User"
+        subtitle="Add staff, teacher, or guardian access with role-aware linking."
+      />
 
       {rolesError && (
-        <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-200">
+        <AlertBanner variant="error">
           <strong>Roles failed to load:</strong> {rolesError}
-        </div>
+        </AlertBanner>
       )}
 
       {globalError && (
-        <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-200">
+        <AlertBanner variant="error">
           <strong>Error:</strong> {globalError}
-        </div>
+        </AlertBanner>
       )}
 
       {successMsg && (
-        <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-xs text-emerald-200">
-          {successMsg}
-        </div>
+        <AlertBanner variant="success">{successMsg}</AlertBanner>
       )}
 
       <form
         onSubmit={handleSubmit}
-        className="grid gap-4 rounded-3xl border border-slate-800/80 bg-slate-900/70 p-6 shadow-2xl shadow-black/30"
+        className="grid gap-4"
       >
-        <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
-          <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
-            First name
-            <TextField
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="e.g., Alice"
-              autoComplete="given-name"
-            />
-            {fieldErrors.firstName && (
-              <small className="text-rose-200">{fieldErrors.firstName}</small>
-            )}
-          </label>
-
-          <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
-            Last name
-            <TextField
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="e.g., Smith"
-              autoComplete="family-name"
-            />
-            {fieldErrors.lastName && (
-              <small className="text-rose-200">{fieldErrors.lastName}</small>
-            )}
-          </label>
-        </div>
-
-        <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
-          Email
-          <TextField
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="e.g., alice@example.com"
-            autoComplete="email"
-          />
-          {fieldErrors.email && (
-            <small className="text-rose-200">{fieldErrors.email}</small>
-          )}
-        </label>
-
-        <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
-          <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
-            Password
-            <TextField
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type="password"
-              autoComplete="new-password"
-            />
-            {fieldErrors.password && (
-              <small className="text-rose-200">{fieldErrors.password}</small>
-            )}
-          </label>
-
-          <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
-            Confirm password
-            <TextField
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              type="password"
-              autoComplete="new-password"
-            />
-            {fieldErrors.confirmPassword && (
-              <small className="text-rose-200">
-                {fieldErrors.confirmPassword}
-              </small>
-            )}
-          </label>
-        </div>
-
-        <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
-          Role
-          <SelectDropdown
-            value={roleId === "" ? "" : String(roleId)}
-            options={[
-              {
-                value: "",
-                label: rolesLoading ? "Loading roles..." : "Select a role...",
-              },
-              ...roles.map((r) => ({
-                value: String(r.id),
-                label: r.name,
-              })),
-            ]}
-            onChange={(value) => setRoleId(value ? Number(value) : "")}
-            disabled={rolesLoading || roles.length === 0}
-            className="w-full"
-          />
-          {fieldErrors.roleId && (
-            <small className="text-rose-200">{fieldErrors.roleId}</small>
-          )}
-        </label>
-
-        {showGuardianLink && (
-          <div className="rounded-2xl border border-slate-800/80 bg-slate-950/60 p-4 text-sm text-slate-300">
-            <div className="grid gap-3">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                  Link Guardian
-                </p>
-                <p className="mt-1 text-sm text-slate-300">
-                  Search guardians by name (min 2 characters). Select one to
-                  link during user creation.
-                </p>
-              </div>
-
-              <SearchSelect
-                label="Search"
-                placeholder="e.g., John Doe"
-                selected={selectedGuardian}
-                onSelect={setSelectedGuardian}
-                fetchOptions={fetchGuardians}
-                getOptionKey={(guardian) => guardian.id}
-                getOptionLabel={(guardian) =>
-                  `${guardian.firstName} ${guardian.lastName}${
-                    guardian.email ? ` - ${guardian.email}` : ""
-                  }`
-                }
-                idleLabel="Type at least 2 characters."
-                loadingLabel="Searching..."
-                resultsLabel="Results"
-                emptyLabel="No matches."
-                resetKey={guardianResetKey}
+        <SectionCard padding="md" className="grid gap-4">
+          <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+            <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+              First name
+              <TextField
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="e.g., Alice"
+                autoComplete="given-name"
               />
+              {fieldErrors.firstName && (
+                <small className="text-rose-200">{fieldErrors.firstName}</small>
+              )}
+            </label>
 
-              {fieldErrors.guardianId && (
+            <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+              Last name
+              <TextField
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="e.g., Smith"
+                autoComplete="family-name"
+              />
+              {fieldErrors.lastName && (
+                <small className="text-rose-200">{fieldErrors.lastName}</small>
+              )}
+            </label>
+          </div>
+
+          <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+            Email
+            <TextField
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="e.g., alice@example.com"
+              autoComplete="email"
+            />
+            {fieldErrors.email && (
+              <small className="text-rose-200">{fieldErrors.email}</small>
+            )}
+          </label>
+
+          <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+            <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+              Password
+              <TextField
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type="password"
+                autoComplete="new-password"
+              />
+              {fieldErrors.password && (
+                <small className="text-rose-200">{fieldErrors.password}</small>
+              )}
+            </label>
+
+            <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+              Confirm password
+              <TextField
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                type="password"
+                autoComplete="new-password"
+              />
+              {fieldErrors.confirmPassword && (
                 <small className="text-rose-200">
-                  {fieldErrors.guardianId}
+                  {fieldErrors.confirmPassword}
                 </small>
               )}
-            </div>
+            </label>
           </div>
-        )}
 
-        <div className="flex flex-wrap items-center gap-3 pt-2">
-          <Button type="submit" disabled={submitting || rolesLoading}>
-            {submitting ? "Creating..." : "Create user"}
-          </Button>
+          <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+            Role
+            <SelectDropdown
+              value={roleId === "" ? "" : String(roleId)}
+              options={[
+                {
+                  value: "",
+                  label: rolesLoading ? "Loading roles..." : "Select a role...",
+                },
+                ...roles.map((r) => ({
+                  value: String(r.id),
+                  label: r.name,
+                })),
+              ]}
+              onChange={(value) => setRoleId(value ? Number(value) : "")}
+              disabled={rolesLoading || roles.length === 0}
+              className="w-full"
+            />
+            {fieldErrors.roleId && (
+              <small className="text-rose-200">{fieldErrors.roleId}</small>
+            )}
+          </label>
 
-          <Button
-            variant="secondary"
-            disabled={submitting}
-            onClick={() => {
-              setFirstName("");
-              setLastName("");
-              setEmail("");
-              setPassword("");
-              setConfirmPassword("");
-              setFieldErrors({});
-              setGlobalError(null);
-              setSuccessMsg(null);
-              setSelectedGuardian(null);
-              setGuardianResetKey((prev) => prev + 1);
-            }}
-          >
-            Reset
-          </Button>
-        </div>
+          {showGuardianLink && (
+            <div className="rounded-2xl border border-slate-800/80 bg-slate-950/60 p-4 text-sm text-slate-300">
+              <div className="grid gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                    Link Guardian
+                  </p>
+                  <p className="mt-1 text-sm text-slate-300">
+                    Search guardians by name (min 2 characters). Select one to
+                    link during user creation.
+                  </p>
+                </div>
+
+                <SearchSelect
+                  label="Search"
+                  placeholder="e.g., John Doe"
+                  selected={selectedGuardian}
+                  onSelect={setSelectedGuardian}
+                  fetchOptions={fetchGuardians}
+                  getOptionKey={(guardian) => guardian.id}
+                  getOptionLabel={(guardian) =>
+                    `${guardian.firstName} ${guardian.lastName}${
+                      guardian.email ? ` - ${guardian.email}` : ""
+                    }`
+                  }
+                  idleLabel="Type at least 2 characters."
+                  loadingLabel="Searching..."
+                  resultsLabel="Results"
+                  emptyLabel="No matches."
+                  resetKey={guardianResetKey}
+                />
+
+                {fieldErrors.guardianId && (
+                  <small className="text-rose-200">
+                    {fieldErrors.guardianId}
+                  </small>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <Button type="submit" disabled={submitting || rolesLoading}>
+              {submitting ? "Creating..." : "Create user"}
+            </Button>
+
+            <Button
+              variant="secondary"
+              disabled={submitting}
+              onClick={() => {
+                setFirstName("");
+                setLastName("");
+                setEmail("");
+                setPassword("");
+                setConfirmPassword("");
+                setFieldErrors({});
+                setGlobalError(null);
+                setSuccessMsg(null);
+                setSelectedGuardian(null);
+                setGuardianResetKey((prev) => prev + 1);
+              }}
+            >
+              Reset
+            </Button>
+          </div>
+        </SectionCard>
       </form>
     </div>
   );

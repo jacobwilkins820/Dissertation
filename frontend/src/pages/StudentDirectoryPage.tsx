@@ -7,6 +7,13 @@ import { hasPermission, Permissions } from "../utils/permissions";
 import { useAuth } from "../auth/UseAuth";
 import type { Student } from "../utils/responses";
 import { getStudentsPage, searchStudents } from "../services/backend";
+import { PageHeader } from "../components/PageHeader";
+import { SectionCard } from "../components/SectionCard";
+import { AlertBanner } from "../components/AlertBanner";
+import { StateMessage } from "../components/StateMessage";
+import { StatusBadge } from "../components/StatusBadge";
+import { useDebouncedValue } from "../hooks/useDebouncedValue";
+import { formatDate, formatDateTime } from "../utils/date";
 
 // Student directory with search, filters, and pagination.
 const sortOptions = [
@@ -21,9 +28,9 @@ const sortOptions = [
 
 const pageSizeOptions = [10, 25, 50, 100];
 
-export default function StudentPage() {
+export default function StudentDirectoryPage() {
   const [searchInput, setSearchInput] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const searchQuery = useDebouncedValue(searchInput.trim(), 300);
   const [sortValue, setSortValue] = useState(sortOptions[0].value);
   const [pageSize, setPageSize] = useState(pageSizeOptions[0]);
   const [page, setPage] = useState(0);
@@ -48,13 +55,8 @@ export default function StudentPage() {
   );
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearchQuery(searchInput.trim());
-      setPage(0);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+    setPage(0);
+  }, [searchQuery]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -113,20 +115,13 @@ export default function StudentPage() {
   if (canView) {
     return (
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div className="space-y-2">
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-              Directory
-            </p>
-            <h1 className="text-3xl font-semibold text-white">Students</h1>
-            <p className="text-sm text-slate-300">
-              Browse the student directory, refine results, and jump to key
-              records.
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          label="Directory"
+          title="Students"
+          subtitle="Browse the student directory, refine results, and jump to key records."
+        />
 
-        <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 p-6 shadow-2xl shadow-black/30">
+        <SectionCard padding="md">
           <div className="grid gap-4 md:grid-cols-[1.6fr_1fr_0.8fr]">
             <SearchSelect
               label="Search"
@@ -213,15 +208,13 @@ export default function StudentPage() {
               </Button>
             </div>
           </div>
-        </div>
+        </SectionCard>
 
         {error && (
-          <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-200">
-            {error}
-          </div>
+          <AlertBanner variant="error">{error}</AlertBanner>
         )}
 
-        <div className="overflow-x-auto rounded-3xl border border-slate-800/80 bg-slate-900/70 shadow-2xl shadow-black/30">
+        <SectionCard padding="none" className="overflow-x-auto">
           <table className="min-w-full text-left text-sm text-slate-200">
             <thead className="bg-slate-950/60 text-xs uppercase tracking-[0.3em] text-slate-400">
               <tr>
@@ -271,11 +264,7 @@ export default function StudentPage() {
                     {student.gender || "-"}
                   </td>
                   <td className="px-4 py-4 relative z-10 pointer-events-none">
-                    <span
-                      className={`rounded-full border px-3 py-1 text-xs uppercase tracking-[0.2em] ${statusClasses(student.status)}`}
-                    >
-                      {student.status || "UNKNOWN"}
-                    </span>
+                    <StatusBadge value={student.status} />
                   </td>
                   <td className="px-4 py-4 relative z-10 pointer-events-none">
                     {formatDateTime(student.updatedAt)}
@@ -286,48 +275,14 @@ export default function StudentPage() {
           </table>
 
           {!loading && students.length === 0 && !error && (
-            <div className="px-4 py-8 text-center text-sm text-slate-400">
-              No students match your filters.
-            </div>
+            <StateMessage>No students match your filters.</StateMessage>
           )}
 
           {loading && (
-            <div className="px-4 py-8 text-center text-sm text-slate-400">
-              Loading students...
-            </div>
+            <StateMessage>Loading students...</StateMessage>
           )}
-        </div>
+        </SectionCard>
       </div>
     );
-  }
-
-  // Format a short date string for display.
-  function formatDate(value?: string) {
-    if (!value) return "-";
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) return value;
-    return parsed.toLocaleDateString();
-  }
-
-  // Format a full date/time string for display.
-  function formatDateTime(value?: string) {
-    if (!value) return "-";
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) return value;
-    return parsed.toLocaleString();
-  }
-
-  // Map status values to badge styles.
-  function statusClasses(status?: string) {
-    switch (status) {
-      case "ACTIVE":
-        return "border-emerald-300/40 bg-emerald-400/10 text-emerald-200";
-      case "INACTIVE":
-        return "border-amber-300/40 bg-amber-400/10 text-amber-200";
-      case "WITHDRAWN":
-        return "border-rose-400/40 bg-rose-500/10 text-rose-200";
-      default:
-        return "border-slate-600/40 bg-slate-800/60 text-slate-300";
-    }
   }
 }

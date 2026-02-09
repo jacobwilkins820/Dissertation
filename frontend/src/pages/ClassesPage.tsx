@@ -4,6 +4,10 @@ import { Button } from "../components/Button";
 import { useAuth } from "../auth/UseAuth";
 import { hasPermission, Permissions } from "../utils/permissions";
 import { getErrorMessage } from "../utils/utilFuncs";
+import { AlertBanner } from "../components/AlertBanner";
+import { PageHeader } from "../components/PageHeader";
+import { SectionCard } from "../components/SectionCard";
+import { StateMessage } from "../components/StateMessage";
 import type { ClassListItemResponse } from "../utils/responses";
 import { getClass, getClasses } from "../services/backend";
 
@@ -64,24 +68,20 @@ export default function ClassesPage() {
 
   if (!canView) {
     return (
-      <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-6 py-4 text-sm text-rose-200">
+      <AlertBanner variant="error">
         You do not have permission to access this page.
-      </div>
+      </AlertBanner>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-          Classes
-        </p>
-        <h1 className="text-3xl font-semibold text-white">Class Directory</h1>
-        <p className="text-sm text-slate-300">
-          Review active classes and open rosters.
-        </p>
-      </div>
-      <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 shadow-2xl shadow-black/30">
+      <PageHeader
+        label="Classes"
+        title="Class Directory"
+        subtitle="Review active classes and open rosters."
+      />
+      <SectionCard padding="none">
         <div className="flex items-center justify-between border-b border-slate-800/80 px-6 py-4 text-sm text-slate-300">
           <span>
             {loading
@@ -93,7 +93,9 @@ export default function ClassesPage() {
         </div>
 
         {error && (
-          <div className="px-6 py-4 text-xs text-rose-200">{error}</div>
+          <div className="px-6 py-4">
+            <AlertBanner variant="error">{error}</AlertBanner>
+          </div>
         )}
 
         <div className="overflow-x-auto">
@@ -171,12 +173,10 @@ export default function ClassesPage() {
           </table>
 
           {!loading && visibleClasses.length === 0 && !error && (
-            <div className="px-6 py-8 text-center text-sm text-slate-400">
-              No classes available for your account.
-            </div>
+            <StateMessage>No classes available for your account.</StateMessage>
           )}
         </div>
-      </div>
+      </SectionCard>
     </div>
   );
 }

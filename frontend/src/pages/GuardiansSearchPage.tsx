@@ -5,6 +5,9 @@ import { SearchSelect } from "../components/SearchSelect";
 import { useAuth } from "../auth/UseAuth";
 import { hasPermission, Permissions } from "../utils/permissions";
 import { searchGuardians } from "../services/backend";
+import { AlertBanner } from "../components/AlertBanner";
+import { PageHeader } from "../components/PageHeader";
+import { SectionCard } from "../components/SectionCard";
 
 // Guardian search page with permission-aware access.
 export default function GuardiansSearchPage() {
@@ -30,26 +33,21 @@ export default function GuardiansSearchPage() {
 
   if (!canSearch) {
     return (
-      <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-6 py-4 text-sm text-rose-200">
+      <AlertBanner variant="error">
         You do not have permission to access this page.
-      </div>
+      </AlertBanner>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-          Directory
-        </p>
-        <h1 className="text-3xl font-semibold text-white">Guardians</h1>
-        <p className="text-sm text-slate-300">
-          Search for guardians by name. Results show only the fields your role
-          can access.
-        </p>
-      </div>
+      <PageHeader
+        label="Directory"
+        title="Guardians"
+        subtitle="Search for guardians by name. Results show only the fields your role can access."
+      />
 
-      <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 p-6 shadow-2xl shadow-black/30">
+      <SectionCard padding="md">
         <div className="grid gap-4 md:grid-cols-[1.4fr_auto] md:items-end">
           <SearchSelect
             label="Search guardians"
@@ -79,7 +77,7 @@ export default function GuardiansSearchPage() {
             {selectedGuardian ? "Guardian selected" : "Select a guardian"}
           </div>
         </div>
-      </div>
+      </SectionCard>
     </div>
   );
 }

@@ -4,6 +4,11 @@ import { Button } from "../components/Button";
 import { DatePicker } from "../components/DatePicker";
 import { TextField } from "../components/TextField";
 import { getErrorMessage } from "../utils/utilFuncs";
+import { getLocalDateString } from "../utils/date";
+import { AlertBanner } from "../components/AlertBanner";
+import { PageHeader } from "../components/PageHeader";
+import { SectionCard } from "../components/SectionCard";
+import { StateMessage } from "../components/StateMessage";
 import type {
   AcademicYearResponse,
   AttendanceSessionResponse,
@@ -31,13 +36,6 @@ type AttendanceRecordState = {
 };
 
 // Get YYYY-MM-DD for today's local date.
-function getLocalDateString() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
 
 // Render the attendance register page for a class.
 export default function AttendanceRegisterPage() {
@@ -304,32 +302,23 @@ export default function AttendanceRegisterPage() {
   const roster = useMemo(() => students, [students]);
 
   if (error) {
-    return (
-      <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-6 py-4 text-sm text-rose-200">
-        {error}
-      </div>
-    );
+    return <AlertBanner variant="error">{error}</AlertBanner>;
   }
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-          Attendance register
-        </p>
-        <h1 className="text-3xl font-semibold text-white">
-          {clazz?.name ?? "Loading class..."}
-        </h1>
-        <p className="text-sm text-slate-300">
-          {clazz?.code ? `${clazz.code} - ` : ""}
-          {clazz?.teacherName
+      <PageHeader
+        label="Attendance register"
+        title={clazz?.name ?? "Loading class..."}
+        subtitle={`${clazz?.code ? `${clazz.code} - ` : ""}${
+          clazz?.teacherName
             ? `Teacher: ${clazz.teacherName}`
-            : "Teacher unassigned"}
-        </p>
-      </div>
+            : "Teacher unassigned"
+        }`}
+      />
 
       <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
-        <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 p-4 text-sm text-slate-300 shadow-2xl shadow-black/30">
+        <SectionCard padding="sm" className="text-sm text-slate-300">
           <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
             Session date
           </p>
@@ -344,7 +333,7 @@ export default function AttendanceRegisterPage() {
           <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-400">
             {academicYear?.name ?? "Loading academic year"}
           </p>
-        </div>
+        </SectionCard>
 
         <div className="flex flex-wrap items-center gap-3">
           <Button
@@ -385,7 +374,7 @@ export default function AttendanceRegisterPage() {
         </div>
       </div>
 
-      <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 shadow-2xl shadow-black/30">
+      <SectionCard padding="none">
         <div className="border-b border-slate-800/80 px-6 py-4 text-sm text-slate-300">
           {loading
             ? "Loading students..."
@@ -479,17 +468,13 @@ export default function AttendanceRegisterPage() {
           </table>
 
           {!loading && roster.length === 0 && (
-            <div className="px-6 py-8 text-center text-sm text-slate-400">
-              No students are enrolled in this class.
-            </div>
+            <StateMessage>No students are enrolled in this class.</StateMessage>
           )}
         </div>
-      </div>
+      </SectionCard>
 
       {saveMessage && (
-        <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-6 py-4 text-sm text-emerald-200">
-          {saveMessage}
-        </div>
+        <AlertBanner variant="success">{saveMessage}</AlertBanner>
       )}
 
       <div className="flex justify-end">

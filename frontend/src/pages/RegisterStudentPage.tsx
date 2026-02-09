@@ -7,6 +7,9 @@ import type { CreateStudentRequest } from "../utils/responses";
 import { getErrorMessage, type BackendErrorPayload } from "../utils/utilFuncs";
 import { createStudent, isFetchJsonError } from "../services/backend";
 import { DatePicker } from "../components/DatePicker";
+import { AlertBanner } from "../components/AlertBanner";
+import { PageHeader } from "../components/PageHeader";
+import { SectionCard } from "../components/SectionCard";
 
 // Student registration form with client + server validation. Should be SQL injection safe.
 type FieldErrors = Partial<Record<keyof CreateStudentRequest, string>>;
@@ -122,147 +125,143 @@ export default function RegisterStudent() {
 
   if (user?.roleId !== 4) {
     return (
-      <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-6 py-4 text-sm text-rose-200">
+      <AlertBanner variant="error">
         You do not have permission to access this page.
-      </div>
+      </AlertBanner>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-          Onboarding
-        </p>
-        <h1 className="text-3xl font-semibold text-white">Register Student</h1>
-        <p className="text-sm text-slate-300">
-          Create a new student record and assign the initial status.
-        </p>
-      </div>
+      <PageHeader
+        label="Onboarding"
+        title="Register Student"
+        subtitle="Create a new student record and assign the initial status."
+      />
 
       {globalError && (
-        <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-200">
+        <AlertBanner variant="error">
           <strong>Error:</strong> {globalError}
-        </div>
+        </AlertBanner>
       )}
 
       {successMsg && (
-        <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-xs text-emerald-200">
-          {successMsg}
-        </div>
+        <AlertBanner variant="success">{successMsg}</AlertBanner>
       )}
 
       <form
         onSubmit={handleSubmit}
-        className="grid gap-4 rounded-3xl border border-slate-800/80 bg-slate-900/70 p-6 shadow-2xl shadow-black/30"
+        className="grid gap-4"
       >
-        <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
-          UPN
-          <TextField
-            value={upn}
-            onChange={(e) => setUpn(e.target.value)}
-            placeholder="e.g., UPN12345"
-          />
-          {fieldErrors.upn && (
-            <small className="text-rose-200">{fieldErrors.upn}</small>
-          )}
-        </label>
-
-        <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+        <SectionCard padding="md" className="grid gap-4">
           <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
-            First name
+            UPN
             <TextField
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="e.g., Alice"
-              autoComplete="given-name"
+              value={upn}
+              onChange={(e) => setUpn(e.target.value)}
+              placeholder="e.g., UPN12345"
             />
-            {fieldErrors.firstName && (
-              <small className="text-rose-200">{fieldErrors.firstName}</small>
+            {fieldErrors.upn && (
+              <small className="text-rose-200">{fieldErrors.upn}</small>
             )}
           </label>
+
+          <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+            <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+              First name
+              <TextField
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="e.g., Alice"
+                autoComplete="given-name"
+              />
+              {fieldErrors.firstName && (
+                <small className="text-rose-200">{fieldErrors.firstName}</small>
+              )}
+            </label>
+
+            <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+              Last name
+              <TextField
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="e.g., Smith"
+                autoComplete="family-name"
+              />
+              {fieldErrors.lastName && (
+                <small className="text-rose-200">{fieldErrors.lastName}</small>
+              )}
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+            <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+              Date of birth
+              <DatePicker
+                size="sm"
+                value={dateOfBirth}
+                onChange={setDateOfBirth}
+              />
+              {fieldErrors.dateOfBirth && (
+                <small className="text-rose-200">{fieldErrors.dateOfBirth}</small>
+              )}
+            </label>
+
+            <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+              Gender
+              <TextField
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                placeholder="e.g., Female"
+              />
+              {fieldErrors.gender && (
+                <small className="text-rose-200">{fieldErrors.gender}</small>
+              )}
+            </label>
+          </div>
 
           <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
-            Last name
-            <TextField
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="e.g., Smith"
-              autoComplete="family-name"
+            Status
+            <SelectDropdown
+              value={status}
+              options={[
+                { value: "", label: "Default (ACTIVE)" },
+                { value: "ACTIVE", label: "ACTIVE" },
+                { value: "INACTIVE", label: "INACTIVE" },
+                { value: "WITHDRAWN", label: "WITHDRAWN" },
+              ]}
+              onChange={setStatus}
+              className="w-full"
             />
-            {fieldErrors.lastName && (
-              <small className="text-rose-200">{fieldErrors.lastName}</small>
-            )}
-          </label>
-        </div>
-
-        <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
-          <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
-            Date of birth
-            <DatePicker
-              size="sm"
-              value={dateOfBirth}
-              onChange={setDateOfBirth}
-            />
-            {fieldErrors.dateOfBirth && (
-              <small className="text-rose-200">{fieldErrors.dateOfBirth}</small>
+            {fieldErrors.status && (
+              <small className="text-rose-200">{fieldErrors.status}</small>
             )}
           </label>
 
-          <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
-            Gender
-            <TextField
-              value={gender}
-              onChange={(e) => setGender(e.target.value)}
-              placeholder="e.g., Female"
-            />
-            {fieldErrors.gender && (
-              <small className="text-rose-200">{fieldErrors.gender}</small>
-            )}
-          </label>
-        </div>
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Creating..." : "Create student"}
+            </Button>
 
-        <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
-          Status
-          <SelectDropdown
-            value={status}
-            options={[
-              { value: "", label: "Default (ACTIVE)" },
-              { value: "ACTIVE", label: "ACTIVE" },
-              { value: "INACTIVE", label: "INACTIVE" },
-              { value: "WITHDRAWN", label: "WITHDRAWN" },
-            ]}
-            onChange={setStatus}
-            className="w-full"
-          />
-          {fieldErrors.status && (
-            <small className="text-rose-200">{fieldErrors.status}</small>
-          )}
-        </label>
-
-        <div className="flex flex-wrap items-center gap-3 pt-2">
-          <Button type="submit" disabled={submitting}>
-            {submitting ? "Creating..." : "Create student"}
-          </Button>
-
-          <Button
-            variant="secondary"
-            disabled={submitting}
-            onClick={() => {
-              setUpn("");
-              setFirstName("");
-              setLastName("");
-              setDateOfBirth("");
-              setGender("");
-              setStatus("");
-              setFieldErrors({});
-              setGlobalError(null);
-              setSuccessMsg(null);
-            }}
-          >
-            Reset
-          </Button>
-        </div>
+            <Button
+              variant="secondary"
+              disabled={submitting}
+              onClick={() => {
+                setUpn("");
+                setFirstName("");
+                setLastName("");
+                setDateOfBirth("");
+                setGender("");
+                setStatus("");
+                setFieldErrors({});
+                setGlobalError(null);
+                setSuccessMsg(null);
+              }}
+            >
+              Reset
+            </Button>
+          </div>
+        </SectionCard>
       </form>
     </div>
   );

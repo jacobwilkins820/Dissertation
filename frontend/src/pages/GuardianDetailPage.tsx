@@ -10,6 +10,7 @@ import { TextField } from "../components/TextField";
 import { useAuth } from "../auth/UseAuth";
 import { hasPermission, Permissions } from "../utils/permissions";
 import { getErrorMessage } from "../utils/utilFuncs";
+import { formatDateTime } from "../utils/date";
 import {
   getGuardianDetail,
   getGuardianStudents,
@@ -553,9 +554,3 @@ function renderField({
 }
 
 // Format a full date/time string for display.
-function formatDateTime(value?: string | null) {
-  if (!value) return "-";
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleString();
-}

@@ -4,6 +4,10 @@ import { PieChart } from "../components/charts/PieChart";
 import { LineChart } from "../components/charts/LineChart";
 import { SelectDropdown } from "../components/SelectDropdown";
 import { getErrorMessage } from "../utils/utilFuncs";
+import { formatDateInput } from "../utils/date";
+import { AlertBanner } from "../components/AlertBanner";
+import { PageHeader } from "../components/PageHeader";
+import { SectionCard } from "../components/SectionCard";
 import type { ClassResponse } from "../utils/responses";
 import {
   getAttendanceRecordsForSession,
@@ -183,31 +187,20 @@ export default function StatisticsPage() {
   }, [parsedId, weeks]);
 
   if (error) {
-    return (
-      <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-6 py-4 text-sm text-rose-200">
-        {error}
-      </div>
-    );
+    return <AlertBanner variant="error">{error}</AlertBanner>;
   }
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-          Statistics
-        </p>
-        <h1 className="text-3xl font-semibold text-white">
-          {clazz?.name ?? (loading ? "Loading class..." : "Class statistics")}
-        </h1>
-        <p className="text-sm text-slate-300">
-          {clazz?.code ? `${clazz.code} - ` : ""}
-          {clazz?.teacherName
+      <PageHeader
+        label="Statistics"
+        title={clazz?.name ?? (loading ? "Loading class..." : "Class statistics")}
+        subtitle={`${clazz?.code ? `${clazz.code} - ` : ""}${
+          clazz?.teacherName
             ? `Teacher: ${clazz.teacherName}`
-            : "Teacher unassigned"}
-        </p>
-      </div>
-      <div className="flex flex-wrap items-center rounded-3xl bg-slate-900/70 shadow-2xl justify-between gap-3 border-b border-slate-800/80 px-6 py-4 text-sm text-slate-300">
-        <span>Weeks range</span>
+            : "Teacher unassigned"
+        }`}
+      >
         <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
           <span className="sr-only">Select weeks range</span>
           <SelectDropdown
@@ -223,9 +216,9 @@ export default function StatisticsPage() {
             className="w-40"
           />
         </label>
-      </div>
+      </PageHeader>
 
-      <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 shadow-2xl shadow-black/30">
+      <SectionCard padding="none">
         <div className="flex items-center justify-between border-b border-slate-800/80 px-6 py-4 text-sm text-slate-300">
           <span>Attendance overview</span>
           <span className="text-xs uppercase tracking-[0.3em] text-slate-400">
@@ -235,9 +228,9 @@ export default function StatisticsPage() {
         <div className="px-6 py-6">
           <PieChart data={chartData} className="h-[320px]" />
         </div>
-      </div>
+      </SectionCard>
 
-      <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 shadow-2xl shadow-black/30">
+      <SectionCard padding="none">
         <div className="flex items-center justify-between border-b border-slate-800/80 px-6 py-4 text-sm text-slate-300">
           <span>Weekly attendance trends</span>
           <span className="text-xs uppercase tracking-[0.3em] text-slate-400">
@@ -248,17 +241,11 @@ export default function StatisticsPage() {
         <div className="px-6 py-6">
           <LineChart data={lineChartData} className="h-[320px]" />
         </div>
-      </div>
+      </SectionCard>
     </div>
   );
 }
 
-function formatDateInput(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
 
 function parseLocalDate(value: string) {
   if (!value) return null;

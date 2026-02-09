@@ -4,6 +4,9 @@ import { useAuth } from "../auth/UseAuth";
 import { Button } from "../components/Button";
 import { TextField } from "../components/TextField";
 import type { ApiError } from "../services/http";
+import { AlertBanner } from "../components/AlertBanner";
+import { PageHeader } from "../components/PageHeader";
+import { SectionCard } from "../components/SectionCard";
 
 // Login form with auth redirect handling.
 export default function LoginPage() {
@@ -38,16 +41,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full max-w-md rounded-3xl border border-slate-800/80 bg-slate-900/80 p-8 shadow-2xl shadow-black/30">
-      <div className="space-y-3">
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-          Welcome back
-        </p>
-        <h1 className="text-3xl font-semibold text-white">Sign in</h1>
-        <p className="text-sm text-slate-300">
-          Use your institutional credentials to access the SIS workspace.
-        </p>
-      </div>
+    <SectionCard
+      padding="lg"
+      className="w-full max-w-md bg-slate-900/80"
+    >
+      <PageHeader
+        label="Welcome back"
+        title="Sign in"
+        subtitle="Use your institutional credentials to access the SIS workspace."
+        className="md:items-start md:justify-start"
+      />
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4 text-sm">
         <label className="grid gap-1.5 text-slate-300">
@@ -73,9 +76,7 @@ export default function LoginPage() {
         </label>
 
         {error && (
-          <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-200">
-            {error}
-          </div>
+          <AlertBanner variant="error">{error}</AlertBanner>
         )}
 
         <Button
@@ -87,7 +88,7 @@ export default function LoginPage() {
           {isSubmitting ? "Signing in..." : "Sign in"}
         </Button>
       </form>
-    </div>
+    </SectionCard>
   );
 }
 

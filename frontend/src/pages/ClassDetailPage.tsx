@@ -1,11 +1,15 @@
-﻿import { useCallback, useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
+﻿import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../auth/UseAuth";
 import { SearchSelect } from "../components/SearchSelect";
 import { Button } from "../components/Button";
 import { useNavigate } from "react-router-dom";
 import { getErrorMessage } from "../utils/utilFuncs";
+import { AlertBanner } from "../components/AlertBanner";
+import { PageHeader } from "../components/PageHeader";
+import { SectionCard } from "../components/SectionCard";
+import { StateMessage } from "../components/StateMessage";
+import { StatusBadge } from "../components/StatusBadge";
 import type {
   AcademicYearResponse,
   ClassResponse,
@@ -23,6 +27,9 @@ import {
   searchStudents,
   updateClass,
 } from "../services/backend";
+
+const AddStudentModal = lazy(() => import("../components/AddStudentModal"));
+const RemoveStudentModal = lazy(() => import("../components/RemoveStudentModal"));
 
 // Class detail page with roster + enrolment modal.
 export default function ClassDetailPage() {
@@ -253,40 +260,31 @@ export default function ClassDetailPage() {
   };
 
   if (error) {
-    return (
-      <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-6 py-4 text-sm text-rose-200">
-        {error}
-      </div>
-    );
+    return <AlertBanner variant="error">{error}</AlertBanner>;
   }
 
   if (accessDenied) {
     return (
-      <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-6 py-4 text-sm text-rose-200">
+      <AlertBanner variant="error">
         You do not have permission to access this class.
-      </div>
+      </AlertBanner>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-          Class
-        </p>
-        <h1 className="text-3xl font-semibold text-white">
-          {clazz?.name ?? "Loading class..."}
-        </h1>
-        <p className="text-sm text-slate-300">
-          {clazz?.code ? `${clazz.code} · ` : ""}
-          {clazz?.teacherName
+      <PageHeader
+        label="Class"
+        title={clazz?.name ?? "Loading class..."}
+        subtitle={`${clazz?.code ? `${clazz.code} · ` : ""}${
+          clazz?.teacherName
             ? `Teacher: ${clazz.teacherName}`
-            : "Teacher unassigned"}
-        </p>
-      </div>
+            : "Teacher unassigned"
+        }`}
+      />
 
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 p-4 text-sm text-slate-300 shadow-2xl shadow-black/30">
+        <SectionCard padding="sm" className="text-sm text-slate-300">
           <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
             Status
           </p>
@@ -309,23 +307,23 @@ export default function ClassDetailPage() {
               </Button>
             )}
           </div>
-        </div>
-        <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 p-4 text-sm text-slate-300 shadow-2xl shadow-black/30">
+        </SectionCard>
+        <SectionCard padding="sm" className="text-sm text-slate-300">
           <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
             Academic year
           </p>
           <p className="mt-2 text-lg text-white">
             {academicYear?.name ?? "Loading..."}
           </p>
-        </div>
-        <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 p-4 text-sm text-slate-300 shadow-2xl shadow-black/30">
+        </SectionCard>
+        <SectionCard padding="sm" className="text-sm text-slate-300">
           <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
             Students
           </p>
           <p className="mt-2 text-lg text-white">
             {loading ? "Loading..." : students.length}
           </p>
-        </div>
+        </SectionCard>
       </div>
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -372,7 +370,7 @@ export default function ClassDetailPage() {
         )}
       </div>
 
-      <div className="rounded-3xl border border-slate-800/80 bg-slate-900/70 shadow-2xl shadow-black/30">
+      <SectionCard padding="none">
         <div className="border-b border-slate-800/80 px-6 py-4 text-sm text-slate-300">
           Class roster
         </div>
@@ -418,9 +416,7 @@ export default function ClassDetailPage() {
                     {student.upn ?? "-"}
                   </td>
                   <td className="px-6 py-4 relative z-10 pointer-events-none">
-                    <span className="rounded-full border border-slate-600/40 bg-slate-800/60 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-300">
-                      {student.status ?? "UNKNOWN"}
-                    </span>
+                    <StatusBadge value={student.status} />
                   </td>
                 </tr>
               ))}
@@ -428,173 +424,60 @@ export default function ClassDetailPage() {
           </table>
 
           {!loading && filteredStudents.length === 0 && (
-            <div className="px-6 py-8 text-center text-sm text-slate-400">
+            <StateMessage>
               {students.length === 0
                 ? "No students are enrolled in this class."
                 : "No students match your search."}
-            </div>
+            </StateMessage>
           )}
         </div>
-      </div>
+      </SectionCard>
 
-      {canAddStudent &&
-        showAddStudent &&
-        createPortal(
-          <div className="fixed inset-0 z-[99] flex items-center justify-center bg-black/60 px-6 py-8 backdrop-blur-sm">
-            <div className="w-full max-w-xl rounded-3xl border border-slate-800/80 bg-slate-950 p-6 text-slate-200 shadow-2xl shadow-black/40">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                    Add student
-                  </p>
-                  <h2 className="mt-2 text-2xl font-semibold text-white">
-                    Search and enrol
-                  </h2>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setShowAddStudent(false);
-                    setSelectedStudent(null);
-                    setAddError(null);
-                  }}
-                >
-                  Close
-                </Button>
-              </div>
-
-              <div className="mt-6 space-y-4">
-                <SearchSelect
-                  label="Find student"
-                  placeholder="Search by name or UPN"
-                  selected={selectedStudent}
-                  onSelect={setSelectedStudent}
-                  fetchOptions={fetchStudentMatches}
-                  getOptionKey={(student) => student.id}
-                  getOptionLabel={(student) =>
-                    `${student.firstName ?? ""} ${student.lastName ?? ""}${
-                      student.upn ? ` · ${student.upn}` : ""
-                    }`
-                  }
-                  minChars={2}
-                  idleLabel="Type at least 2 characters."
-                  loadingLabel="Searching..."
-                  resultsLabel="Matches"
-                  emptyLabel="No matches."
-                  resetKey={addResetKey}
-                  maxResults={5}
-                />
-
-                {addError && (
-                  <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-200">
-                    {addError}
-                  </div>
-                )}
-
-                <div className="flex flex-wrap items-center justify-end gap-3">
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setSelectedStudent(null);
-                      setAddError(null);
-                      setAddResetKey((prev) => prev + 1);
-                    }}
-                  >
-                    Clear
-                  </Button>
-                  <Button
-                    onClick={handleAddStudent}
-                    disabled={!selectedStudent || adding}
-                  >
-                    {adding ? "Adding..." : "Add to class"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>,
-          document.getElementById("modal-root") ?? document.body
-        )}
-      {canAddStudent &&
-        showRemoveStudent &&
-        createPortal(
-          <div className="fixed inset-0 z-[99] flex items-center justify-center bg-black/60 px-6 py-8 backdrop-blur-sm">
-            <div className="w-full max-w-xl rounded-3xl border border-slate-800/80 bg-slate-950 p-6 text-slate-200 shadow-2xl shadow-black/40">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                    Remove student
-                  </p>
-                  <h2 className="mt-2 text-2xl font-semibold text-white">
-                    Remove from class
-                  </h2>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setShowRemoveStudent(false);
-                    setSelectedRemoveStudent(null);
-                    setRemoveError(null);
-                    setRemoveResetKey((prev) => prev + 1);
-                  }}
-                >
-                  Close
-                </Button>
-              </div>
-
-              <div className="mt-6 space-y-4">
-                <SearchSelect
-                  label="Find student"
-                  placeholder="Search by name or UPN"
-                  selected={selectedRemoveStudent}
-                  onSelect={setSelectedRemoveStudent}
-                  fetchOptions={fetchRosterMatches}
-                  getOptionKey={(student) => student.id}
-                  getOptionLabel={(student) =>
-                    `${student.firstName ?? ""} ${student.lastName ?? ""}${
-                      student.upn ? ` · ${student.upn}` : ""
-                    }`
-                  }
-                  minChars={2}
-                  idleLabel="Type at least 2 characters."
-                  loadingLabel="Searching..."
-                  resultsLabel="Matches"
-                  emptyLabel="No matches."
-                  resetKey={removeResetKey}
-                  maxResults={5}
-                />
-
-                {removeError && (
-                  <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-200">
-                    {removeError}
-                  </div>
-                )}
-
-                <div className="flex flex-wrap items-center justify-end gap-3">
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setSelectedRemoveStudent(null);
-                      setRemoveError(null);
-                      setRemoveResetKey((prev) => prev + 1);
-                    }}
-                  >
-                    Clear
-                  </Button>
-                  <Button
-                    variant="danger"
-                    onClick={handleRemoveStudent}
-                    disabled={!selectedRemoveStudent || removing}
-                  >
-                    {removing ? "Removing..." : "Remove from class"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>,
-          document.getElementById("modal-root") ?? document.body
-        )}
+      {canAddStudent && (
+        <Suspense fallback={null}>
+          <AddStudentModal
+            open={showAddStudent}
+            selectedStudent={selectedStudent}
+            onSelectStudent={setSelectedStudent}
+            fetchStudentMatches={fetchStudentMatches}
+            addError={addError}
+            onClear={() => {
+              setSelectedStudent(null);
+              setAddError(null);
+              setAddResetKey((prev) => prev + 1);
+            }}
+            onClose={() => {
+              setShowAddStudent(false);
+              setSelectedStudent(null);
+              setAddError(null);
+            }}
+            onSubmit={handleAddStudent}
+            adding={adding}
+            resetKey={addResetKey}
+          />
+          <RemoveStudentModal
+            open={showRemoveStudent}
+            selectedStudent={selectedRemoveStudent}
+            onSelectStudent={setSelectedRemoveStudent}
+            fetchStudentMatches={fetchRosterMatches}
+            removeError={removeError}
+            onClear={() => {
+              setSelectedRemoveStudent(null);
+              setRemoveError(null);
+              setRemoveResetKey((prev) => prev + 1);
+            }}
+            onClose={() => {
+              setShowRemoveStudent(false);
+              setSelectedRemoveStudent(null);
+              setRemoveError(null);
+              setRemoveResetKey((prev) => prev + 1);
+            }}
+            onSubmit={handleRemoveStudent}
+            removing={removing}
+            resetKey={removeResetKey}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

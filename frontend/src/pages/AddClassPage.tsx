@@ -5,6 +5,9 @@ import { TextField } from "../components/TextField";
 import { useAuth } from "../auth/UseAuth";
 import { hasPermission, Permissions } from "../utils/permissions";
 import { getErrorMessage } from "../utils/utilFuncs";
+import { AlertBanner } from "../components/AlertBanner";
+import { PageHeader } from "../components/PageHeader";
+import { SectionCard } from "../components/SectionCard";
 import type { UserListItemResponse } from "../utils/responses";
 import { createClass, getUsers } from "../services/backend";
 
@@ -81,123 +84,117 @@ export default function AddClassPage() {
 
   if (!canView || !isAdmin) {
     return (
-      <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-6 py-4 text-sm text-rose-200">
+      <AlertBanner variant="error">
         You do not have permission to access this page.
-      </div>
+      </AlertBanner>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-          Classes
-        </p>
-        <h1 className="text-3xl font-semibold text-white">Create Class</h1>
-        <p className="text-sm text-slate-300">
-          Set up a new class and optionally assign a teacher.
-        </p>
-      </div>
+      <PageHeader
+        label="Classes"
+        title="Create Class"
+        subtitle="Set up a new class and optionally assign a teacher."
+      />
 
       {formError && (
-        <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-200">
-          {formError}
-        </div>
+        <AlertBanner variant="error">{formError}</AlertBanner>
       )}
 
       {successMsg && (
-        <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-xs text-emerald-200">
-          {successMsg}
-        </div>
+        <AlertBanner variant="success">{successMsg}</AlertBanner>
       )}
 
       <form
         onSubmit={handleCreateClass}
-        className="grid gap-4 rounded-3xl border border-slate-800/80 bg-slate-900/70 p-6 shadow-2xl shadow-black/30"
+        className="grid gap-4"
       >
-        <div className="flex flex-col gap-2">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-            Class details
-          </p>
-          <p className="text-sm text-slate-300">
-            Assign a teacher now or leave the class unassigned.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
-            Class name
-            <TextField
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., Year 1"
-            />
-          </label>
-
-          <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
-            Class code
-            <TextField
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="e.g., YR1"
-            />
-          </label>
-        </div>
-
-        <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
-          <div className="grid gap-2">
-            <SearchSelect
-              label="Assign teacher"
-              placeholder="Type a teacher name"
-              selected={selectedTeacher}
-              onSelect={setSelectedTeacher}
-              fetchOptions={fetchTeachers}
-              getOptionKey={(teacher) => teacher.id}
-              getOptionLabel={(teacher) =>
-                `${teacher.firstName ?? ""} ${teacher.lastName ?? ""}${
-                  teacher.email ? ` - ${teacher.email}` : ""
-                }`
-              }
-              idleLabel="Type at least 2 characters."
-              loadingLabel="Loading teachers..."
-              resultsLabel="Results"
-              emptyLabel="No matches."
-              resetKey={teacherResetKey}
-            />
+        <SectionCard padding="md" className="grid gap-4">
+          <div className="flex flex-col gap-2">
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+              Class details
+            </p>
+            <p className="text-sm text-slate-300">
+              Assign a teacher now or leave the class unassigned.
+            </p>
           </div>
 
-          <label className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-slate-300">
-            <input
-              type="checkbox"
-              checked={active}
-              onChange={(e) => setActive(e.target.checked)}
-              className="h-4 w-4 rounded border border-slate-700 bg-slate-950 text-amber-300 focus:ring-2 focus:ring-amber-400/40"
-            />
-            Active
-          </label>
-        </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+              Class name
+              <TextField
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g., Year 1"
+              />
+            </label>
 
-        <div className="flex flex-wrap items-center gap-3 pt-2">
-          <Button type="submit" disabled={submitting}>
-            {submitting ? "Creating..." : "Create class"}
-          </Button>
+            <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">
+              Class code
+              <TextField
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="e.g., YR1"
+              />
+            </label>
+          </div>
 
-          <Button
-            variant="secondary"
-            disabled={submitting}
-            onClick={() => {
-              setName("");
-              setCode("");
-              setActive(true);
-              setSelectedTeacher(null);
-              setTeacherResetKey((prev) => prev + 1);
-              setFormError(null);
-              setSuccessMsg(null);
-            }}
-          >
-            Reset
-          </Button>
-        </div>
+          <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+            <div className="grid gap-2">
+              <SearchSelect
+                label="Assign teacher"
+                placeholder="Type a teacher name"
+                selected={selectedTeacher}
+                onSelect={setSelectedTeacher}
+                fetchOptions={fetchTeachers}
+                getOptionKey={(teacher) => teacher.id}
+                getOptionLabel={(teacher) =>
+                  `${teacher.firstName ?? ""} ${teacher.lastName ?? ""}${
+                    teacher.email ? ` - ${teacher.email}` : ""
+                  }`
+                }
+                idleLabel="Type at least 2 characters."
+                loadingLabel="Loading teachers..."
+                resultsLabel="Results"
+                emptyLabel="No matches."
+                resetKey={teacherResetKey}
+              />
+            </div>
+
+            <label className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-slate-300">
+              <input
+                type="checkbox"
+                checked={active}
+                onChange={(e) => setActive(e.target.checked)}
+                className="h-4 w-4 rounded border border-slate-700 bg-slate-950 text-amber-300 focus:ring-2 focus:ring-amber-400/40"
+              />
+              Active
+            </label>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Creating..." : "Create class"}
+            </Button>
+
+            <Button
+              variant="secondary"
+              disabled={submitting}
+              onClick={() => {
+                setName("");
+                setCode("");
+                setActive(true);
+                setSelectedTeacher(null);
+                setTeacherResetKey((prev) => prev + 1);
+                setFormError(null);
+                setSuccessMsg(null);
+              }}
+            >
+              Reset
+            </Button>
+          </div>
+        </SectionCard>
       </form>
     </div>
   );
