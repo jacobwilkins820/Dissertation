@@ -1,7 +1,8 @@
-import { SelectDropdown } from "../../../components/SelectDropdown";
-import { AlertBanner } from "../../../components/AlertBanner";
-import { SectionCard } from "../../../components/SectionCard";
-import { StateMessage } from "../../../components/StateMessage";
+import { SelectDropdown } from "../../../components/ui/SelectDropdown";
+import { AlertBanner } from "../../../components/ui/AlertBanner";
+import { SectionCard } from "../../../components/ui/SectionCard";
+import { StateMessage } from "../../../components/ui/StateMessage";
+import { ANALYTICS_RANGE_OPTIONS } from "../../../utils/analyticsDateRange";
 import type { AttendanceRange, AttendanceSummary } from "../../../hooks/useAttendanceSummary";
 
 type AttendanceSectionProps = {
@@ -37,10 +38,7 @@ export function AttendanceSection({
           Range
           <SelectDropdown
             value={attendanceRange}
-            options={[
-              { value: "last-week", label: "Last week" },
-              { value: "last-month", label: "Last month" },
-            ]}
+            options={ANALYTICS_RANGE_OPTIONS}
             onChange={(value) => setAttendanceRange(value as AttendanceRange)}
             disabled={!canViewAttendance}
             className="w-full"

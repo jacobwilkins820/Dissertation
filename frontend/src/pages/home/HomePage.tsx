@@ -1,5 +1,5 @@
 // Blank landing page for authenticated users.
-import { PageHeader } from "../components/PageHeader";
+import { PageHeader } from "../../components/ui/PageHeader";
 
 export default function HomePage() {
   return (

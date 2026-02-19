@@ -2,20 +2,20 @@ import type {
   GuardianDetail,
   GuardianForm,
   StudentGuardianResponse,
-} from "../utils/responses";
+} from "../../utils/responses";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button } from "../components/Button";
-import { TextField } from "../components/TextField";
-import { useAuth } from "../auth/UseAuth";
-import { hasPermission, Permissions } from "../utils/permissions";
-import { getErrorMessage } from "../utils/utilFuncs";
-import { formatDateTime } from "../utils/date";
+import { Button } from "../../components/ui/Button";
+import { TextField } from "../../components/ui/TextField";
+import { useAuth } from "../../auth/UseAuth";
+import { hasPermission, Permissions } from "../../utils/permissions";
+import { getErrorMessage } from "../../utils/utilFuncs";
+import { formatDateTime } from "../../utils/date";
 import {
   getGuardianDetail,
   getGuardianStudents,
   updateGuardian,
-} from "../services/backend";
+} from "../../services/backend";
 
 // Guardian profile view with self-editing if a parent user. parents are unable to see others details.
 const emptyForm: GuardianForm = {

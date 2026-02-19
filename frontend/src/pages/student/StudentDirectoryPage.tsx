@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Button } from "../components/Button";
-import { SearchSelect } from "../components/SearchSelect";
-import { SelectDropdown } from "../components/SelectDropdown";
+import { Button } from "../../components/ui/Button";
+import { SearchSelect } from "../../components/ui/SearchSelect";
+import { SelectDropdown } from "../../components/ui/SelectDropdown";
 import { useNavigate } from "react-router-dom";
-import { hasPermission, Permissions } from "../utils/permissions";
-import { useAuth } from "../auth/UseAuth";
-import type { Student } from "../utils/responses";
-import { getStudentsPage, searchStudents } from "../services/backend";
-import { PageHeader } from "../components/PageHeader";
-import { SectionCard } from "../components/SectionCard";
-import { AlertBanner } from "../components/AlertBanner";
-import { StateMessage } from "../components/StateMessage";
-import { StatusBadge } from "../components/StatusBadge";
-import { useDebouncedValue } from "../hooks/useDebouncedValue";
-import { formatDate, formatDateTime } from "../utils/date";
+import { hasPermission, Permissions } from "../../utils/permissions";
+import { useAuth } from "../../auth/UseAuth";
+import type { Student } from "../../utils/responses";
+import { getStudentsPage, searchStudents } from "../../services/backend";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { SectionCard } from "../../components/ui/SectionCard";
+import { AlertBanner } from "../../components/ui/AlertBanner";
+import { StateMessage } from "../../components/ui/StateMessage";
+import { StatusBadge } from "../../components/ui/StatusBadge";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
+import { formatDate, formatDateTime } from "../../utils/date";
 
 // Student directory with search, filters, and pagination.
 const sortOptions = [
@@ -44,14 +44,14 @@ export default function StudentDirectoryPage() {
   const { user } = useAuth();
   const canView = hasPermission(
     user?.permissionLevel ?? 0,
-    Permissions.VIEW_STUDENT_DIRECTORY
+    Permissions.VIEW_STUDENT_DIRECTORY,
   );
 
   const fetchStudentMatches = useCallback(
     async (query: string, signal: AbortSignal) => {
       return searchStudents<Student>(query, signal);
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -73,7 +73,7 @@ export default function StudentDirectoryPage() {
             size: pageSize,
             sort: sortValue || undefined,
           },
-          controller.signal
+          controller.signal,
         );
 
         setStudents(payload.content);
@@ -82,7 +82,7 @@ export default function StudentDirectoryPage() {
       } catch (err: unknown) {
         if (!(err instanceof DOMException && err.name === "AbortError")) {
           setError(
-            err instanceof Error ? err.message : "Failed to load students."
+            err instanceof Error ? err.message : "Failed to load students.",
           );
         }
       } finally {
@@ -125,7 +125,7 @@ export default function StudentDirectoryPage() {
           <div className="grid gap-4 md:grid-cols-[1.6fr_1fr_0.8fr]">
             <SearchSelect
               label="Search"
-              placeholder="Search by name, UPN, status"
+              placeholder="Search by name or UPN"
               selected={selectedStudent}
               onSelect={(student) => {
                 if (student) {
@@ -210,9 +210,7 @@ export default function StudentDirectoryPage() {
           </div>
         </SectionCard>
 
-        {error && (
-          <AlertBanner variant="error">{error}</AlertBanner>
-        )}
+        {error && <AlertBanner variant="error">{error}</AlertBanner>}
 
         <SectionCard padding="none" className="overflow-x-auto">
           <table className="min-w-full text-left text-sm text-slate-200">
@@ -278,9 +276,7 @@ export default function StudentDirectoryPage() {
             <StateMessage>No students match your filters.</StateMessage>
           )}
 
-          {loading && (
-            <StateMessage>Loading students...</StateMessage>
-          )}
+          {loading && <StateMessage>Loading students...</StateMessage>}
         </SectionCard>
       </div>
     );

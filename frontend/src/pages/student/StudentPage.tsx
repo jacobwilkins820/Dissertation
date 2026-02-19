@@ -2,9 +2,9 @@ import { lazy, Suspense, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/UseAuth";
 import { hasPermission, Permissions } from "../../utils/permissions";
-import { AlertBanner } from "../../components/AlertBanner";
-import { PageHeader } from "../../components/PageHeader";
-import { StateMessage } from "../../components/StateMessage";
+import { AlertBanner } from "../../components/ui/AlertBanner";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { StateMessage } from "../../components/ui/StateMessage";
 import { useGuardianAccess } from "../../hooks/useGuardianAccess";
 import { useStudentRecord } from "../../hooks/useStudentRecord";
 import { useStudentGuardians } from "../../hooks/useStudentGuardians";
@@ -13,7 +13,7 @@ import { StudentOverviewSection } from "./sections/StudentOverviewSection";
 import { GuardianSection } from "./sections/GuardianSection";
 import { AttendanceSection } from "./sections/AttendanceSection";
 
-const AddGuardianModal = lazy(() => import("../../components/AddGuardianModal"));
+const AddGuardianModal = lazy(() => import("../../components/guardian/AddGuardianModal"));
 
 export default function StudentPage() {
   const { studentId } = useParams();
@@ -28,13 +28,16 @@ export default function StudentPage() {
   );
   const canViewAttendance = hasPermission(
     permissionLevel,
-    Permissions.VIEW_ATTENDANCE
+    Permissions.VIEW_STUDENT_DETAILS
   );
   const isAdmin = (user?.roleName ?? "").toUpperCase() === "ADMIN";
   const guardianId = user?.guardianId ?? null;
   const isGuardianUser = !isAdmin && guardianId != null;
   const canEditGuardians = isAdmin;
-  const canViewGuardians = isAdmin;
+  const canViewGuardians = hasPermission(
+    permissionLevel,
+    Permissions.VIEW_GUARDIAN_CONTACT
+  );
 
   const { accessAllowed, accessChecking, accessError } = useGuardianAccess(
     parsedId,

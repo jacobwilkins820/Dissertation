@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import { Button } from "../components/Button";
-import { SelectDropdown } from "../components/SelectDropdown";
-import { TextField } from "../components/TextField";
-import { useAuth } from "../auth/UseAuth";
-import type { CreateStudentRequest } from "../utils/responses";
-import { getErrorMessage, type BackendErrorPayload } from "../utils/utilFuncs";
-import { createStudent, isFetchJsonError } from "../services/backend";
-import { DatePicker } from "../components/DatePicker";
-import { AlertBanner } from "../components/AlertBanner";
-import { PageHeader } from "../components/PageHeader";
-import { SectionCard } from "../components/SectionCard";
+import { Button } from "../../components/ui/Button";
+import { SelectDropdown } from "../../components/ui/SelectDropdown";
+import { TextField } from "../../components/ui/TextField";
+import { useAuth } from "../../auth/UseAuth";
+import type { CreateStudentRequest } from "../../utils/responses";
+import { getErrorMessage, type BackendErrorPayload } from "../../utils/utilFuncs";
+import { createStudent, isFetchJsonError } from "../../services/backend";
+import { DatePicker } from "../../components/ui/DatePicker";
+import { AlertBanner } from "../../components/ui/AlertBanner";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { SectionCard } from "../../components/ui/SectionCard";
 
 // Student registration form with client + server validation. Should be SQL injection safe.
 type FieldErrors = Partial<Record<keyof CreateStudentRequest, string>>;

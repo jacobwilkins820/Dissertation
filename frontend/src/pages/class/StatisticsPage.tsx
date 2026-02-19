@@ -1,19 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { PieChart } from "../components/charts/PieChart";
-import { LineChart } from "../components/charts/LineChart";
-import { SelectDropdown } from "../components/SelectDropdown";
-import { getErrorMessage } from "../utils/utilFuncs";
-import { formatDateInput } from "../utils/date";
-import { AlertBanner } from "../components/AlertBanner";
-import { PageHeader } from "../components/PageHeader";
-import { SectionCard } from "../components/SectionCard";
-import type { ClassResponse } from "../utils/responses";
+import { PieChart } from "../../components/statistics/PieChart";
+import { LineChart } from "../../components/statistics/LineChart";
+import { SelectDropdown } from "../../components/ui/SelectDropdown";
+import { getErrorMessage } from "../../utils/utilFuncs";
+import { AlertBanner } from "../../components/ui/AlertBanner";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { SectionCard } from "../../components/ui/SectionCard";
+import type { ClassResponse } from "../../utils/responses";
 import {
   getAttendanceRecordsForSession,
   getAttendanceSessionsForClass,
   getClass,
-} from "../services/backend";
+  getCurrentAcademicYear,
+} from "../../services/backend";
+import {
+  ANALYTICS_RANGE_OPTIONS,
+  getAnalyticsDateWindow,
+  getInclusiveDayCount,
+  type AnalyticsRange,
+} from "../../utils/analyticsDateRange";
 
 export default function StatisticsPage() {
   const { classId } = useParams();
@@ -26,7 +32,8 @@ export default function StatisticsPage() {
     late: 0,
     absent: 0,
   });
-  const [weeks, setWeeks] = useState(12);
+  const [selectedRange, setSelectedRange] = useState<AnalyticsRange>("week");
+  const [rangeLabel, setRangeLabel] = useState("Week to date");
   const [weeklyLabels, setWeeklyLabels] = useState<string[]>([]);
   const [weeklyCounts, setWeeklyCounts] = useState({
     present: [] as number[],
@@ -115,21 +122,27 @@ export default function StatisticsPage() {
     }
 
     const controller = new AbortController();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const startDate = new Date(today);
-    startDate.setDate(startDate.getDate() - (weeks * 7 - 1));
-    const labels = buildWeekLabels(startDate, weeks);
-
-    const to = formatDateInput(today);
-    const from = formatDateInput(startDate);
 
     (async () => {
       try {
+        const year = await getCurrentAcademicYear(controller.signal);
+        const window = getAnalyticsDateWindow(selectedRange, {
+          academicYear: year,
+        });
+        const startDate = parseLocalDate(window.from);
+        const endDate = parseLocalDate(window.to);
+        if (!startDate || !endDate) {
+          throw new Error("Invalid analytics date range.");
+        }
+
+        const totalDays = getInclusiveDayCount(startDate, endDate);
+        const bucketCount = Math.max(1, Math.ceil(totalDays / 7));
+        const labels = buildWeekLabels(startDate, endDate, bucketCount);
+
         const sessions = await getAttendanceSessionsForClass(
           parsedId,
-          from,
-          to,
+          window.from,
+          window.to,
           controller.signal
         );
 
@@ -141,9 +154,9 @@ export default function StatisticsPage() {
 
         const totals = { present: 0, late: 0, absent: 0 };
         const weekly = {
-          present: Array(weeks).fill(0),
-          late: Array(weeks).fill(0),
-          absent: Array(weeks).fill(0),
+          present: Array(bucketCount).fill(0),
+          late: Array(bucketCount).fill(0),
+          absent: Array(bucketCount).fill(0),
         };
 
         recordLists.forEach((records, index) => {
@@ -154,8 +167,9 @@ export default function StatisticsPage() {
           const diffDays = Math.floor(
             (sessionDate.getTime() - startDate.getTime()) / 86400000
           );
-          if (diffDays < 0 || diffDays >= weeks * 7) return;
+          if (diffDays < 0 || diffDays >= totalDays) return;
           const bucket = Math.floor(diffDays / 7);
+          if (bucket < 0 || bucket >= bucketCount) return;
 
           records.forEach((record) => {
             if (record.status === "PRESENT") {
@@ -173,6 +187,7 @@ export default function StatisticsPage() {
           });
         });
 
+        setRangeLabel(window.label);
         setWeeklyLabels(labels);
         setWeeklyCounts(weekly);
         setAttendanceCounts(totals);
@@ -184,7 +199,7 @@ export default function StatisticsPage() {
     })();
 
     return () => controller.abort();
-  }, [parsedId, weeks]);
+  }, [parsedId, selectedRange]);
 
   if (error) {
     return <AlertBanner variant="error">{error}</AlertBanner>;
@@ -202,18 +217,13 @@ export default function StatisticsPage() {
         }`}
       >
         <label className="text-xs uppercase tracking-[0.2em] text-slate-400">
-          <span className="sr-only">Select weeks range</span>
+          <span className="sr-only">Select analytics range</span>
           <SelectDropdown
             size="sm"
-            value={weeks}
-            onChange={(value) => setWeeks(Number(value))}
-            options={[
-              { value: 2, label: "2 weeks" },
-              { value: 4, label: "4 weeks" },
-              { value: 8, label: "8 weeks" },
-              { value: 12, label: "12 weeks" },
-            ]}
-            className="w-40"
+            value={selectedRange}
+            onChange={(value) => setSelectedRange(value as AnalyticsRange)}
+            options={ANALYTICS_RANGE_OPTIONS}
+            className="w-48"
           />
         </label>
       </PageHeader>
@@ -222,7 +232,7 @@ export default function StatisticsPage() {
         <div className="flex items-center justify-between border-b border-slate-800/80 px-6 py-4 text-sm text-slate-300">
           <span>Attendance overview</span>
           <span className="text-xs uppercase tracking-[0.3em] text-slate-400">
-            Last {weeks} weeks for {clazz?.name ?? "this class"}
+            {rangeLabel} for {clazz?.name ?? "this class"}
           </span>
         </div>
         <div className="px-6 py-6">
@@ -234,7 +244,7 @@ export default function StatisticsPage() {
         <div className="flex items-center justify-between border-b border-slate-800/80 px-6 py-4 text-sm text-slate-300">
           <span>Weekly attendance trends</span>
           <span className="text-xs uppercase tracking-[0.3em] text-slate-400">
-            Week by week
+            Week by week for selected period
           </span>
         </div>
 
@@ -254,13 +264,18 @@ function parseLocalDate(value: string) {
   return parsed;
 }
 
-function buildWeekLabels(startDate: Date, weeks: number) {
+function buildWeekLabels(startDate: Date, endDate: Date, buckets: number) {
   const labels: string[] = [];
-  for (let index = 0; index < weeks; index += 1) {
+  for (let index = 0; index < buckets; index += 1) {
     const weekStart = new Date(startDate);
     weekStart.setDate(startDate.getDate() + index * 7);
+
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);
+    if (weekEnd.getTime() > endDate.getTime()) {
+      weekEnd.setTime(endDate.getTime());
+    }
+
     labels.push(`${formatMonthDay(weekStart)}-${formatMonthDay(weekEnd)}`);
   }
   return labels;

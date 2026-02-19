@@ -10,11 +10,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
 import uk.ac.uclan.sis.sis_backend.guardians.entity.Guardian;
 import uk.ac.uclan.sis.sis_backend.guardians.repository.GuardianRepository;
+import uk.ac.uclan.sis.sis_backend.roles.Permissions;
 import uk.ac.uclan.sis.sis_backend.student_guardians.dto.StudentGuardianResponse;
 import uk.ac.uclan.sis.sis_backend.student_guardians.dto.UpsertStudentGuardianLinkRequest;
 import uk.ac.uclan.sis.sis_backend.student_guardians.entity.StudentGuardian;
@@ -51,12 +53,7 @@ class StudentGuardianServiceTest {
 
     @BeforeEach
     void setUpSecurityContext() {
-        Role role = new Role("ADMIN", 1023);
-        User user = new User();
-        user.setId(1L);
-        user.setRole(role);
-        SecurityContextHolder.getContext()
-                .setAuthentication(new UsernamePasswordAuthenticationToken(user, null, List.of()));
+        setAuthenticatedUser("ADMIN", 1023, null);
     }
 
     @AfterEach
@@ -161,6 +158,50 @@ class StudentGuardianServiceTest {
     }
 
     @Test
+    void listByStudent_teacherCanViewWhenHasGuardianContactPermission() {
+        setAuthenticatedUser("TEACHER", 1231, null);
+        Student student = buildStudent(1L, "Amy", "Adams");
+        Guardian guardian = buildGuardian(2L, "Bob", "Brown");
+        StudentGuardian link = new StudentGuardian(student, guardian, "Parent", true);
+
+        when(studentRepository.existsById(1L)).thenReturn(true);
+        when(studentGuardianRepository.findByIdStudentId(1L)).thenReturn(List.of(link));
+
+        List<StudentGuardianResponse> result = service.listByStudent(1L);
+
+        assertEquals(1, result.size());
+        verify(authorizationService).require(any(User.class), eq(Permissions.VIEW_GUARDIAN_CONTACT));
+    }
+
+    @Test
+    void listByStudent_parentNotLinkedToStudentIsForbidden() {
+        setAuthenticatedUser("PARENT", 123, 99L);
+
+        when(studentRepository.existsById(1L)).thenReturn(true);
+        when(studentGuardianRepository.findByIdStudentIdAndIdGuardianId(1L, 99L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(ResponseStatusException.class, () -> service.listByStudent(1L));
+    }
+
+    @Test
+    void listByStudent_parentLinkedToStudentCanView() {
+        setAuthenticatedUser("PARENT", 123, 99L);
+        Student student = buildStudent(1L, "Amy", "Adams");
+        Guardian guardian = buildGuardian(99L, "Bob", "Brown");
+        StudentGuardian link = new StudentGuardian(student, guardian, "Parent", true);
+
+        when(studentRepository.existsById(1L)).thenReturn(true);
+        when(studentGuardianRepository.findByIdStudentIdAndIdGuardianId(1L, 99L))
+                .thenReturn(Optional.of(link));
+        when(studentGuardianRepository.findByIdStudentId(1L)).thenReturn(List.of(link));
+
+        List<StudentGuardianResponse> result = service.listByStudent(1L);
+
+        assertEquals(1, result.size());
+    }
+
+    @Test
     void listByGuardian_missingGuardianThrows() {
         when(guardianRepository.existsById(9L)).thenReturn(false);
 
@@ -186,7 +227,7 @@ class StudentGuardianServiceTest {
     @Test
     void deleteLink_missingThrows() {
         StudentGuardianId id = new StudentGuardianId(1L, 2L);
-        when(studentGuardianRepository.existsById(id)).thenReturn(false);
+        when(studentGuardianRepository.findById(id)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> service.deleteLink(1L, 2L));
         verify(studentGuardianRepository, never()).deleteById(any(StudentGuardianId.class));
@@ -194,8 +235,11 @@ class StudentGuardianServiceTest {
 
     @Test
     void deleteLink_existingDeletes() {
+        Student student = buildStudent(1L, "Amy", "Adams");
+        Guardian guardian = buildGuardian(2L, "Bob", "Brown");
+        StudentGuardian existing = new StudentGuardian(student, guardian, "Parent", false);
         StudentGuardianId id = new StudentGuardianId(1L, 2L);
-        when(studentGuardianRepository.existsById(id)).thenReturn(true);
+        when(studentGuardianRepository.findById(id)).thenReturn(Optional.of(existing));
 
         service.deleteLink(1L, 2L);
 
@@ -216,5 +260,15 @@ class StudentGuardianServiceTest {
         guardian.setLastName(last);
         ReflectionTestUtils.setField(guardian, "id", id);
         return guardian;
+    }
+
+    private void setAuthenticatedUser(String roleName, int permissionLevel, Long linkedGuardianId) {
+        Role role = new Role(roleName, permissionLevel);
+        User user = new User();
+        user.setId(1L);
+        user.setRole(role);
+        user.setLinkedGuardianId(linkedGuardianId);
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken(user, null, List.of()));
     }
 }

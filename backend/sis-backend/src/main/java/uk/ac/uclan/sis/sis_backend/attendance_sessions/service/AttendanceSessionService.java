@@ -94,7 +94,7 @@ public class AttendanceSessionService {
      * @return attendance session response
      */
     public AttendanceSessionResponse getById(long id) {
-        authorizationService.require(currentUser(), Permissions.VIEW_ATTENDANCE);
+        authorizationService.require(currentUser(), Permissions.VIEW_STUDENT_DETAILS);
         AttendanceSession s = attendanceSessionRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Attendance session not found", "Attendance session not found with id: " + id));
         return toResponse(s);
@@ -109,7 +109,7 @@ public class AttendanceSessionService {
      * @return list of attendance session responses
      */
     public List<AttendanceSessionResponse> listForClassBetween(long classId, LocalDate from, LocalDate to) {
-        authorizationService.require(currentUser(), Permissions.VIEW_ATTENDANCE);
+        authorizationService.require(currentUser(), Permissions.VIEW_STUDENT_DETAILS);
         if (from == null || to == null) {
             throw new IllegalArgumentException("from and to are required");
         }

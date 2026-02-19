@@ -5,8 +5,11 @@ import {
   getCurrentAcademicYear,
   getStudentEnrolments,
 } from "../services/backend";
+import {
+  getAnalyticsDateWindow,
+  type AnalyticsRange,
+} from "../utils/analyticsDateRange";
 import { getErrorMessage } from "../utils/utilFuncs";
-import { formatDateInput } from "../utils/date";
 
 export type AttendanceSummary = {
   label: string;
@@ -18,22 +21,7 @@ export type AttendanceSummary = {
   note: string;
 };
 
-export type AttendanceRange = "last-week" | "last-month";
-
-function getAttendanceRangeDates(range: AttendanceRange) {
-  const today = new Date();
-  const to = formatDateInput(today);
-  const days = range === "last-week" ? 7 : 30;
-  const fromDate = new Date(today);
-  fromDate.setDate(fromDate.getDate() - days);
-  const from = formatDateInput(fromDate);
-
-  return {
-    from,
-    to,
-    label: range === "last-week" ? "Last 7 days" : "Last 30 days",
-  };
-}
+export type AttendanceRange = AnalyticsRange;
 
 export function useAttendanceSummary(
   studentId: number,
@@ -42,7 +30,7 @@ export function useAttendanceSummary(
   isGuardianUser: boolean
 ) {
   const [attendanceRange, setAttendanceRange] = useState<AttendanceRange>(
-    "last-week"
+    "week"
   );
   const [attendanceSummary, setAttendanceSummary] =
     useState<AttendanceSummary | null>(null);
@@ -61,7 +49,6 @@ export function useAttendanceSummary(
     }
 
     const controller = new AbortController();
-    const { from, to, label } = getAttendanceRangeDates(attendanceRange);
 
     (async () => {
       setAttendanceLoading(true);
@@ -69,6 +56,9 @@ export function useAttendanceSummary(
 
       try {
         const year = await getCurrentAcademicYear(controller.signal);
+        const { from, to, label } = getAnalyticsDateWindow(attendanceRange, {
+          academicYear: year,
+        });
 
         const enrolments = await getStudentEnrolments(
           studentId,
@@ -88,7 +78,7 @@ export function useAttendanceSummary(
             absent: 0,
             total: 0,
             percent: "0%",
-            note: "No classes enrolled for this range.",
+            note: "No classes enrolled for this period.",
           });
           return;
         }
@@ -149,7 +139,7 @@ export function useAttendanceSummary(
           percent,
           note:
             total === 0
-              ? "No attendance records in range."
+              ? "No attendance records in this period."
               : `Based on ${total} recorded sessions.`,
         });
       } catch (err: unknown) {

@@ -45,6 +45,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
         FROM Student s
         WHERE LOWER(s.firstName) LIKE LOWER(CONCAT('%', :term, '%'))
            OR LOWER(s.lastName)  LIKE LOWER(CONCAT('%', :term, '%'))
+           OR LOWER(CONCAT(s.firstName, ' ', s.lastName)) LIKE LOWER(CONCAT('%', :term, '%'))
            OR LOWER(s.upn)       LIKE LOWER(CONCAT('%', :term, '%'))
     """)
     Page<Student> search(@Param("term") String term, Pageable pageable);
@@ -80,6 +81,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
           AND (
             LOWER(s.firstName) LIKE LOWER(CONCAT('%', :term, '%'))
             OR LOWER(s.lastName)  LIKE LOWER(CONCAT('%', :term, '%'))
+            OR LOWER(CONCAT(s.firstName, ' ', s.lastName)) LIKE LOWER(CONCAT('%', :term, '%'))
             OR LOWER(s.upn)       LIKE LOWER(CONCAT('%', :term, '%'))
           )
     """)

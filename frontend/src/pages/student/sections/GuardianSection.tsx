@@ -1,10 +1,10 @@
 import type { StudentGuardianResponse } from "../../../utils/responses";
 import type { GuardianEditState } from "../../../hooks/useStudentGuardians";
-import { Button } from "../../../components/Button";
-import { TextField } from "../../../components/TextField";
-import { AlertBanner } from "../../../components/AlertBanner";
-import { SectionCard } from "../../../components/SectionCard";
-import { StateMessage } from "../../../components/StateMessage";
+import { Button } from "../../../components/ui/Button";
+import { TextField } from "../../../components/ui/TextField";
+import { AlertBanner } from "../../../components/ui/AlertBanner";
+import { SectionCard } from "../../../components/ui/SectionCard";
+import { StateMessage } from "../../../components/ui/StateMessage";
 
 type GuardianSectionProps = {
   guardians: StudentGuardianResponse[];
@@ -105,7 +105,7 @@ export function GuardianSection({
                     {guardian.relationship || "Relationship unknown"}
                   </p>
                 </div>
-                {canEditGuardians && (
+                {canEditGuardians ? (
                   <label
                     className={`flex items-center gap-2 text-xs ${
                       isPrimary
@@ -122,7 +122,11 @@ export function GuardianSection({
                     />
                     Primary
                   </label>
-                )}
+                ) : isPrimary ? (
+                  <span className="rounded-full border border-amber-300/40 bg-amber-400/10 px-2 py-1 text-xs font-semibold text-amber-200">
+                    Primary
+                  </span>
+                ) : null}
               </div>
 
               {canEditGuardians && (

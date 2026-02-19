@@ -62,7 +62,7 @@ public class AttendanceRecordService {
      */
     @Transactional(readOnly = true)
     public AttendanceRecordResponse getById(Long id) {
-        authorizationService.require(currentUser(), Permissions.VIEW_ATTENDANCE);
+        authorizationService.require(currentUser(), Permissions.VIEW_STUDENT_DETAILS);
         AttendanceRecord r = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Attendance record", "Attendance record not found: " + id));
         return toResponse(r);
@@ -76,7 +76,7 @@ public class AttendanceRecordService {
      */
     @Transactional(readOnly = true)
     public List<AttendanceRecordListItemResponse> listBySession(Long attendanceSessionId) {
-        authorizationService.require(currentUser(), Permissions.VIEW_ATTENDANCE);
+        authorizationService.require(currentUser(), Permissions.VIEW_STUDENT_DETAILS);
         return repository.findByAttendanceSession_IdOrderByIdAsc(attendanceSessionId)
                 .stream()
                 .map(r -> new AttendanceRecordListItemResponse(

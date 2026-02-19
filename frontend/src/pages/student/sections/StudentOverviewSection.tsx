@@ -1,9 +1,9 @@
-import { Button } from "../../../components/Button";
-import { DatePicker } from "../../../components/DatePicker";
-import { SelectDropdown } from "../../../components/SelectDropdown";
-import { TextField } from "../../../components/TextField";
-import { AlertBanner } from "../../../components/AlertBanner";
-import { SectionCard } from "../../../components/SectionCard";
+import { Button } from "../../../components/ui/Button";
+import { DatePicker } from "../../../components/ui/DatePicker";
+import { SelectDropdown } from "../../../components/ui/SelectDropdown";
+import { TextField } from "../../../components/ui/TextField";
+import { AlertBanner } from "../../../components/ui/AlertBanner";
+import { SectionCard } from "../../../components/ui/SectionCard";
 import type { Student } from "../../../utils/responses";
 import { formatDate, formatDateTime } from "../../../utils/date";
 import type { StudentForm } from "../../../hooks/useStudentRecord";

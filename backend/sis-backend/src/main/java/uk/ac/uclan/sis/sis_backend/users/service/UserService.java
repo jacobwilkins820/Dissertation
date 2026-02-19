@@ -10,6 +10,8 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
 import uk.ac.uclan.sis.sis_backend.audit_log.service.AuditLogService;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
+import uk.ac.uclan.sis.sis_backend.guardians.entity.Guardian;
+import uk.ac.uclan.sis.sis_backend.guardians.repository.GuardianRepository;
 import uk.ac.uclan.sis.sis_backend.roles.Permissions;
 import uk.ac.uclan.sis.sis_backend.roles.repository.RoleRepository;
 import uk.ac.uclan.sis.sis_backend.roles.entity.Role;
@@ -23,6 +25,7 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final GuardianRepository guardianRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthorizationService authorizationService;
@@ -37,11 +40,13 @@ public class UserService {
      * @param authorizationService service for permission checks
      */
     public UserService(UserRepository userRepository,
+                    GuardianRepository guardianRepository,
                     RoleRepository roleRepository,
                     PasswordEncoder passwordEncoder,
                     AuthorizationService authorizationService,
                     AuditLogService auditLogService) {
         this.userRepository = userRepository;
+        this.guardianRepository = guardianRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.authorizationService = authorizationService;
@@ -157,6 +162,107 @@ public class UserService {
     }
 
     /**
+     * Creates a guardian record and linked parent user in one transaction.
+     *
+     * @param req create request payload
+     * @return created user list item
+     */
+    @Transactional
+    public UserListItemResponse createGuardianUser(CreateGuardianUserRequest req) {
+        authorizationService.require(currentUser(), Permissions.CREATE_USER);
+        authorizationService.require(currentUser(), Permissions.CREATE_GUARDIAN);
+
+        if (req.firstName == null || req.firstName.isBlank()) {
+            throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                    "firstName", "First name is required"
+            );
+        }
+
+        if (req.lastName == null || req.lastName.isBlank()) {
+            throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                    "lastName", "Last name is required"
+            );
+        }
+
+        if (req.email == null || req.email.isBlank()) {
+            throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                    "email", "Email is required"
+            );
+        }
+
+        String normalizedEmail = normalizeEmail(req.email);
+
+        if (!isValidEmail(normalizedEmail)) {
+            throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                    "email", "Invalid email format"
+            );
+        }
+
+        if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
+            throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                    "email", "Email already in use"
+            );
+        }
+
+        if (req.password == null || req.password.isBlank()) {
+            throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                    "password", "Password is required"
+            );
+        }
+
+        if (req.password.length() < 8) {
+            throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                    "password", "Password must be at least 8 characters"
+            );
+        }
+
+        Role parentRole = roleRepository.findByNameIgnoreCase("PARENT")
+                .orElseThrow(() ->
+                        new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                                "roleId", "Role not found: PARENT"
+                        )
+                );
+
+        Guardian guardian = new Guardian();
+        guardian.setFirstName(req.firstName.trim());
+        guardian.setLastName(req.lastName.trim());
+        guardian.setEmail(normalizedEmail);
+        guardian.setPhone(trimOrNull(req.phone));
+        guardian.setAddressLine1(trimOrNull(req.addressLine1));
+        guardian.setAddressLine2(trimOrNull(req.addressLine2));
+        guardian.setCity(trimOrNull(req.city));
+        guardian.setPostcode(trimOrNull(req.postcode));
+        Guardian savedGuardian = guardianRepository.save(guardian);
+
+        User user = new User();
+        user.setEmail(normalizedEmail);
+        user.setPasswordHash(passwordEncoder.encode(req.password));
+        user.setRole(parentRole);
+        user.setFirstName(req.firstName.trim());
+        user.setLastName(req.lastName.trim());
+        user.setEnabled(true);
+        user.setLinkedGuardianId(savedGuardian.getId());
+        User saved = userRepository.save(user);
+
+        auditLogService.log(
+                null,
+                "GUARDIAN_CREATED",
+                "GUARDIAN",
+                savedGuardian.getId(),
+                "name=" + savedGuardian.getFirstName() + " " + savedGuardian.getLastName()
+        );
+        auditLogService.log(
+                null,
+                "USER_CREATED",
+                "USER",
+                saved.getId(),
+                "email=" + saved.getEmail() + ", role=" + saved.getRole().getName()
+        );
+
+        return toListItem(saved);
+    }
+
+    /**
      * Updates an existing user.
      *
      * @param id user id
@@ -234,6 +340,73 @@ public class UserService {
                 user.getId(),
                 "email=" + user.getEmail() + ", role=" + user.getRole().getName() + ", enabled=" + user.isEnabled()
         );
+        return toListItem(user);
+    }
+
+    /**
+     * Updates the current authenticated user's profile details.
+     *
+     * @param req update request payload
+     * @return updated user list item
+     */
+    @Transactional
+    public UserListItemResponse updateCurrent(UpdateCurrentUserRequest req) {
+        User current = currentUser();
+        User user = userRepository.findByIdWithRole(current.getId())
+                .orElseThrow(() -> new NotFoundException("User", "User not found: " + current.getId()));
+
+        if (req.firstName != null) {
+            String firstName = req.firstName.trim();
+            if (firstName.isEmpty()) {
+                throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                        "firstName", "First name must not be blank"
+                );
+            }
+            user.setFirstName(firstName);
+        }
+
+        if (req.lastName != null) {
+            String lastName = req.lastName.trim();
+            if (lastName.isEmpty()) {
+                throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                        "lastName", "Last name must not be blank"
+                );
+            }
+            user.setLastName(lastName);
+        }
+
+        if (req.email != null) {
+            if (req.email.isBlank()) {
+                throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                        "email", "Email must not be blank"
+                );
+            }
+
+            String normalizedEmail = normalizeEmail(req.email);
+            if (!isValidEmail(normalizedEmail)) {
+                throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                        "email", "Invalid email format"
+                );
+            }
+
+            boolean emailChanged = !normalizedEmail.equalsIgnoreCase(user.getEmail());
+            if (emailChanged && userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
+                throw new uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException(
+                        "email", "Email already in use"
+                );
+            }
+
+            user.setEmail(normalizedEmail);
+        }
+
+        auditLogService.log(
+                null,
+                "USER_SELF_UPDATED",
+                "USER",
+                user.getId(),
+                "email=" + user.getEmail()
+        );
+
         return toListItem(user);
     }
 
@@ -328,5 +501,11 @@ public class UserService {
     // deliberately simple — avoids rejecting valid real-world emails
     return e.contains("@") && e.contains(".") && !e.contains(" ");
 }
+
+    private String trimOrNull(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
 
 }

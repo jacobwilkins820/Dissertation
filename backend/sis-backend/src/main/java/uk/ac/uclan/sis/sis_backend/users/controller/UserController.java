@@ -57,6 +57,18 @@ public class UserController {
     }
 
     /**
+     * Creates a guardian and linked parent user in one action.
+     *
+     * @param req create request payload
+     * @return created user list item
+     */
+    @PostMapping("/guardian-account")
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserListItemResponse createGuardianAccount(@Valid @RequestBody CreateGuardianUserRequest req) {
+        return userService.createGuardianUser(req);
+    }
+
+    /**
      * Updates a user.
      *
      * @param id user id
@@ -67,6 +79,17 @@ public class UserController {
     public UserListItemResponse update(@PathVariable Long id,
                                      @Valid @RequestBody UpdateUserRequest req) {
         return userService.update(id, req);
+    }
+
+    /**
+     * Updates the current authenticated user's profile details.
+     *
+     * @param req update request payload
+     * @return updated user list item
+     */
+    @PutMapping("/me")
+    public UserListItemResponse updateCurrent(@Valid @RequestBody UpdateCurrentUserRequest req) {
+        return userService.updateCurrent(req);
     }
 
     /**

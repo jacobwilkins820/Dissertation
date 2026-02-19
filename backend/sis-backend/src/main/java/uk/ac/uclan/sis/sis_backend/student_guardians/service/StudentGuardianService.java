@@ -18,6 +18,7 @@ import uk.ac.uclan.sis.sis_backend.student_guardians.entity.StudentGuardianId;
 import uk.ac.uclan.sis.sis_backend.student_guardians.repository.StudentGuardianRepository;
 import uk.ac.uclan.sis.sis_backend.students.entity.Student;
 import uk.ac.uclan.sis.sis_backend.students.repository.StudentRepository;
+import uk.ac.uclan.sis.sis_backend.roles.Permissions;
 import uk.ac.uclan.sis.sis_backend.users.entity.User;
 
 import java.util.List;
@@ -116,10 +117,23 @@ public class StudentGuardianService {
      */
     @Transactional(readOnly = true)
     public List<StudentGuardianResponse> listByStudent(Long studentId) {
-        authorizationService.requireAdmin(currentUser());
         // Explicit 404 if the student doesn't exist
         if (!studentRepository.existsById(studentId)) {
             throw new NotFoundException("Student", "Student not found: " + studentId);
+        }
+
+        User user = currentUser();
+        if (!isAdmin(user)) {
+            authorizationService.require(user, Permissions.VIEW_GUARDIAN_CONTACT);
+
+            if (isParent(user)) {
+                Long linkedGuardianId = user.getLinkedGuardianId();
+                boolean linkedToStudent = linkedGuardianId != null
+                        && studentGuardianRepository.findByIdStudentIdAndIdGuardianId(studentId, linkedGuardianId).isPresent();
+                if (!linkedToStudent) {
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+                }
+            }
         }
 
         return studentGuardianRepository.findByIdStudentId(studentId)

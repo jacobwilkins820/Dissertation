@@ -1,9 +1,9 @@
 import { createPortal } from "react-dom";
-import { Button } from "./Button";
-import { SearchSelect } from "./SearchSelect";
-import { TextField } from "./TextField";
-import { AlertBanner } from "./AlertBanner";
-import type { GuardianSearch } from "../utils/responses";
+import { Button } from "../ui/Button";
+import { SearchSelect } from "../ui/SearchSelect";
+import { TextField } from "../ui/TextField";
+import { AlertBanner } from "../ui/AlertBanner";
+import type { GuardianSearch } from "../../utils/responses";
 
 type AddGuardianModalProps = {
   open: boolean;

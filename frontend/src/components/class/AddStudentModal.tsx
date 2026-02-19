@@ -1,34 +1,34 @@
 import { createPortal } from "react-dom";
-import { Button } from "./Button";
-import { SearchSelect } from "./SearchSelect";
-import { AlertBanner } from "./AlertBanner";
-import type { StudentResponse } from "../utils/responses";
+import { Button } from "../ui/Button";
+import { SearchSelect } from "../ui/SearchSelect";
+import { AlertBanner } from "../ui/AlertBanner";
+import type { StudentResponse } from "../../utils/responses";
 
-type RemoveStudentModalProps = {
+type AddStudentModalProps = {
   open: boolean;
   selectedStudent: StudentResponse | null;
   onSelectStudent: (student: StudentResponse | null) => void;
   fetchStudentMatches: (query: string, signal: AbortSignal) => Promise<StudentResponse[]>;
-  removeError: string | null;
+  addError: string | null;
   onClear: () => void;
   onClose: () => void;
   onSubmit: () => void;
-  removing: boolean;
+  adding: boolean;
   resetKey: number;
 };
 
-export default function RemoveStudentModal({
+export default function AddStudentModal({
   open,
   selectedStudent,
   onSelectStudent,
   fetchStudentMatches,
-  removeError,
+  addError,
   onClear,
   onClose,
   onSubmit,
-  removing,
+  adding,
   resetKey,
-}: RemoveStudentModalProps) {
+}: AddStudentModalProps) {
   if (!open) return null;
 
   return createPortal(
@@ -37,10 +37,10 @@ export default function RemoveStudentModal({
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-              Remove student
+              Add student
             </p>
             <h2 className="mt-2 text-2xl font-semibold text-white">
-              Remove from class
+              Search and enrol
             </h2>
           </div>
           <Button variant="ghost" size="sm" onClick={onClose}>
@@ -70,20 +70,14 @@ export default function RemoveStudentModal({
             maxResults={5}
           />
 
-          {removeError && (
-            <AlertBanner variant="error">{removeError}</AlertBanner>
-          )}
+          {addError && <AlertBanner variant="error">{addError}</AlertBanner>}
 
           <div className="flex flex-wrap items-center justify-end gap-3">
             <Button variant="secondary" onClick={onClear}>
               Clear
             </Button>
-            <Button
-              variant="danger"
-              onClick={onSubmit}
-              disabled={!selectedStudent || removing}
-            >
-              {removing ? "Removing..." : "Remove from class"}
+            <Button onClick={onSubmit} disabled={!selectedStudent || adding}>
+              {adding ? "Adding..." : "Add to class"}
             </Button>
           </div>
         </div>

@@ -1,13 +1,13 @@
-import type { GuardianSearch } from "../utils/responses";
+import type { GuardianSearch } from "../../utils/responses";
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { SearchSelect } from "../components/SearchSelect";
-import { useAuth } from "../auth/UseAuth";
-import { hasPermission, Permissions } from "../utils/permissions";
-import { searchGuardians } from "../services/backend";
-import { AlertBanner } from "../components/AlertBanner";
-import { PageHeader } from "../components/PageHeader";
-import { SectionCard } from "../components/SectionCard";
+import { SearchSelect } from "../../components/ui/SearchSelect";
+import { useAuth } from "../../auth/UseAuth";
+import { hasPermission, Permissions } from "../../utils/permissions";
+import { searchGuardians } from "../../services/backend";
+import { AlertBanner } from "../../components/ui/AlertBanner";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { SectionCard } from "../../components/ui/SectionCard";
 
 // Guardian search page with permission-aware access.
 export default function GuardiansSearchPage() {

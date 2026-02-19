@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../auth/UseAuth";
-import { Button } from "../components/Button";
-import { TextField } from "../components/TextField";
-import type { ApiError } from "../services/http";
-import { AlertBanner } from "../components/AlertBanner";
-import { PageHeader } from "../components/PageHeader";
-import { SectionCard } from "../components/SectionCard";
+import { useAuth } from "../../auth/UseAuth";
+import { Button } from "../../components/ui/Button";
+import { TextField } from "../../components/ui/TextField";
+import type { ApiError } from "../../services/http";
+import { AlertBanner } from "../../components/ui/AlertBanner";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { SectionCard } from "../../components/ui/SectionCard";
 
 // Login form with auth redirect handling.
 export default function LoginPage() {

@@ -16,7 +16,7 @@ export function PageHeader({
   className = "",
 }: PageHeaderProps) {
   return (
-    <div className="pt-6">
+    <div className="pt-10">
       <div
         className={`flex flex-col gap-4 md:flex-row md:items-end md:justify-between ${className}`.trim()}
       >

@@ -18,6 +18,12 @@ export type UpdateGuardianRequest = {
   postcode?: string | null;
 };
 
+export type UpdateCurrentUserRequest = {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+};
+
 export type StudentGuardianUpdateRequest = {
   relationship: string;
   isPrimary: boolean;

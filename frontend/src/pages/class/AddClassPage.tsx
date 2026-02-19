@@ -1,15 +1,15 @@
 import { useCallback, useRef, useState } from "react";
-import { Button } from "../components/Button";
-import { SearchSelect } from "../components/SearchSelect";
-import { TextField } from "../components/TextField";
-import { useAuth } from "../auth/UseAuth";
-import { hasPermission, Permissions } from "../utils/permissions";
-import { getErrorMessage } from "../utils/utilFuncs";
-import { AlertBanner } from "../components/AlertBanner";
-import { PageHeader } from "../components/PageHeader";
-import { SectionCard } from "../components/SectionCard";
-import type { UserListItemResponse } from "../utils/responses";
-import { createClass, getUsers } from "../services/backend";
+import { Button } from "../../components/ui/Button";
+import { SearchSelect } from "../../components/ui/SearchSelect";
+import { TextField } from "../../components/ui/TextField";
+import { useAuth } from "../../auth/UseAuth";
+import { hasPermission, Permissions } from "../../utils/permissions";
+import { getErrorMessage } from "../../utils/utilFuncs";
+import { AlertBanner } from "../../components/ui/AlertBanner";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { SectionCard } from "../../components/ui/SectionCard";
+import type { UserListItemResponse } from "../../utils/responses";
+import { createClass, getUsers } from "../../services/backend";
 
 // Admin-only class creation page.
 export default function AddClassPage() {

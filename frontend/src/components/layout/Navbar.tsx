@@ -1,8 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../auth/UseAuth";
-import { Button } from "./Button";
+import { useAuth } from "../../auth/UseAuth";
 import { FlyoutLink } from "./Flyout";
-import { hasPermission, Permissions } from "../utils/permissions";
+import { hasPermission, Permissions } from "../../utils/permissions";
 
 // Main top navigation with permission-aware links.
 export default function Navbar() {
@@ -21,14 +20,20 @@ export default function Navbar() {
     permissionLevel,
     Permissions.CREATE_STUDENT
   );
+  const canCreateGuardian = hasPermission(
+    permissionLevel,
+    Permissions.CREATE_GUARDIAN
+  );
   const canCreateUser = hasPermission(permissionLevel, Permissions.CREATE_USER);
+  const canCreateGuardianAccount = canCreateGuardian && canCreateUser;
   const isAdmin = (user?.roleName ?? "").toUpperCase() === "ADMIN";
   const hasGuardianAccount = user?.guardianId != null;
-  const canAccessGuardians =
+  const canSearchGuardians =
     isAdmin ||
-    hasGuardianAccount ||
-    hasPermission(permissionLevel, Permissions.VIEW_GUARDIAN_CONTACT);
-  const canRegister = canCreateStudent || canCreateUser;
+    (hasPermission(permissionLevel, Permissions.VIEW_GUARDIAN_CONTACT) &&
+      !hasGuardianAccount);
+  const canRegister = canCreateStudent || canCreateUser || canCreateGuardianAccount;
+  const userName = `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "Account";
 
   const handleLogout = async () => {
     await logout();
@@ -61,12 +66,12 @@ export default function Navbar() {
             Classes
           </FlyoutLink>
         )}
-        {canAccessGuardians && (
+        {canSearchGuardians && (
           <Link
-            to={hasGuardianAccount && !isAdmin ? "/guardian/me" : "/guardians"}
+            to="/guardians"
             className="text-sm uppercase tracking-[0.2em] text-slate-300 no-underline transition hover:text-white"
           >
-            {hasGuardianAccount && !isAdmin ? "My Account" : "Guardians"}
+            Guardians
           </Link>
         )}
         {canRegister && (
@@ -80,14 +85,20 @@ export default function Navbar() {
             Register
           </FlyoutLink>
         )}
-        <Button
-          onClick={handleLogout}
-          variant="danger"
-          size="sm"
-          className="right-0 ml-auto"
-        >
-          Logout
-        </Button>
+
+        <div className="ml-auto">
+          <FlyoutLink
+            FlyoutContent={() => (
+              <AccountFlyout onLogout={handleLogout} />
+            )}
+            className="text-sm uppercase tracking-[0.2em] text-slate-300 hover:text-white"
+            underlineClassName="bg-amber-300/60"
+            flyoutClassName="rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl shadow-black/30"
+            caretClassName="bg-slate-950 border-t border-l border-slate-800/80"
+          >
+            {userName}
+          </FlyoutLink>
+        </div>
       </div>
     </nav>
   );
@@ -101,7 +112,12 @@ function RegisterFlyout() {
     permissionLevel,
     Permissions.CREATE_STUDENT
   );
+  const canCreateGuardian = hasPermission(
+    permissionLevel,
+    Permissions.CREATE_GUARDIAN
+  );
   const canCreateUser = hasPermission(permissionLevel, Permissions.CREATE_USER);
+  const canCreateGuardianAccount = canCreateGuardian && canCreateUser;
 
   return (
     <div className="min-w-[200px] py-2 text-sm text-white">
@@ -113,12 +129,28 @@ function RegisterFlyout() {
           Register a student
         </Link>
       )}
+      {canCreateStudent && (
+        <Link
+          to="/import-students"
+          className="block px-4 py-2 text-xs uppercase tracking-[0.2em] text-slate-200 transition hover:bg-slate-900 hover:text-white"
+        >
+          Import students (CSV)
+        </Link>
+      )}
       {canCreateUser && (
         <Link
           to="/register-user"
           className="block px-4 py-2 text-xs uppercase tracking-[0.2em] text-slate-200 transition hover:bg-slate-900 hover:text-white"
         >
           Register a user
+        </Link>
+      )}
+      {canCreateGuardianAccount && (
+        <Link
+          to="/register-guardian"
+          className="block px-4 py-2 text-xs uppercase tracking-[0.2em] text-slate-200 transition hover:bg-slate-900 hover:text-white"
+        >
+          Create guardian
         </Link>
       )}
     </div>
@@ -156,6 +188,26 @@ function ClassesFlyout() {
           Create a class
         </Link>
       )}
+    </div>
+  );
+}
+
+function AccountFlyout({ onLogout }: { onLogout: () => void }) {
+  return (
+    <div className="min-w-[200px] py-2 text-sm text-white">
+      <Link
+        to="/account"
+        className="block px-4 py-2 text-xs uppercase tracking-[0.2em] text-slate-200 transition hover:bg-slate-900 hover:text-white"
+      >
+        Account
+      </Link>
+      <button
+        type="button"
+        onClick={onLogout}
+        className="block w-full px-4 py-2 text-left text-xs uppercase tracking-[0.2em] text-rose-200 transition hover:bg-rose-500/20 hover:text-rose-100"
+      >
+        Logout
+      </button>
     </div>
   );
 }

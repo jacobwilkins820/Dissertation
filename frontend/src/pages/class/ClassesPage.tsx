@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../components/Button";
-import { useAuth } from "../auth/UseAuth";
-import { hasPermission, Permissions } from "../utils/permissions";
-import { getErrorMessage } from "../utils/utilFuncs";
-import { AlertBanner } from "../components/AlertBanner";
-import { PageHeader } from "../components/PageHeader";
-import { SectionCard } from "../components/SectionCard";
-import { StateMessage } from "../components/StateMessage";
-import type { ClassListItemResponse } from "../utils/responses";
-import { getClass, getClasses } from "../services/backend";
+import { Button } from "../../components/ui/Button";
+import { useAuth } from "../../auth/UseAuth";
+import { hasPermission, Permissions } from "../../utils/permissions";
+import { getErrorMessage } from "../../utils/utilFuncs";
+import { AlertBanner } from "../../components/ui/AlertBanner";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { SectionCard } from "../../components/ui/SectionCard";
+import { StateMessage } from "../../components/ui/StateMessage";
+import type { ClassListItemResponse } from "../../utils/responses";
+import { getClass, getClasses } from "../../services/backend";
 
 // Classes directory with role-filtered access.
 export default function ClassesPage() {
@@ -20,7 +20,7 @@ export default function ClassesPage() {
   const isAdmin = (user?.roleName ?? "").toUpperCase() === "ADMIN";
 
   const [visibleClasses, setVisibleClasses] = useState<ClassListItemResponse[]>(
-    []
+    [],
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +43,7 @@ export default function ClassesPage() {
         }
 
         const details = await Promise.all(
-          list.map((item) => getClass(item.id, controller.signal))
+          list.map((item) => getClass(item.id, controller.signal)),
         );
 
         const allowed = list.filter((_, idx) => {
@@ -105,8 +105,6 @@ export default function ClassesPage() {
                 <th className="px-6 py-4">Class</th>
                 <th className="px-6 py-4">Code</th>
                 <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Attendance</th>
-                <th className="px-6 py-4">Statistics</th>
               </tr>
             </thead>
             <tbody>
@@ -118,8 +116,8 @@ export default function ClassesPage() {
                   <td className="relative px-6 py-4 group-hover:bg-slate-800/60">
                     <Button
                       variant="secondary"
-                      size="sm"
-                      className="w-full"
+                      size="md"
+                      className="w-1/2"
                       onClick={() => navigate(`/classes/${clazz.id}`)}
                       aria-label={`Open ${clazz.name}`}
                     >
@@ -148,24 +146,6 @@ export default function ClassesPage() {
                     >
                       {clazz.active ? "Active" : "Inactive"}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 group-hover:bg-slate-800/60">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => navigate(`/attendance/${clazz.id}`)}
-                    >
-                      Attendance
-                    </Button>
-                  </td>
-                  <td className="px-6 py-4 group-hover:bg-slate-800/60">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => navigate(`/statistics/${clazz.id}`)}
-                    >
-                      Statistics
-                    </Button>
                   </td>
                 </tr>
               ))}

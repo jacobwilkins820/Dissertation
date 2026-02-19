@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "./Button";
 import { TextField } from "./TextField";
-import { getErrorMessage } from "../utils/utilFuncs";
+import { getErrorMessage } from "../../utils/utilFuncs";
 
 // Generic async search select with debounce + optional summary.
 type SearchSelectProps<T> = {

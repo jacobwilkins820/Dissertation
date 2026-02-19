@@ -11,6 +11,7 @@ import type {
   AttendanceSessionResponse,
   ClassListItemResponse,
   ClassResponse,
+  CreateGuardianUserRequest,
   CreateStudentRequest,
   CreateUserRequest,
   EnrolmentListItemResponse,
@@ -31,6 +32,7 @@ import type {
   SaveAttendanceForSessionRequest,
   StudentGuardianUpdateRequest,
   UpdateClassRequest,
+  UpdateCurrentUserRequest,
   UpdateAttendanceRecordRequest,
   UpdateGuardianRequest,
   UpdateStudentRequest,
@@ -210,6 +212,14 @@ export async function updateGuardian(
   });
 }
 
+export function updateCurrentUser(payload: UpdateCurrentUserRequest) {
+  return fetchJson<UserListItemResponse>("/api/users/me", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function getRoles(): Promise<RoleDto[]> {
   const data = await fetchJson<RoleDto[] | null>("/api/roles", {
     headers: { "Content-Type": "application/json" },
@@ -219,6 +229,16 @@ export async function getRoles(): Promise<RoleDto[]> {
 
 export async function createUser(payload: CreateUserRequest): Promise<void> {
   await fetchJson<unknown>("/api/users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function createGuardianUser(
+  payload: CreateGuardianUserRequest
+): Promise<void> {
+  await fetchJson<unknown>("/api/users/guardian-account", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),

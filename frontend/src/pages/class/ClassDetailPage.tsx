@@ -1,21 +1,28 @@
-﻿import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useParams } from "react-router-dom";
-import { useAuth } from "../auth/UseAuth";
-import { SearchSelect } from "../components/SearchSelect";
-import { Button } from "../components/Button";
+import { useAuth } from "../../auth/UseAuth";
+import { SearchSelect } from "../../components/ui/SearchSelect";
+import { Button } from "../../components/ui/Button";
 import { useNavigate } from "react-router-dom";
-import { getErrorMessage } from "../utils/utilFuncs";
-import { AlertBanner } from "../components/AlertBanner";
-import { PageHeader } from "../components/PageHeader";
-import { SectionCard } from "../components/SectionCard";
-import { StateMessage } from "../components/StateMessage";
-import { StatusBadge } from "../components/StatusBadge";
+import { getErrorMessage } from "../../utils/utilFuncs";
+import { AlertBanner } from "../../components/ui/AlertBanner";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { SectionCard } from "../../components/ui/SectionCard";
+import { StateMessage } from "../../components/ui/StateMessage";
+import { StatusBadge } from "../../components/ui/StatusBadge";
 import type {
   AcademicYearResponse,
   ClassResponse,
   EnrolmentListItemResponse,
   StudentResponse,
-} from "../utils/responses";
+} from "../../utils/responses";
 import {
   createEnrolment,
   deleteEnrolment,
@@ -26,10 +33,14 @@ import {
   getStudentEnrolments,
   searchStudents,
   updateClass,
-} from "../services/backend";
+} from "../../services/backend";
 
-const AddStudentModal = lazy(() => import("../components/AddStudentModal"));
-const RemoveStudentModal = lazy(() => import("../components/RemoveStudentModal"));
+const AddStudentModal = lazy(
+  () => import("../../components/class/AddStudentModal"),
+);
+const RemoveStudentModal = lazy(
+  () => import("../../components/class/RemoveStudentModal"),
+);
 
 // Class detail page with roster + enrolment modal.
 export default function ClassDetailPage() {
@@ -41,7 +52,7 @@ export default function ClassDetailPage() {
 
   const [clazz, setClazz] = useState<ClassResponse | null>(null);
   const [academicYear, setAcademicYear] = useState<AcademicYearResponse | null>(
-    null
+    null,
   );
   const [enrolments, setEnrolments] = useState<EnrolmentListItemResponse[]>([]);
   const [students, setStudents] = useState<StudentResponse[]>([]);
@@ -84,7 +95,7 @@ export default function ClassDetailPage() {
     async (query: string, signal: AbortSignal) => {
       return searchStudents<StudentResponse>(query, signal);
     },
-    []
+    [],
   );
 
   const fetchRosterMatches = useCallback(
@@ -98,7 +109,7 @@ export default function ClassDetailPage() {
         return label.toLowerCase().includes(q);
       });
     },
-    [students]
+    [students],
   );
 
   const loadClassData = useCallback(
@@ -122,7 +133,7 @@ export default function ClassDetailPage() {
         setLoading(false);
       }
     },
-    [parsedId]
+    [parsedId],
   );
 
   const loadStudents = useCallback(
@@ -136,14 +147,14 @@ export default function ClassDetailPage() {
         const classEnrolments = await getClassEnrolments(
           clazz.id,
           academicYear.id,
-          signal
+          signal,
         );
         const studentIds = Array.from(
-          new Set((classEnrolments ?? []).map((e) => e.studentId))
+          new Set((classEnrolments ?? []).map((e) => e.studentId)),
         );
 
         const studentDetails = await Promise.all(
-          studentIds.map((id) => getStudent(id, signal))
+          studentIds.map((id) => getStudent(id, signal)),
         );
 
         setEnrolments(classEnrolments ?? []);
@@ -156,7 +167,7 @@ export default function ClassDetailPage() {
         setLoading(false);
       }
     },
-    [academicYear, accessDenied, clazz]
+    [academicYear, accessDenied, clazz],
   );
 
   useEffect(() => {
@@ -192,7 +203,7 @@ export default function ClassDetailPage() {
     try {
       const enrolments = await getStudentEnrolments(
         selectedStudent.id,
-        academicYear.id
+        academicYear.id,
       );
       const alreadyEnrolled =
         Array.isArray(enrolments) &&
@@ -221,7 +232,7 @@ export default function ClassDetailPage() {
     setRemoving(true);
 
     const enrolment = enrolments.find(
-      (item) => item.studentId === selectedRemoveStudent.id
+      (item) => item.studentId === selectedRemoveStudent.id,
     );
     if (!enrolment) {
       setRemoveError("No enrolment found for this student.");
@@ -234,7 +245,7 @@ export default function ClassDetailPage() {
       setSelectedRemoveStudent(null);
       setShowRemoveStudent(false);
       setStudents((prev) =>
-        prev.filter((student) => student.id !== enrolment.studentId)
+        prev.filter((student) => student.id !== enrolment.studentId),
       );
       setEnrolments((prev) => prev.filter((item) => item.id !== enrolment.id));
     } catch (err: unknown) {
@@ -276,7 +287,7 @@ export default function ClassDetailPage() {
       <PageHeader
         label="Class"
         title={clazz?.name ?? "Loading class..."}
-        subtitle={`${clazz?.code ? `${clazz.code} · ` : ""}${
+        subtitle={`${clazz?.code ? `${clazz.code} - ` : ""}${
           clazz?.teacherName
             ? `Teacher: ${clazz.teacherName}`
             : "Teacher unassigned"
@@ -325,6 +336,32 @@ export default function ClassDetailPage() {
           </p>
         </SectionCard>
       </div>
+
+      <SectionCard padding="none" className="text-sm text-slate-300">
+        <div className="rounded-t-3xl border-b border-slate-800/80 bg-slate-950/60 px-6 py-4">
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+            Class tools
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-8 px-6 py-5 md:gap-12">
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={() => navigate(`/attendance/${parsedId}`)}
+            disabled={!clazz}
+          >
+            Attendance
+          </Button>
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={() => navigate(`/statistics/${parsedId}`)}
+            disabled={!clazz}
+          >
+            Statistics
+          </Button>
+        </div>
+      </SectionCard>
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="w-full md:w-[20rem]">

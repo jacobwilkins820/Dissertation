@@ -1,21 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Button } from "../components/Button";
-import { DatePicker } from "../components/DatePicker";
-import { TextField } from "../components/TextField";
-import { getErrorMessage } from "../utils/utilFuncs";
-import { getLocalDateString } from "../utils/date";
-import { AlertBanner } from "../components/AlertBanner";
-import { PageHeader } from "../components/PageHeader";
-import { SectionCard } from "../components/SectionCard";
-import { StateMessage } from "../components/StateMessage";
+import { Button } from "../../components/ui/Button";
+import { DatePicker } from "../../components/ui/DatePicker";
+import { TextField } from "../../components/ui/TextField";
+import { getErrorMessage } from "../../utils/utilFuncs";
+import { getLocalDateString } from "../../utils/date";
+import { AlertBanner } from "../../components/ui/AlertBanner";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { SectionCard } from "../../components/ui/SectionCard";
+import { StateMessage } from "../../components/ui/StateMessage";
 import type {
   AcademicYearResponse,
   AttendanceSessionResponse,
   ClassResponse,
   SessionPart,
   StudentResponse,
-} from "../utils/responses";
+} from "../../utils/responses";
 import {
   createAttendanceSession,
   getAttendanceRecordsForSession,
@@ -26,7 +26,7 @@ import {
   getStudent,
   getAttendanceRecord,
   saveAttendanceForSession,
-} from "../services/backend";
+} from "../../services/backend";
 
 // Attendance register with session creation + record updates.
 type AttendanceRecordState = {
@@ -43,16 +43,16 @@ export default function AttendanceRegisterPage() {
   const parsedId = Number(classId);
   const [clazz, setClazz] = useState<ClassResponse | null>(null);
   const [academicYear, setAcademicYear] = useState<AcademicYearResponse | null>(
-    null
+    null,
   );
   const [students, setStudents] = useState<StudentResponse[]>([]);
   const [sessionPart, setSessionPart] = useState<SessionPart>("AM");
   const [sessionDate, setSessionDate] = useState(getLocalDateString());
   const [session, setSession] = useState<AttendanceSessionResponse | null>(
-    null
+    null,
   );
   const [records, setRecords] = useState<Record<number, AttendanceRecordState>>(
-    {}
+    {},
   );
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -80,7 +80,7 @@ export default function AttendanceRegisterPage() {
         setLoading(false);
       }
     },
-    [parsedId]
+    [parsedId],
   );
 
   const loadStudents = useCallback(
@@ -94,18 +94,18 @@ export default function AttendanceRegisterPage() {
         const enrolments = await getClassEnrolments(
           clazz.id,
           academicYear.id,
-          signal
+          signal,
         );
         const studentIds = Array.from(
-          new Set((enrolments ?? []).map((e) => e.studentId))
+          new Set((enrolments ?? []).map((e) => e.studentId)),
         );
 
         const studentDetails = await Promise.all(
-          studentIds.map((id) => getStudent(id, signal))
+          studentIds.map((id) => getStudent(id, signal)),
         );
 
         const activeStudents = studentDetails.filter(
-          (student) => (student.status ?? "").toUpperCase() === "ACTIVE"
+          (student) => (student.status ?? "").toUpperCase() === "ACTIVE",
         );
         setStudents(activeStudents);
       } catch (err: unknown) {
@@ -116,7 +116,7 @@ export default function AttendanceRegisterPage() {
         setLoading(false);
       }
     },
-    [academicYear, clazz]
+    [academicYear, clazz],
   );
 
   const loadRecords = useCallback(
@@ -137,7 +137,7 @@ export default function AttendanceRegisterPage() {
         const lateDetails = await Promise.all(
           lateRecords.map(async (record) => {
             return getAttendanceRecord(record.id, signal);
-          })
+          }),
         );
 
         lateDetails.forEach((detail) => {
@@ -151,7 +151,7 @@ export default function AttendanceRegisterPage() {
 
       setRecords(nextRecords);
     },
-    []
+    [],
   );
 
   const loadSession = useCallback(
@@ -167,10 +167,10 @@ export default function AttendanceRegisterPage() {
           parsedId,
           sessionDate,
           sessionDate,
-          signal
+          signal,
         );
         const match = (payload ?? []).find(
-          (item) => item.session === sessionPart
+          (item) => item.session === sessionPart,
         );
 
         setSession(match ?? null);
@@ -187,7 +187,7 @@ export default function AttendanceRegisterPage() {
         setLoading(false);
       }
     },
-    [loadRecords, parsedId, sessionDate, sessionPart]
+    [loadRecords, parsedId, sessionDate, sessionPart],
   );
 
   useEffect(() => {
@@ -227,7 +227,7 @@ export default function AttendanceRegisterPage() {
 
   const handleStatusClick = async (
     studentId: number,
-    status: "PRESENT" | "ABSENT" | "LATE"
+    status: "PRESENT" | "ABSENT" | "LATE",
   ) => {
     setSaveMessage(null);
     setRecords((prev) => ({
@@ -258,7 +258,7 @@ export default function AttendanceRegisterPage() {
     try {
       const activeSession = await ensureSession();
       const entries = Object.entries(records).filter(
-        ([, record]) => !!record.status
+        ([, record]) => !!record.status,
       );
 
       const savedRecords = await saveAttendanceForSession(activeSession.id, {
@@ -335,7 +335,10 @@ export default function AttendanceRegisterPage() {
           </p>
         </SectionCard>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <Button onClick={handleSaveAttendance} disabled={saving || loading}>
+            {saving ? "Saving..." : "Save attendance"}
+          </Button>
           <Button
             variant="secondary"
             size="sm"
@@ -476,12 +479,6 @@ export default function AttendanceRegisterPage() {
       {saveMessage && (
         <AlertBanner variant="success">{saveMessage}</AlertBanner>
       )}
-
-      <div className="flex justify-end">
-        <Button onClick={handleSaveAttendance} disabled={saving || loading}>
-          {saving ? "Saving..." : "Save attendance"}
-        </Button>
-      </div>
     </div>
   );
 }
