@@ -1,7 +1,7 @@
 -- V12__seed_attendance_and_email_classes.sql
--- Seeds two targeted classes for manual testing:
+-- Seeds two targeted classes for manual testing and demos:
 -- 1) Attendance class with 5 students and assorted records from the start of the current academic year.
--- 2) Email class with 2 students linked to parent guardians with specific email addresses.
+-- 2) Email class with 2 students linked to parent guardians with specific email addresses of mine to show the email server.
 
 DO $$
 DECLARE
@@ -69,13 +69,13 @@ BEGIN
 
     INSERT INTO students (upn, first_name, last_name, date_of_birth, gender, status, created_at, updated_at)
     VALUES
-        ('UPNATT0000000001', 'Aiden', 'Brooks', DATE '2014-09-14', 'MALE', 'ACTIVE', NOW(), NOW()),
-        ('UPNATT0000000002', 'Sofia', 'Reed', DATE '2014-04-22', 'FEMALE', 'ACTIVE', NOW(), NOW()),
-        ('UPNATT0000000003', 'Noah', 'Turner', DATE '2013-12-03', 'MALE', 'ACTIVE', NOW(), NOW()),
-        ('UPNATT0000000004', 'Maya', 'Ellis', DATE '2014-07-18', 'FEMALE', 'ACTIVE', NOW(), NOW()),
-        ('UPNATT0000000005', 'Liam', 'Patel', DATE '2014-01-09', 'MALE', 'ACTIVE', NOW(), NOW()),
-        ('UPNEML0000000001', 'Eva', 'Wilkins', DATE '2015-02-11', 'FEMALE', 'ACTIVE', NOW(), NOW()),
-        ('UPNEML0000000002', 'Owen', 'Wilkins', DATE '2015-06-29', 'MALE', 'ACTIVE', NOW(), NOW())
+        ('UPN1100000091', 'Aiden', 'Brooks', DATE '2014-09-14', 'MALE', 'ACTIVE', NOW(), NOW()),
+        ('UPN1100000092', 'Sofia', 'Reed', DATE '2014-04-22', 'FEMALE', 'ACTIVE', NOW(), NOW()),
+        ('UPN1100000093', 'Noah', 'Turner', DATE '2013-12-03', 'MALE', 'ACTIVE', NOW(), NOW()),
+        ('UPN1100000094', 'Maya', 'Ellis', DATE '2014-07-18', 'FEMALE', 'ACTIVE', NOW(), NOW()),
+        ('UPN1100000095', 'Liam', 'Patel', DATE '2014-01-09', 'MALE', 'ACTIVE', NOW(), NOW()),
+        ('UPN1100000096', 'Eva', 'Wilkins', DATE '2015-02-11', 'FEMALE', 'ACTIVE', NOW(), NOW()),
+        ('UPN1100000097', 'Owen', 'Wilkins', DATE '2015-06-29', 'MALE', 'ACTIVE', NOW(), NOW())
     ON CONFLICT (upn) DO NOTHING;
 
     SELECT id, starts_on, ends_on
@@ -106,11 +106,11 @@ BEGIN
     SELECT s.id, v_attendance_class_id, v_current_ay_id, v_current_starts, NULL::DATE, NOW(), NOW()
     FROM students s
     WHERE s.upn IN (
-        'UPNATT0000000001',
-        'UPNATT0000000002',
-        'UPNATT0000000003',
-        'UPNATT0000000004',
-        'UPNATT0000000005'
+        'UPN1100000091',
+        'UPN1100000092',
+        'UPN1100000093',
+        'UPN1100000094',
+        'UPN1100000095'
     )
     ON CONFLICT (student_id, class_id, academic_year_id) DO UPDATE
     SET start_date = EXCLUDED.start_date,
@@ -120,7 +120,7 @@ BEGIN
     INSERT INTO enrolments (student_id, class_id, academic_year_id, start_date, end_date, created_at, updated_at)
     SELECT s.id, v_email_class_id, v_current_ay_id, v_current_starts, NULL::DATE, NOW(), NOW()
     FROM students s
-    WHERE s.upn IN ('UPNEML0000000001', 'UPNEML0000000002')
+    WHERE s.upn IN ('UPN1100000096', 'UPN1100000097')
     ON CONFLICT (student_id, class_id, academic_year_id) DO UPDATE
     SET start_date = EXCLUDED.start_date,
         end_date = NULL,
@@ -223,7 +223,7 @@ BEGIN
     INSERT INTO student_guardians (student_id, guardian_id, relationship, is_primary)
     SELECT s.id, v_guardian_1_id, 'Parent', TRUE
     FROM students s
-    WHERE s.upn = 'UPNEML0000000001'
+    WHERE s.upn = 'UPN1100000096'
     ON CONFLICT (student_id, guardian_id) DO UPDATE
     SET relationship = EXCLUDED.relationship,
         is_primary = EXCLUDED.is_primary;
@@ -231,7 +231,7 @@ BEGIN
     INSERT INTO student_guardians (student_id, guardian_id, relationship, is_primary)
     SELECT s.id, v_guardian_2_id, 'Parent', TRUE
     FROM students s
-    WHERE s.upn = 'UPNEML0000000002'
+    WHERE s.upn = 'UPN1100000097'
     ON CONFLICT (student_id, guardian_id) DO UPDATE
     SET relationship = EXCLUDED.relationship,
         is_primary = EXCLUDED.is_primary;
@@ -240,7 +240,7 @@ BEGIN
     SET is_primary = FALSE
     FROM students s
     WHERE sg.student_id = s.id
-      AND s.upn = 'UPNEML0000000001'
+      AND s.upn = 'UPN1100000096'
       AND sg.guardian_id <> v_guardian_1_id
       AND sg.is_primary = TRUE;
 
@@ -248,7 +248,7 @@ BEGIN
     SET is_primary = FALSE
     FROM students s
     WHERE sg.student_id = s.id
-      AND s.upn = 'UPNEML0000000002'
+      AND s.upn = 'UPN1100000097'
       AND sg.guardian_id <> v_guardian_2_id
       AND sg.is_primary = TRUE;
 
@@ -292,11 +292,11 @@ BEGIN
             SELECT s.id
             FROM students s
             WHERE s.upn IN (
-                'UPNATT0000000001',
-                'UPNATT0000000002',
-                'UPNATT0000000003',
-                'UPNATT0000000004',
-                'UPNATT0000000005'
+                'UPN1100000091',
+                'UPN1100000092',
+                'UPN1100000093',
+                'UPN1100000094',
+                'UPN1100000095'
             )
         ) stu
         CROSS JOIN (

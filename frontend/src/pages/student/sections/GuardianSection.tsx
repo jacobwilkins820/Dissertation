@@ -19,6 +19,7 @@ type GuardianSectionProps = {
   guardianSaveSuccess: string | null;
   canEditGuardians: boolean;
   canViewGuardians: boolean;
+  canNavigateGuardians: boolean;
   onOpenAddGuardian: () => void;
   onSaveGuardian: (guardianId: number) => void;
   onPrimaryChange: (guardianId: number) => void;
@@ -40,6 +41,7 @@ export function GuardianSection({
   guardianSaveSuccess,
   canEditGuardians,
   canViewGuardians,
+  canNavigateGuardians,
   onOpenAddGuardian,
   onSaveGuardian,
   onPrimaryChange,
@@ -145,13 +147,15 @@ export function GuardianSection({
               )}
 
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => onNavigateGuardian(guardian.guardianId)}
-                >
-                  View guardian
-                </Button>
+                {canNavigateGuardians && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onNavigateGuardian(guardian.guardianId)}
+                  >
+                    View guardian
+                  </Button>
+                )}
                 {canEditGuardians && (
                   <Button
                     size="sm"

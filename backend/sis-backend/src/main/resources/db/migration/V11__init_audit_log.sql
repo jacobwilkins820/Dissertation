@@ -1,4 +1,4 @@
--- V12__init_audit_log.sql
+-- V11__init_audit_log.sql
 -- Creates audit_log table and seeds a few example rows.
 
 CREATE TABLE IF NOT EXISTS audit_log (

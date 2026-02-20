@@ -51,6 +51,7 @@ export default function GuardianDetailPage({
     permissionLevel,
     Permissions.EDIT_GUARDIAN_SELF
   );
+  const isGuardianAccount = !isAdmin && user?.guardianId != null;
 
   const resolvedGuardianId = self
     ? (user?.guardianId ?? null)
@@ -68,7 +69,7 @@ export default function GuardianDetailPage({
   const shouldLoadFull = isAdmin || (isSelf && (canEditSelf || canViewAddress));
 
   const canAccess =
-    isAdmin || canViewContact || (isSelf && user?.guardianId != null);
+    isAdmin || (!isGuardianAccount && canViewContact) || (isGuardianAccount && isSelf);
 
   const [guardian, setGuardian] = useState<GuardianDetail | null>(null);
   const [formValues, setFormValues] = useState<GuardianForm>(emptyForm);

@@ -38,6 +38,7 @@ export default function StudentPage() {
   const isAdmin = (user?.roleName ?? "").toUpperCase() === "ADMIN";
   const guardianId = user?.guardianId ?? null;
   const isGuardianUser = !isAdmin && guardianId != null;
+  const canNavigateGuardians = !isGuardianUser;
   const canEditGuardians = isAdmin;
   const canViewGuardians = hasPermission(
     permissionLevel,
@@ -191,6 +192,7 @@ export default function StudentPage() {
         guardianSaveSuccess={guardianSaveSuccess}
         canEditGuardians={canEditGuardians}
         canViewGuardians={canViewGuardians}
+        canNavigateGuardians={canNavigateGuardians}
         onOpenAddGuardian={openAddGuardian}
         onSaveGuardian={handleGuardianSave}
         onPrimaryChange={handlePrimaryChange}
