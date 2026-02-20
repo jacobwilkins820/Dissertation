@@ -1,11 +1,13 @@
 import type { ReactNode } from "react";
 
+// Generic status badge that maps to consistent colors.
 type StatusBadgeProps = {
   value?: string | null;
   children?: ReactNode;
   className?: string;
 };
 
+// Centralized status to color mapping used across tables/cards.
 function statusClasses(status?: string | null) {
   switch (status) {
     case "ACTIVE":
@@ -19,7 +21,11 @@ function statusClasses(status?: string | null) {
   }
 }
 
-export function StatusBadge({ value, children, className = "" }: StatusBadgeProps) {
+export function StatusBadge({
+  value,
+  children,
+  className = "",
+}: StatusBadgeProps) {
   const content = children ?? value ?? "UNKNOWN";
   return (
     <span

@@ -3,6 +3,7 @@ package uk.ac.uclan.sis.sis_backend.student_guardians.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import uk.ac.uclan.sis.sis_backend.student_guardians.entity.StudentGuardian;
 import uk.ac.uclan.sis.sis_backend.student_guardians.entity.StudentGuardianId;
@@ -54,4 +55,20 @@ public interface StudentGuardianRepository extends JpaRepository<StudentGuardian
           and sg.isPrimary = true
     """)
     int clearOtherPrimaryGuardians(Long studentId, Long guardianId);
+
+    /**
+     * Returns distinct guardian email addresses for a list of students.
+     *
+     * @param studentIds student ids
+     * @return distinct, lower-cased emails
+     */
+    @Query("""
+        select distinct lower(trim(g.email))
+        from StudentGuardian sg
+        join sg.guardian g
+        where sg.id.studentId in :studentIds
+          and g.email is not null
+          and trim(g.email) <> ''
+    """)
+    List<String> findDistinctGuardianEmailsByStudentIds(@Param("studentIds") List<Long> studentIds);
 }

@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 
+// Shared card container used by pages for consistent panel styling.
 type Padding = "none" | "sm" | "md" | "lg";
 
+// Named spacing presets to avoid one-off padding classes.
 const paddingClasses: Record<Padding, string> = {
   none: "",
   sm: "p-4",

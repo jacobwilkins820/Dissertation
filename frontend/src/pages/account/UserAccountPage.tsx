@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { updateCurrentUser } from "../../services/backend";
 import { getErrorMessage } from "../../utils/utilFuncs";
 
+// account page for non-guardian users.
 export default function UserAccountPage() {
   const { user, refreshMe } = useAuth();
   const [editing, setEditing] = useState(false);
@@ -21,6 +22,7 @@ export default function UserAccountPage() {
   });
 
   useEffect(() => {
+    // Keep local form state synced whenever user snapshot changes.
     if (!user) return;
     setFormValues({
       firstName: user.firstName ?? "",
@@ -59,7 +61,11 @@ export default function UserAccountPage() {
             </h2>
           </div>
           {!editing ? (
-            <Button size="sm" variant="secondary" onClick={() => setEditing(true)}>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => setEditing(true)}
+            >
               Edit details
             </Button>
           ) : (
@@ -67,6 +73,7 @@ export default function UserAccountPage() {
               <Button
                 size="sm"
                 onClick={async () => {
+                  // Basic required-field validation before calling backend.
                   const firstName = formValues.firstName.trim();
                   const lastName = formValues.lastName.trim();
                   const email = formValues.email.trim();
@@ -82,11 +89,14 @@ export default function UserAccountPage() {
 
                   try {
                     await updateCurrentUser({ firstName, lastName, email });
+                    // Refresh /me-derived state so navbar/account labels update immediately.
                     await refreshMe();
                     setSuccess("Account details updated.");
                     setEditing(false);
                   } catch (err: unknown) {
-                    setError(getErrorMessage(err, "Failed to update account details."));
+                    setError(
+                      getErrorMessage(err, "Failed to update account details."),
+                    );
                   } finally {
                     setSaving(false);
                   }
@@ -99,6 +109,7 @@ export default function UserAccountPage() {
                 size="sm"
                 variant="secondary"
                 onClick={() => {
+                  // Discard edits and restore values from current user.
                   setFormValues({
                     firstName: user.firstName ?? "",
                     lastName: user.lastName ?? "",
@@ -173,6 +184,7 @@ function EditableField({
   onChange: (value: string) => void;
   type?: string;
 }) {
+  // Reuse a single component for view/edit states to keep field markup consistent.
   if (!editing) {
     return <Field label={label} value={value} />;
   }

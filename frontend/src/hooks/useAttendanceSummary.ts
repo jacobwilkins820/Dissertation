@@ -11,6 +11,7 @@ import {
 } from "../utils/analyticsDateRange";
 import { getErrorMessage } from "../utils/utilFuncs";
 
+// attendance values shown in the student attendance summary cards.
 export type AttendanceSummary = {
   label: string;
   present: number;
@@ -23,15 +24,16 @@ export type AttendanceSummary = {
 
 export type AttendanceRange = AnalyticsRange;
 
+// Loads attendance summary for a student across selectable date windows.
+// The hook fan-outs across enrolments - sessions - records, then reduces counts.
 export function useAttendanceSummary(
   studentId: number,
   canViewAttendance: boolean,
   accessAllowed: boolean | null,
-  isGuardianUser: boolean
+  isGuardianUser: boolean,
 ) {
-  const [attendanceRange, setAttendanceRange] = useState<AttendanceRange>(
-    "week"
-  );
+  const [attendanceRange, setAttendanceRange] =
+    useState<AttendanceRange>("week");
   const [attendanceSummary, setAttendanceSummary] =
     useState<AttendanceSummary | null>(null);
   const [attendanceLoading, setAttendanceLoading] = useState(false);
@@ -55,6 +57,7 @@ export function useAttendanceSummary(
       setAttendanceError(null);
 
       try {
+        // Reuse the shared analytics window helper so statistics stay consistent across app.
         const year = await getCurrentAcademicYear(controller.signal);
         const { from, to, label } = getAnalyticsDateWindow(attendanceRange, {
           academicYear: year,
@@ -63,13 +66,14 @@ export function useAttendanceSummary(
         const enrolments = await getStudentEnrolments(
           studentId,
           year.id,
-          controller.signal
+          controller.signal,
         );
 
         const classIds = Array.from(
-          new Set((enrolments ?? []).map((item) => item.classId))
+          new Set((enrolments ?? []).map((item) => item.classId)),
         );
 
+        // Early exit if student has no classes in the selected period.
         if (classIds.length === 0) {
           setAttendanceSummary({
             label,
@@ -85,11 +89,12 @@ export function useAttendanceSummary(
 
         const sessionLists = await Promise.all(
           classIds.map((classId) =>
-            getAttendanceSessionsForClass(classId, from, to, controller.signal)
-          )
+            getAttendanceSessionsForClass(classId, from, to, controller.signal),
+          ),
         );
 
         const sessions = sessionLists.flat();
+        // Early exit when classes exist but no sessions were recorded yet.
         if (sessions.length === 0) {
           setAttendanceSummary({
             label,
@@ -105,23 +110,23 @@ export function useAttendanceSummary(
 
         const recordLists = await Promise.all(
           sessions.map((session) =>
-            getAttendanceRecordsForSession(session.id, controller.signal)
-          )
+            getAttendanceRecordsForSession(session.id, controller.signal),
+          ),
         );
 
         const records = recordLists.flat();
         const studentRecords = records.filter(
-          (record) => record.studentId === studentId
+          (record) => record.studentId === studentId,
         );
 
         const present = studentRecords.filter(
-          (record) => record.status === "PRESENT"
+          (record) => record.status === "PRESENT",
         ).length;
         const late = studentRecords.filter(
-          (record) => record.status === "LATE"
+          (record) => record.status === "LATE",
         ).length;
         const absent = studentRecords.filter(
-          (record) => record.status === "ABSENT"
+          (record) => record.status === "ABSENT",
         ).length;
 
         const total = present + late + absent;
@@ -145,7 +150,7 @@ export function useAttendanceSummary(
       } catch (err: unknown) {
         if (!(err instanceof DOMException && err.name === "AbortError")) {
           setAttendanceError(
-            getErrorMessage(err, "Failed to load attendance summary.")
+            getErrorMessage(err, "Failed to load attendance summary."),
           );
         }
       } finally {

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Chart } from "chart.js/auto";
 import type { ChartData, ChartOptions } from "chart.js";
 
+// Chart.js wrapper that manages pie char
 type PieChartProps = {
   data: ChartData<"pie", number[], string>;
   options?: ChartOptions<"pie">;
@@ -13,6 +14,7 @@ export function PieChart({ data, options, className = "" }: PieChartProps) {
 
   useEffect(() => {
     if (!canvasRef.current) return;
+    // Base visual defaults aligned to theme.
     const baseOptions: ChartOptions<"pie"> = {
       responsive: true,
       maintainAspectRatio: false,
@@ -40,6 +42,7 @@ export function PieChart({ data, options, className = "" }: PieChartProps) {
     });
 
     return () => {
+      // Always destroy to prevent duplicate bindings/memory leaks.
       chart.destroy();
     };
   }, [data, options]);

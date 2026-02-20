@@ -1,7 +1,11 @@
 import { TextField } from "../ui/TextField";
 
+// Shared field-error model for account identity forms.
 type IdentityFieldErrors = Partial<
-  Record<"firstName" | "lastName" | "email" | "password" | "confirmPassword", string>
+  Record<
+    "firstName" | "lastName" | "email" | "password" | "confirmPassword",
+    string
+  >
 >;
 
 type Props = {
@@ -21,6 +25,7 @@ type Props = {
   fieldErrors: IdentityFieldErrors;
 };
 
+// Reusable identity/password field group used by user and guardian creation pages.
 export function AccountIdentityFields({
   firstName,
   onFirstNameChange,
@@ -103,11 +108,12 @@ export function AccountIdentityFields({
             autoComplete="new-password"
           />
           {fieldErrors.confirmPassword && (
-            <small className="text-rose-200">{fieldErrors.confirmPassword}</small>
+            <small className="text-rose-200">
+              {fieldErrors.confirmPassword}
+            </small>
           )}
         </label>
       </div>
     </>
   );
 }
-

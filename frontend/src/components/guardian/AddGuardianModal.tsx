@@ -5,11 +5,15 @@ import { TextField } from "../ui/TextField";
 import { AlertBanner } from "../ui/AlertBanner";
 import type { GuardianSearch } from "../../utils/responses";
 
+// Modal for linking an existing guardian record to the current student.
 type AddGuardianModalProps = {
   open: boolean;
   selectedGuardian: GuardianSearch | null;
   onSelectGuardian: (guardian: GuardianSearch | null) => void;
-  fetchGuardianMatches: (query: string, signal: AbortSignal) => Promise<GuardianSearch[]>;
+  fetchGuardianMatches: (
+    query: string,
+    signal: AbortSignal,
+  ) => Promise<GuardianSearch[]>;
   linkRelationship: string;
   onRelationshipChange: (value: string) => void;
   linkIsPrimary: boolean;
@@ -42,6 +46,7 @@ export default function AddGuardianModal({
 }: AddGuardianModalProps) {
   if (!open) return null;
 
+  // returned modal
   return createPortal(
     <div className="fixed inset-0 z-[99] flex items-center justify-center bg-black/60 px-6 py-8 backdrop-blur-sm">
       <div className="w-full max-w-xl rounded-3xl border border-slate-800/80 bg-slate-950 p-6 text-slate-200 shadow-2xl shadow-black/40">
@@ -111,6 +116,6 @@ export default function AddGuardianModal({
         </div>
       </div>
     </div>,
-    document.getElementById("modal-root") ?? document.body
+    document.getElementById("modal-root") ?? document.body,
   );
 }

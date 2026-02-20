@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import type { GuardianSearch, StudentGuardianResponse } from "../utils/responses";
+import type {
+  GuardianSearch,
+  StudentGuardianResponse,
+} from "../utils/responses";
 import {
   deleteStudentGuardianLink,
   getStudentGuardians,
@@ -8,15 +11,18 @@ import {
 } from "../services/backend";
 import { getErrorMessage } from "../utils/utilFuncs";
 
+// Editable guardian-link fields sorted by guardian id.
 export type GuardianEditState = {
   relationship: string;
   isPrimary: boolean;
 };
 
+// all guardian-link interactions for a student:
+// loading current links, editing relationship/primary, adding, and removing.
 export function useStudentGuardians(
   studentId: number,
   canViewGuardians: boolean,
-  canEditGuardians: boolean
+  canEditGuardians: boolean,
 ) {
   const [guardians, setGuardians] = useState<StudentGuardianResponse[]>([]);
   const [guardiansLoading, setGuardiansLoading] = useState(false);
@@ -24,13 +30,24 @@ export function useStudentGuardians(
   const [guardianEdits, setGuardianEdits] = useState<
     Record<number, GuardianEditState>
   >({});
-  const [primaryGuardianId, setPrimaryGuardianId] = useState<number | null>(null);
-  const [guardianSaveState, setGuardianSaveState] = useState<Record<number, boolean>>({});
-  const [guardianRemoveState, setGuardianRemoveState] = useState<Record<number, boolean>>({});
-  const [guardianSaveError, setGuardianSaveError] = useState<string | null>(null);
-  const [guardianSaveSuccess, setGuardianSaveSuccess] = useState<string | null>(null);
+  const [primaryGuardianId, setPrimaryGuardianId] = useState<number | null>(
+    null,
+  );
+  const [guardianSaveState, setGuardianSaveState] = useState<
+    Record<number, boolean>
+  >({});
+  const [guardianRemoveState, setGuardianRemoveState] = useState<
+    Record<number, boolean>
+  >({});
+  const [guardianSaveError, setGuardianSaveError] = useState<string | null>(
+    null,
+  );
+  const [guardianSaveSuccess, setGuardianSaveSuccess] = useState<string | null>(
+    null,
+  );
 
-  const [selectedGuardian, setSelectedGuardian] = useState<GuardianSearch | null>(null);
+  const [selectedGuardian, setSelectedGuardian] =
+    useState<GuardianSearch | null>(null);
   const [linkRelationship, setLinkRelationship] = useState("");
   const [linkIsPrimary, setLinkIsPrimary] = useState(false);
   const [linking, setLinking] = useState(false);
@@ -40,6 +57,7 @@ export function useStudentGuardians(
   const [addResetKey, setAddResetKey] = useState(0);
 
   const applyGuardianList = useCallback((list: StudentGuardianResponse[]) => {
+    // Keep display ordering predictable for users.
     const sorted = [...list].sort((a, b) => {
       const lastA = (a.guardianLastName ?? "").toLowerCase();
       const lastB = (b.guardianLastName ?? "").toLowerCase();
@@ -51,6 +69,7 @@ export function useStudentGuardians(
 
     setGuardians(sorted);
 
+    // Mirror the server values into editable local state for each guardian card.
     const nextEdits: Record<number, GuardianEditState> = {};
     sorted.forEach((guardian) => {
       nextEdits[guardian.guardianId] = {
@@ -89,6 +108,7 @@ export function useStudentGuardians(
     return () => controller.abort();
   }, [applyGuardianList, canViewGuardians, studentId]);
 
+  // Auto-clear feedback banners.
   useEffect(() => {
     if (!guardianSaveError) return;
     const timeoutId = window.setTimeout(() => {
@@ -138,6 +158,7 @@ export function useStudentGuardians(
         currentPrimaryId !== null &&
         currentPrimaryId !== guardianId;
 
+      // Prevent demoting the old primary if its relationship would become empty.
       if (needsPrimarySwitch) {
         const currentPrimaryRelationship =
           guardianEdits[currentPrimaryId]?.relationship ??
@@ -147,7 +168,7 @@ export function useStudentGuardians(
 
         if (!currentPrimaryRelationship.trim()) {
           setGuardianSaveError(
-            "Primary guardian relationship is required before switching."
+            "Primary guardian relationship is required before switching.",
           );
           return;
         }
@@ -164,11 +185,13 @@ export function useStudentGuardians(
       }));
 
       try {
+        // When promoting a new primary, explicitly demote the old one first.
         if (needsPrimarySwitch && currentPrimaryId !== null) {
           const currentPrimaryRelationship =
             guardianEdits[currentPrimaryId]?.relationship ??
-            guardians.find((guardian) => guardian.guardianId === currentPrimaryId)
-              ?.relationship ??
+            guardians.find(
+              (guardian) => guardian.guardianId === currentPrimaryId,
+            )?.relationship ??
             "";
 
           await updateStudentGuardianLink(studentId, currentPrimaryId, {
@@ -183,11 +206,12 @@ export function useStudentGuardians(
         });
 
         setGuardianSaveSuccess("Guardian link updated.");
+        // Reload from backend to keep local edits consistent with server
         const refreshed = await getStudentGuardians(studentId);
         applyGuardianList(refreshed ?? []);
       } catch (err: unknown) {
         setGuardianSaveError(
-          getErrorMessage(err, "Failed to update guardian link.")
+          getErrorMessage(err, "Failed to update guardian link."),
         );
       } finally {
         setGuardianSaveState((prev) => ({
@@ -206,7 +230,7 @@ export function useStudentGuardians(
       guardians,
       primaryGuardianId,
       studentId,
-    ]
+    ],
   );
 
   const handlePrimaryChange = useCallback(
@@ -220,7 +244,8 @@ export function useStudentGuardians(
 
       const getRelationship = (id: number) =>
         guardianEdits[id]?.relationship ??
-        guardians.find((guardian) => guardian.guardianId === id)?.relationship ??
+        guardians.find((guardian) => guardian.guardianId === id)
+          ?.relationship ??
         "";
 
       const nextRelationship = getRelationship(guardianId);
@@ -233,7 +258,7 @@ export function useStudentGuardians(
         const currentRelationship = getRelationship(currentPrimaryId);
         if (!currentRelationship.trim()) {
           setGuardianSaveError(
-            "Primary guardian relationship is required before switching."
+            "Primary guardian relationship is required before switching.",
           );
           return;
         }
@@ -249,6 +274,7 @@ export function useStudentGuardians(
       }));
 
       try {
+        // Swap primary status in two calls so backend invariants stay explicit.
         if (currentPrimaryId !== null) {
           await updateStudentGuardianLink(studentId, currentPrimaryId, {
             relationship: getRelationship(currentPrimaryId).trim(),
@@ -265,9 +291,10 @@ export function useStudentGuardians(
         const refreshed = await getStudentGuardians(studentId);
         applyGuardianList(refreshed ?? []);
       } catch (err: unknown) {
+        // Revert primary selection if update fails.
         setPrimaryGuardianId(currentPrimaryId);
         setGuardianSaveError(
-          getErrorMessage(err, "Failed to update guardian link.")
+          getErrorMessage(err, "Failed to update guardian link."),
         );
       } finally {
         setGuardianSaveState((prev) => ({
@@ -277,13 +304,7 @@ export function useStudentGuardians(
         }));
       }
     },
-    [
-      applyGuardianList,
-      canEditGuardians,
-      guardianEdits,
-      guardians,
-      studentId,
-    ]
+    [applyGuardianList, canEditGuardians, guardianEdits, guardians, studentId],
   );
 
   const handleGuardianLink = useCallback(async () => {
@@ -305,6 +326,7 @@ export function useStudentGuardians(
         currentPrimaryId !== null &&
         currentPrimaryId !== selectedGuardian.id;
 
+      // If the new link is marked primary, demote the current primary first.
       if (needsPrimarySwitch && currentPrimaryId !== null) {
         const currentPrimaryRelationship =
           guardianEdits[currentPrimaryId]?.relationship ??
@@ -314,7 +336,7 @@ export function useStudentGuardians(
 
         if (!currentPrimaryRelationship.trim()) {
           setLinkError(
-            "Primary guardian relationship is required before switching."
+            "Primary guardian relationship is required before switching.",
           );
           return;
         }
@@ -359,10 +381,11 @@ export function useStudentGuardians(
     async (guardianId: number) => {
       if (!canEditGuardians) return;
       const target = guardians.find(
-        (guardian) => guardian.guardianId === guardianId
+        (guardian) => guardian.guardianId === guardianId,
       );
       if (!target) return;
       if (target.isPrimary) {
+        // rule: every student should keep a designated primary guardian.
         setGuardianSaveError("Primary guardian cannot be removed.");
         return;
       }
@@ -374,24 +397,27 @@ export function useStudentGuardians(
       try {
         await deleteStudentGuardianLink(studentId, guardianId);
         const next = guardians.filter(
-          (guardian) => guardian.guardianId !== guardianId
+          (guardian) => guardian.guardianId !== guardianId,
         );
         applyGuardianList(next);
         setGuardianSaveSuccess("Guardian removed.");
       } catch (err: unknown) {
-        setGuardianSaveError(getErrorMessage(err, "Failed to remove guardian."));
+        setGuardianSaveError(
+          getErrorMessage(err, "Failed to remove guardian."),
+        );
       } finally {
         setGuardianRemoveState((prev) => ({ ...prev, [guardianId]: false }));
       }
     },
-    [applyGuardianList, canEditGuardians, guardians, studentId]
+    [applyGuardianList, canEditGuardians, guardians, studentId],
   );
 
   const fetchGuardianMatches = useCallback(
     async (query: string, signal: AbortSignal) => {
+      // Delegates searching to SearchSelect.
       return searchGuardians<GuardianSearch>(query, signal);
     },
-    []
+    [],
   );
 
   const openAddGuardian = useCallback(() => {

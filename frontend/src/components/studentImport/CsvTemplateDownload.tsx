@@ -1,6 +1,7 @@
 import { Button } from "../ui/Button";
 import { SectionCard } from "../ui/SectionCard";
 
+// Starter CSV schema and sample rows shown to users during student import.
 const TEMPLATE_HEADERS = [
   "upn",
   "firstName",
@@ -22,6 +23,7 @@ const TEMPLATE_ROWS = [
   ],
 ];
 
+// Escapes CSV cells containing commas, quotes, or newlines.
 function csvEscape(value: string): string {
   if (/[",\n\r]/.test(value)) {
     return `"${value.replace(/"/g, '""')}"`;
@@ -29,6 +31,7 @@ function csvEscape(value: string): string {
   return value;
 }
 
+// Builds downloadable CSV text from static template headers + sample rows.
 function createTemplateCsv(): string {
   const lines = [
     TEMPLATE_HEADERS.map(csvEscape).join(","),
@@ -37,8 +40,10 @@ function createTemplateCsv(): string {
   return lines.join("\n");
 }
 
+// Download action for the student import CSV template.
 export function CsvTemplateDownload() {
   const downloadTemplate = () => {
+    // Use a Blob URL to generate a client-side file without server involvement.
     const content = createTemplateCsv();
     const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);

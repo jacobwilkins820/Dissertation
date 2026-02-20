@@ -15,6 +15,10 @@ export type ClassResponse = {
   active: boolean;
 };
 
+export type EmailParentsResponse = {
+  recipientsCount: number;
+};
+
 export type UserListItemResponse = {
   id: number;
   firstName?: string | null;

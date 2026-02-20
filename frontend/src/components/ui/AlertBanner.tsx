@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 
+// Supported semantic banner styles.
 type AlertVariant = "error" | "success" | "info";
 
+// Variant color mapping shared across pages and modals.
 const variantClasses: Record<AlertVariant, string> = {
   error: "border-rose-500/30 bg-rose-500/10 text-rose-200",
   success: "border-emerald-400/30 bg-emerald-400/10 text-emerald-200",

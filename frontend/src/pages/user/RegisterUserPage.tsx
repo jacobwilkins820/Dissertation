@@ -2,7 +2,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { SelectDropdown } from "../../components/ui/SelectDropdown";
 import { useAuth } from "../../auth/UseAuth";
 import type { CreateUserRequest, RoleDto } from "../../utils/responses";
-import { getErrorMessage, type BackendErrorPayload } from "../../utils/utilFuncs";
+import {
+  getErrorMessage,
+  type BackendErrorPayload,
+} from "../../utils/utilFuncs";
 import { AlertBanner } from "../../components/ui/AlertBanner";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { SectionCard } from "../../components/ui/SectionCard";
@@ -11,6 +14,7 @@ import { FormActions } from "../../components/userCreation/FormActions";
 import { createUser, getRoles, isFetchJsonError } from "../../services/backend";
 import { hasPermission, Permissions } from "../../utils/permissions";
 
+// Field-level validation map used by both client validation and backend
 type FieldErrors = Partial<
   Record<keyof CreateUserRequest | "confirmPassword", string>
 >;
@@ -34,6 +38,7 @@ function isFieldErrorKey(key: string): key is FieldErrorKey {
   return fieldErrorKeys.has(key as FieldErrorKey);
 }
 
+// Parses server errors in the shape "fieldName: message" into form-specific errors.
 function extractFieldErrors(payload: unknown): FieldErrors {
   const out: FieldErrors = {};
   if (!payload || typeof payload !== "object") return out;
@@ -55,6 +60,7 @@ function extractFieldErrors(payload: unknown): FieldErrors {
   return out;
 }
 
+// Admin-only user creation page for non-parent staff accounts.
 export default function RegisterUserPage() {
   const [roles, setRoles] = useState<RoleDto[]>([]);
   const [rolesLoading, setRolesLoading] = useState(false);
@@ -75,15 +81,17 @@ export default function RegisterUserPage() {
   const { user } = useAuth();
   const canCreateUser = hasPermission(
     user?.permissionLevel ?? 0,
-    Permissions.CREATE_USER
+    Permissions.CREATE_USER,
   );
 
   const nonParentRoles = useMemo(
+    // Parent accounts are created from the dedicated guardian flow instead of this.
     () => roles.filter((role) => normalizeRoleName(role.name) !== "PARENT"),
-    [roles]
+    [roles],
   );
 
   useEffect(() => {
+    // Roles are needed for the role dropdown and payload roleId.
     (async () => {
       setRolesLoading(true);
       setRolesError(null);
@@ -113,6 +121,7 @@ export default function RegisterUserPage() {
   }
 
   function validateClient(): FieldErrors {
+    // Keep client checks light, backend is the fountain of truth.
     const errs: FieldErrors = {};
 
     if (!firstName.trim()) errs.firstName = "First name is required.";
@@ -153,9 +162,11 @@ export default function RegisterUserPage() {
     try {
       await createUser(body);
       setSuccessMsg("User created successfully.");
+      // keep success banner while clearing form inputs.
       resetForm(false);
     } catch (e: unknown) {
       if (isFetchJsonError(e)) {
+        // Merge backend field-level validation into existing client validation.
         setFieldErrors((prev) => ({
           ...prev,
           ...extractFieldErrors(e.payload),

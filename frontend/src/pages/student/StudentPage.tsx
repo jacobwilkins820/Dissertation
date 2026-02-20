@@ -13,8 +13,12 @@ import { StudentOverviewSection } from "./sections/StudentOverviewSection";
 import { GuardianSection } from "./sections/GuardianSection";
 import { AttendanceSection } from "./sections/AttendanceSection";
 
-const AddGuardianModal = lazy(() => import("../../components/guardian/AddGuardianModal"));
+const AddGuardianModal = lazy(
+  () => import("../../components/guardian/AddGuardianModal"),
+);
 
+// Student detail hub that composes permissions, guardian access checks,
+// and three component areas (profile, guardians, attendance).
 export default function StudentPage() {
   const { studentId } = useParams();
   const parsedId = Number(studentId);
@@ -22,13 +26,14 @@ export default function StudentPage() {
   const { user } = useAuth();
 
   const permissionLevel = user?.permissionLevel ?? 0;
+  // Permission checks for the three page sections.
   const canEditStudent = hasPermission(
     permissionLevel,
-    Permissions.EDIT_STUDENT_DETAILS
+    Permissions.EDIT_STUDENT_DETAILS,
   );
   const canViewAttendance = hasPermission(
     permissionLevel,
-    Permissions.VIEW_STUDENT_DETAILS
+    Permissions.VIEW_STUDENT_DETAILS,
   );
   const isAdmin = (user?.roleName ?? "").toUpperCase() === "ADMIN";
   const guardianId = user?.guardianId ?? null;
@@ -36,13 +41,13 @@ export default function StudentPage() {
   const canEditGuardians = isAdmin;
   const canViewGuardians = hasPermission(
     permissionLevel,
-    Permissions.VIEW_GUARDIAN_CONTACT
+    Permissions.VIEW_GUARDIAN_CONTACT,
   );
 
   const { accessAllowed, accessChecking, accessError } = useGuardianAccess(
     parsedId,
     isGuardianUser,
-    guardianId
+    guardianId,
   );
 
   const {
@@ -100,24 +105,26 @@ export default function StudentPage() {
     parsedId,
     canViewAttendance,
     accessAllowed,
-    isGuardianUser
+    isGuardianUser,
   );
 
   const handleRelationshipChange = useCallback(
     (guardianIdValue: number, value: string) => {
+      // Preserve existing isPrimary value while editing relationship text.
       setGuardianEdits((prev) => ({
         ...prev,
         [guardianIdValue]: {
           relationship: value,
           isPrimary:
             prev[guardianIdValue]?.isPrimary ??
-            guardians.find((guardian) => guardian.guardianId === guardianIdValue)
-              ?.isPrimary ??
+            guardians.find(
+              (guardian) => guardian.guardianId === guardianIdValue,
+            )?.isPrimary ??
             false,
         },
       }));
     },
-    [guardians, setGuardianEdits]
+    [guardians, setGuardianEdits],
   );
 
   if (!Number.isFinite(parsedId)) {
@@ -125,6 +132,7 @@ export default function StudentPage() {
   }
 
   if (isGuardianUser) {
+    // Guardian users pass through an ownership check before any student data renders.
     if (accessChecking || accessAllowed === null) {
       return <StateMessage inline>Checking student access...</StateMessage>;
     }
@@ -204,6 +212,7 @@ export default function StudentPage() {
 
       {canEditGuardians && (
         <Suspense fallback={null}>
+          {/* modal to keep initial student page bundle lighter as it was my largest file by far. */}
           <AddGuardianModal
             open={showAddGuardian}
             selectedGuardian={selectedGuardian}

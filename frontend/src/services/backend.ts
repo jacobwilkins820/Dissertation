@@ -11,6 +11,7 @@ import type {
   AttendanceSessionResponse,
   ClassListItemResponse,
   ClassResponse,
+  EmailParentsResponse,
   CreateGuardianUserRequest,
   CreateStudentRequest,
   CreateUserRequest,
@@ -30,6 +31,7 @@ import type {
   CreateClassRequest,
   CreateEnrolmentRequest,
   SaveAttendanceForSessionRequest,
+  SendClassEmailRequest,
   StudentGuardianUpdateRequest,
   UpdateClassRequest,
   UpdateCurrentUserRequest,
@@ -38,16 +40,20 @@ import type {
   UpdateStudentRequest,
 } from "../utils/requests";
 
+// Error shape used by fetchJson when backend returns non-2xx responses.
 export type FetchJsonError = Error & { payload?: unknown };
 
+// Accepts either absolute URLs or API-relative paths.
 function buildUrl(path: string) {
   return path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
 }
 
+// Backend occasionally returns null for list endpoints; normalize to []
 function ensureArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
 }
 
+// Type guard so callers can safely inspect backend validation payloads.
 export function isFetchJsonError(err: unknown): err is FetchJsonError {
   return !!err && typeof err === "object" && "payload" in err;
 }
@@ -55,8 +61,9 @@ export function isFetchJsonError(err: unknown): err is FetchJsonError {
 export async function fetchJson<T>(
   path: string,
   options: RequestInit = {},
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<T> {
+  // Attach auth header by default. Callers can still override/extend headers.
   const res = await fetch(buildUrl(path), {
     ...options,
     headers: {
@@ -67,6 +74,7 @@ export async function fetchJson<T>(
   });
 
   if (!res.ok) {
+    // Normalize server error payloads into Error.message while preserving payload.
     const payload = await safeReadJson(res);
     const err = new Error(extractErrorMessage(payload)) as FetchJsonError;
     err.payload = payload;
@@ -76,21 +84,23 @@ export async function fetchJson<T>(
   return (await safeReadJson(res)) as T;
 }
 
+// Guardians
 export async function searchGuardians<T extends GuardianSearch | GuardianDto>(
   query: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<T[]> {
   const data = await fetchJson<T[] | null>(
     `/api/guardians/search?query=${encodeURIComponent(query)}`,
     {},
-    signal
+    signal,
   );
   return ensureArray<T>(data);
 }
 
+// Students
 export async function searchStudents<T>(
   query: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<T[]> {
   const params = new URLSearchParams();
   params.set("q", query);
@@ -100,14 +110,14 @@ export async function searchStudents<T>(
   const payload = await fetchJson<PageResponse<T> | null>(
     `/api/students?${params.toString()}`,
     {},
-    signal
+    signal,
   );
   return ensureArray<T>(payload?.content);
 }
 
 export async function getStudentsPage<T>(
   options: { query?: string; page: number; size: number; sort?: string },
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<PageResponse<T>> {
   const params = new URLSearchParams();
   if (options.query) params.set("q", options.query);
@@ -118,10 +128,11 @@ export async function getStudentsPage<T>(
   const payload = await fetchJson<PageResponse<T> | null>(
     `/api/students?${params.toString()}`,
     {},
-    signal
+    signal,
   );
 
   if (!payload || !Array.isArray(payload.content)) {
+    // Guard against malformed payloads before rendering paginated tables.
     throw new Error("Unexpected response from server.");
   }
 
@@ -136,7 +147,7 @@ export function getStudentGuardians(id: number, signal?: AbortSignal) {
   return fetchJson<StudentGuardianResponse[] | null>(
     `/api/students/${id}/guardians`,
     {},
-    signal
+    signal,
   ).then((data) => ensureArray<StudentGuardianResponse>(data));
 }
 
@@ -151,7 +162,7 @@ export function updateStudent(id: number, payload: UpdateStudentRequest) {
 export function updateStudentGuardianLink(
   studentId: number,
   guardianId: number,
-  payload: StudentGuardianUpdateRequest
+  payload: StudentGuardianUpdateRequest,
 ) {
   return fetchJson<StudentGuardianResponse>(
     `/api/students/${studentId}/guardians/${guardianId}`,
@@ -159,23 +170,27 @@ export function updateStudentGuardianLink(
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-    }
+    },
   );
 }
 
 export async function deleteStudentGuardianLink(
   studentId: number,
-  guardianId: number
+  guardianId: number,
 ): Promise<void> {
-  await fetchJson<unknown>(`/api/students/${studentId}/guardians/${guardianId}`, {
-    method: "DELETE",
-  });
+  await fetchJson<unknown>(
+    `/api/students/${studentId}/guardians/${guardianId}`,
+    {
+      method: "DELETE",
+    },
+  );
 }
 
+// Guardians
 export async function getGuardianDetail(
   id: number,
   options: { full: boolean },
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<GuardianDetail> {
   const endpoint = options.full
     ? `/api/guardians/${id}`
@@ -191,19 +206,19 @@ export async function getGuardianDetail(
 
 export async function getGuardianStudents(
   id: number,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<StudentGuardianResponse[]> {
   const data = await fetchJson<StudentGuardianResponse[] | null>(
     `/api/guardians/${id}/students`,
     {},
-    signal
+    signal,
   );
   return ensureArray<StudentGuardianResponse>(data);
 }
 
 export async function updateGuardian(
   id: number,
-  payload: UpdateGuardianRequest
+  payload: UpdateGuardianRequest,
 ): Promise<void> {
   await fetchJson<unknown>(`/api/guardians/${id}`, {
     method: "PUT",
@@ -212,6 +227,7 @@ export async function updateGuardian(
   });
 }
 
+// Users and roles
 export function updateCurrentUser(payload: UpdateCurrentUserRequest) {
   return fetchJson<UserListItemResponse>("/api/users/me", {
     method: "PUT",
@@ -236,7 +252,7 @@ export async function createUser(payload: CreateUserRequest): Promise<void> {
 }
 
 export async function createGuardianUser(
-  payload: CreateGuardianUserRequest
+  payload: CreateGuardianUserRequest,
 ): Promise<void> {
   await fetchJson<unknown>("/api/users/guardian-account", {
     method: "POST",
@@ -246,7 +262,7 @@ export async function createGuardianUser(
 }
 
 export async function createStudent(
-  payload: CreateStudentRequest
+  payload: CreateStudentRequest,
 ): Promise<void> {
   await fetchJson<unknown>("/api/students", {
     method: "POST",
@@ -255,13 +271,14 @@ export async function createStudent(
   });
 }
 
+// Classes
 export async function getClasses(
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<ClassListItemResponse[]> {
   const data = await fetchJson<ClassListItemResponse[] | null>(
     "/api/classes",
     {},
-    signal
+    signal,
   );
   return ensureArray<ClassListItemResponse>(data);
 }
@@ -271,12 +288,12 @@ export function getClass(id: number, signal?: AbortSignal) {
 }
 
 export async function getUsers(
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<UserListItemResponse[]> {
   const data = await fetchJson<UserListItemResponse[] | null>(
     "/api/users",
     {},
-    signal
+    signal,
   );
   return ensureArray<UserListItemResponse>(data);
 }
@@ -297,23 +314,35 @@ export function updateClass(id: number, payload: UpdateClassRequest) {
   });
 }
 
+export function sendClassEmailToParents(
+  id: number,
+  payload: SendClassEmailRequest,
+): Promise<EmailParentsResponse> {
+  return fetchJson<EmailParentsResponse>(`/api/classes/${id}/email-parents`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
+// Academic years and enrolments
 export function getCurrentAcademicYear(signal?: AbortSignal) {
   return fetchJson<AcademicYearResponse>(
     "/api/academic-years/current",
     {},
-    signal
+    signal,
   );
 }
 
 export async function getClassEnrolments(
   classId: number,
   academicYearId: number,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<EnrolmentListItemResponse[]> {
   const data = await fetchJson<EnrolmentListItemResponse[] | null>(
     `/api/enrolments/classes/${classId}/enrolments?academicYearId=${academicYearId}`,
     {},
-    signal
+    signal,
   );
   return ensureArray<EnrolmentListItemResponse>(data);
 }
@@ -321,18 +350,18 @@ export async function getClassEnrolments(
 export async function getStudentEnrolments(
   studentId: number,
   academicYearId: number,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<EnrolmentListItemResponse[]> {
   const data = await fetchJson<EnrolmentListItemResponse[] | null>(
     `/api/enrolments/students/${studentId}/enrolments?academicYearId=${academicYearId}`,
     {},
-    signal
+    signal,
   );
   return ensureArray<EnrolmentListItemResponse>(data);
 }
 
 export async function createEnrolment(
-  payload: CreateEnrolmentRequest
+  payload: CreateEnrolmentRequest,
 ): Promise<void> {
   await fetchJson<unknown>("/api/enrolments", {
     method: "POST",
@@ -347,11 +376,12 @@ export async function deleteEnrolment(id: number): Promise<void> {
   });
 }
 
+// Attendance
 export async function getAttendanceSessionsForClass(
   classId: number,
   from: string,
   to: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<AttendanceSessionResponse[]> {
   const params = new URLSearchParams({
     classId: String(classId),
@@ -361,36 +391,36 @@ export async function getAttendanceSessionsForClass(
   const data = await fetchJson<AttendanceSessionResponse[] | null>(
     `/api/attendance-sessions?${params.toString()}`,
     {},
-    signal
+    signal,
   );
   return ensureArray<AttendanceSessionResponse>(data);
 }
 
 export async function getAttendanceRecordsForSession(
   sessionId: number,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<AttendanceRecordListItemResponse[]> {
   const data = await fetchJson<AttendanceRecordListItemResponse[] | null>(
     `/api/attendance-sessions/${sessionId}/attendance-records`,
     {},
-    signal
+    signal,
   );
   return ensureArray<AttendanceRecordListItemResponse>(data);
 }
 
 export function getAttendanceRecord(
   id: number,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<AttendanceRecordResponse> {
   return fetchJson<AttendanceRecordResponse>(
     `/api/attendance-records/${id}`,
     {},
-    signal
+    signal,
   );
 }
 
 export function createAttendanceSession(
-  payload: CreateAttendanceSessionRequest
+  payload: CreateAttendanceSessionRequest,
 ): Promise<AttendanceSessionResponse> {
   return fetchJson<AttendanceSessionResponse>("/api/attendance-sessions", {
     method: "POST",
@@ -401,7 +431,7 @@ export function createAttendanceSession(
 
 export function updateAttendanceRecord(
   id: number,
-  payload: UpdateAttendanceRecordRequest
+  payload: UpdateAttendanceRecordRequest,
 ): Promise<AttendanceRecordResponse> {
   return fetchJson<AttendanceRecordResponse>(`/api/attendance-records/${id}`, {
     method: "PUT",
@@ -411,7 +441,7 @@ export function updateAttendanceRecord(
 }
 
 export function createAttendanceRecord(
-  payload: CreateAttendanceRecordRequest
+  payload: CreateAttendanceRecordRequest,
 ): Promise<AttendanceRecordResponse> {
   return fetchJson<AttendanceRecordResponse>("/api/attendance-records", {
     method: "POST",
@@ -422,7 +452,7 @@ export function createAttendanceRecord(
 
 export function saveAttendanceForSession(
   sessionId: number,
-  payload: SaveAttendanceForSessionRequest
+  payload: SaveAttendanceForSessionRequest,
 ): Promise<AttendanceRecordResponse[]> {
   return fetchJson<AttendanceRecordResponse[]>(
     `/api/attendance-sessions/${sessionId}/attendance-records`,
@@ -430,6 +460,6 @@ export function saveAttendanceForSession(
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-    }
+    },
   );
 }

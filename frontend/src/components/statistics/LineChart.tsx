@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Chart } from "chart.js/auto";
 import type { ChartData, ChartOptions } from "chart.js";
 
+// Chart.js wrapper that manages line chart
 type LineChartProps = {
   data: ChartData<"line", number[], string>;
   options?: ChartOptions<"line">;
@@ -14,6 +15,7 @@ export function LineChart({ data, options, className = "" }: LineChartProps) {
   useEffect(() => {
     if (!canvasRef.current) return;
 
+    // Theme defaults
     const baseOptions: ChartOptions<"line"> = {
       responsive: true,
       maintainAspectRatio: false,
@@ -67,6 +69,7 @@ export function LineChart({ data, options, className = "" }: LineChartProps) {
     });
 
     return () => {
+      // Always destroy to prevent duplicate chart instances on re-render.
       chart.destroy();
     };
   }, [data, options]);

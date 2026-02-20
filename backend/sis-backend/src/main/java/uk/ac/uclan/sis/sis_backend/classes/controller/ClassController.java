@@ -82,6 +82,21 @@ public class ClassController {
     }
 
     /**
+     * Sends a teacher-authored email to all parents in the class.
+     *
+     * @param id class id
+     * @param request email payload
+     * @return send summary
+     */
+    @PostMapping("/{id}/email-parents")
+    public EmailParentsResponse emailParents(
+            @PathVariable Long id,
+            @RequestBody EmailParentsRequest request
+    ) {
+        return classService.emailParents(id, request);
+    }
+
+    /**
      * Deletes a class by id.
      *
      * @param id class id

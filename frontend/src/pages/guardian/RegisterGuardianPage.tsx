@@ -9,8 +9,12 @@ import { useAuth } from "../../auth/UseAuth";
 import { createGuardianUser, isFetchJsonError } from "../../services/backend";
 import type { CreateGuardianUserRequest } from "../../utils/responses";
 import { hasPermission, Permissions } from "../../utils/permissions";
-import { getErrorMessage, type BackendErrorPayload } from "../../utils/utilFuncs";
+import {
+  getErrorMessage,
+  type BackendErrorPayload,
+} from "../../utils/utilFuncs";
 
+// Field-level errors for guardian + linked parent-account creation flow.
 type FieldErrors = Partial<
   Record<keyof CreateGuardianUserRequest | "confirmPassword", string>
 >;
@@ -34,6 +38,7 @@ function isFieldErrorKey(key: string): key is FieldErrorKey {
   return fieldErrorKeys.has(key as FieldErrorKey);
 }
 
+// Parses backend "field: message" validation responses into form field errors.
 function extractFieldErrors(payload: unknown): FieldErrors {
   const out: FieldErrors = {};
   if (!payload || typeof payload !== "object") return out;
@@ -55,11 +60,13 @@ function extractFieldErrors(payload: unknown): FieldErrors {
   return out;
 }
 
+// Converts the optional text inputs to nullable fields expected by backend.
 function normalizeOptional(value: string) {
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
 }
 
+// Creates a guardian record and the corresponding parent login in one submission.
 export default function RegisterGuardianPage() {
   const { user } = useAuth();
   const permissionLevel = user?.permissionLevel ?? 0;
@@ -144,16 +151,18 @@ export default function RegisterGuardianPage() {
     try {
       await createGuardianUser(payload);
       setSuccessMsg("Guardian and parent user account created successfully.");
+      // Keep success feedback visible while resetting input state.
       resetForm(false);
     } catch (e: unknown) {
       if (isFetchJsonError(e)) {
+        // Merge server-side field validation into local error model.
         setFieldErrors((prev) => ({
           ...prev,
           ...extractFieldErrors(e.payload),
         }));
       }
       setGlobalError(
-        getErrorMessage(e, "Failed to create guardian and parent account.")
+        getErrorMessage(e, "Failed to create guardian and parent account."),
       );
     } finally {
       setSubmitting(false);
@@ -225,7 +234,9 @@ export default function RegisterGuardianPage() {
               autoComplete="address-line1"
             />
             {fieldErrors.addressLine1 && (
-              <small className="text-rose-200">{fieldErrors.addressLine1}</small>
+              <small className="text-rose-200">
+                {fieldErrors.addressLine1}
+              </small>
             )}
           </label>
 
@@ -238,7 +249,9 @@ export default function RegisterGuardianPage() {
               autoComplete="address-line2"
             />
             {fieldErrors.addressLine2 && (
-              <small className="text-rose-200">{fieldErrors.addressLine2}</small>
+              <small className="text-rose-200">
+                {fieldErrors.addressLine2}
+              </small>
             )}
           </label>
 

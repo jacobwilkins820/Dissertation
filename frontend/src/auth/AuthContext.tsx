@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import type {
   AuthUser,
   LoginRequest,
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isAuthenticated = !!tokenState && !!user;
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await logoutApi();
     } catch {
@@ -47,9 +47,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setTokenState(null);
       setUser(null);
     }
-  };
+  }, []);
 
-  const refreshMe = async () => {
+  const refreshMe = useCallback(async () => {
     const token = getToken();
     if (!token) {
       setUser(null);
@@ -62,9 +62,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       await logout();
     }
-  };
+  }, [logout]);
 
-  const login = async (req: LoginRequest) => {
+  const login = useCallback(async (req: LoginRequest) => {
     const res: LoginResponse = await loginApi(req);
 
     setToken(res.token);
@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     await refreshMe();
-  };
+  }, [refreshMe]);
 
   useEffect(() => {
     (async () => {
@@ -96,8 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsHydrating(false);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [refreshMe]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -109,7 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logout,
       refreshMe,
     }),
-    [isAuthenticated, isHydrating, tokenState, user]
+    [isAuthenticated, isHydrating, tokenState, user, login, logout, refreshMe]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

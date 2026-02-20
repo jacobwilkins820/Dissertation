@@ -4,11 +4,15 @@ import { SearchSelect } from "../ui/SearchSelect";
 import { AlertBanner } from "../ui/AlertBanner";
 import type { StudentResponse } from "../../utils/responses";
 
+// Modal used in class detail to enrol an existing student by search.
 type AddStudentModalProps = {
   open: boolean;
   selectedStudent: StudentResponse | null;
   onSelectStudent: (student: StudentResponse | null) => void;
-  fetchStudentMatches: (query: string, signal: AbortSignal) => Promise<StudentResponse[]>;
+  fetchStudentMatches: (
+    query: string,
+    signal: AbortSignal,
+  ) => Promise<StudentResponse[]>;
   addError: string | null;
   onClear: () => void;
   onClose: () => void;
@@ -31,6 +35,7 @@ export default function AddStudentModal({
 }: AddStudentModalProps) {
   if (!open) return null;
 
+  // Modal that avoids clipping behind parent containers.
   return createPortal(
     <div className="fixed inset-0 z-[99] flex items-center justify-center bg-black/60 px-6 py-8 backdrop-blur-sm">
       <div className="w-full max-w-xl rounded-3xl border border-slate-800/80 bg-slate-950 p-6 text-slate-200 shadow-2xl shadow-black/40">
@@ -83,6 +88,6 @@ export default function AddStudentModal({
         </div>
       </div>
     </div>,
-    document.getElementById("modal-root") ?? document.body
+    document.getElementById("modal-root") ?? document.body,
   );
 }

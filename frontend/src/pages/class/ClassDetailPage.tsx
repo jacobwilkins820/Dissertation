@@ -31,6 +31,7 @@ import {
   getCurrentAcademicYear,
   getStudent,
   getStudentEnrolments,
+  sendClassEmailToParents,
   searchStudents,
   updateClass,
 } from "../../services/backend";
@@ -40,6 +41,9 @@ const AddStudentModal = lazy(
 );
 const RemoveStudentModal = lazy(
   () => import("../../components/class/RemoveStudentModal"),
+);
+const EmailParentsModal = lazy(
+  () => import("../../components/class/EmailParentsModal"),
 );
 
 // Class detail page with roster + enrolment modal.
@@ -60,6 +64,12 @@ export default function ClassDetailPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
+  const [showEmailParents, setShowEmailParents] = useState(false);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailSuccess, setEmailSuccess] = useState<string | null>(null);
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [showRemoveStudent, setShowRemoveStudent] = useState(false);
   const [selectedStudent, setSelectedStudent] =
@@ -270,6 +280,47 @@ export default function ClassDetailPage() {
     }
   };
 
+  const handleOpenEmailParents = () => {
+    setEmailError(null);
+    setEmailSuccess(null);
+    setShowEmailParents(true);
+  };
+
+  const handleClearEmailDraft = () => {
+    setEmailSubject("");
+    setEmailMessage("");
+    setEmailError(null);
+  };
+
+  const handleSendEmailParents = async () => {
+    if (!clazz) return;
+
+    setEmailSending(true);
+    setEmailError(null);
+    setEmailSuccess(null);
+
+    try {
+      const response = await sendClassEmailToParents(clazz.id, {
+        subject: emailSubject.trim(),
+        message: emailMessage.trim(),
+      });
+
+      const sentCount = response?.recipientsCount ?? 0;
+      setEmailSuccess(
+        sentCount === 0
+          ? "No parent email addresses were found for this class."
+          : `Email sent to ${sentCount} parent${sentCount === 1 ? "" : "s"}.`
+      );
+      setShowEmailParents(false);
+      setEmailSubject("");
+      setEmailMessage("");
+    } catch (err: unknown) {
+      setEmailError(getErrorMessage(err, "Failed to send parent emails."));
+    } finally {
+      setEmailSending(false);
+    }
+  };
+
   if (error) {
     return <AlertBanner variant="error">{error}</AlertBanner>;
   }
@@ -293,6 +344,8 @@ export default function ClassDetailPage() {
             : "Teacher unassigned"
         }`}
       />
+
+      {emailSuccess && <AlertBanner variant="success">{emailSuccess}</AlertBanner>}
 
       <div className="grid gap-4 md:grid-cols-3">
         <SectionCard padding="sm" className="text-sm text-slate-300">
@@ -359,6 +412,14 @@ export default function ClassDetailPage() {
             disabled={!clazz}
           >
             Statistics
+          </Button>
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={handleOpenEmailParents}
+            disabled={!clazz}
+          >
+            Email parents
           </Button>
         </div>
       </SectionCard>
@@ -469,6 +530,25 @@ export default function ClassDetailPage() {
           )}
         </div>
       </SectionCard>
+
+      <Suspense fallback={null}>
+        <EmailParentsModal
+          open={showEmailParents}
+          subject={emailSubject}
+          message={emailMessage}
+          error={emailError}
+          sending={emailSending}
+          onSubjectChange={setEmailSubject}
+          onMessageChange={setEmailMessage}
+          onClear={handleClearEmailDraft}
+          onClose={() => {
+            if (emailSending) return;
+            setShowEmailParents(false);
+            setEmailError(null);
+          }}
+          onSubmit={handleSendEmailParents}
+        />
+      </Suspense>
 
       {canAddStudent && (
         <Suspense fallback={null}>

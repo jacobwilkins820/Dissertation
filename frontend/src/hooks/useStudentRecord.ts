@@ -3,6 +3,7 @@ import type { Student } from "../utils/responses";
 import { getStudent, updateStudent } from "../services/backend";
 import { getErrorMessage } from "../utils/utilFuncs";
 
+// Local editable snapshot of the student detail form.
 export type StudentForm = {
   upn: string;
   firstName: string;
@@ -21,11 +22,12 @@ const emptyForm: StudentForm = {
   status: "ACTIVE",
 };
 
+// Handles loading, editing, and saving a single student record.
 export function useStudentRecord(
   studentId: number,
   canEditStudent: boolean,
   accessAllowed: boolean | null,
-  isGuardianUser: boolean
+  isGuardianUser: boolean,
 ) {
   const [student, setStudent] = useState<Student | null>(null);
   const [studentLoading, setStudentLoading] = useState(false);
@@ -44,6 +46,7 @@ export function useStudentRecord(
       return;
     }
 
+    // Guardian users must pass access checks before details are fetched.
     if (isGuardianUser && accessAllowed !== true) {
       setStudent(null);
       setStudentLoading(false);
@@ -77,6 +80,7 @@ export function useStudentRecord(
   }, [accessAllowed, isGuardianUser, loadStudent, studentId]);
 
   const resetForm = useCallback(() => {
+    // Restore fields from the last loaded server state.
     if (!student) return;
     setFormValues({
       upn: student.upn ?? "",
@@ -95,6 +99,7 @@ export function useStudentRecord(
     setStudentError(null);
 
     try {
+      // Trim user-input fields before sending to backend .
       const payload = {
         upn: formValues.upn.trim(),
         firstName: formValues.firstName.trim(),

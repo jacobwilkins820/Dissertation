@@ -3,8 +3,12 @@ import { AlertBanner } from "../../../components/ui/AlertBanner";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import { StateMessage } from "../../../components/ui/StateMessage";
 import { ANALYTICS_RANGE_OPTIONS } from "../../../utils/analyticsDateRange";
-import type { AttendanceRange, AttendanceSummary } from "../../../hooks/useAttendanceSummary";
+import type {
+  AttendanceRange,
+  AttendanceSummary,
+} from "../../../hooks/useAttendanceSummary";
 
+// Props for rendering student attendance summary metrics.
 type AttendanceSectionProps = {
   canViewAttendance: boolean;
   attendanceRange: AttendanceRange;
@@ -14,6 +18,7 @@ type AttendanceSectionProps = {
   attendanceError: string | null;
 };
 
+// Attendance summary panel with range selector and metric cards.
 export function AttendanceSection({
   canViewAttendance,
   attendanceRange,
@@ -60,6 +65,7 @@ export function AttendanceSection({
 
       {!attendanceLoading && canViewAttendance && (
         <>
+          {/* Summary cards */}
           <div className="mt-6 grid gap-4 md:grid-cols-4">
             <div className="rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
               <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
@@ -95,6 +101,7 @@ export function AttendanceSection({
             </div>
           </div>
 
+          {/* helper text from the summary hook */}
           <div className="mt-6 rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
             <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
               Notes

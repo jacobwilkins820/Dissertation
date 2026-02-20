@@ -27,11 +27,22 @@ type ImportResult = {
   message: string;
 };
 
-const REQUIRED_COLUMNS = ["upn", "firstName", "lastName", "dateOfBirth", "gender"] as const;
+// Required template columns for creating a valid student payload.
+const REQUIRED_COLUMNS = [
+  "upn",
+  "firstName",
+  "lastName",
+  "dateOfBirth",
+  "gender",
+] as const;
 const ALLOWED_STATUSES = new Set(["ACTIVE", "INACTIVE", "WITHDRAWN"]);
 
+// Header normalization allows flexible CSV headers like "First Name" or "first_name".
 function normalizeHeader(value: string): string {
-  return value.trim().toLowerCase().replace(/[\s_-]/g, "");
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]/g, "");
 }
 
 function canonicalColumnName(value: string): keyof CreateStudentRequest | null {
@@ -39,12 +50,14 @@ function canonicalColumnName(value: string): keyof CreateStudentRequest | null {
   if (normalized === "upn") return "upn";
   if (normalized === "firstname") return "firstName";
   if (normalized === "lastname") return "lastName";
-  if (normalized === "dateofbirth" || normalized === "dob") return "dateOfBirth";
+  if (normalized === "dateofbirth" || normalized === "dob")
+    return "dateOfBirth";
   if (normalized === "gender") return "gender";
   if (normalized === "status") return "status";
   return null;
 }
 
+// Lightweight CSV parser that supports quoted values
 function parseCsv(text: string): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];
@@ -91,6 +104,7 @@ function parseCsv(text: string): string[][] {
   return rows;
 }
 
+// Strict ISO-date validator for YYYY-MM-DD
 function isIsoDate(value: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const date = new Date(`${value}T00:00:00Z`);
@@ -98,6 +112,7 @@ function isIsoDate(value: string): boolean {
   return date.toISOString().slice(0, 10) === value;
 }
 
+// Spreadsheets may prefix date values with apostrophes; strip that safely.
 function normalizeDateValue(value: string): string {
   const trimmed = value.trim();
   if (trimmed.startsWith("'")) {
@@ -106,6 +121,7 @@ function normalizeDateValue(value: string): string {
   return trimmed;
 }
 
+// Accepts either ISO or DD-MM-YYYY and converts to ISO. as excel messed with it sometimes when testing.
 function toIsoDate(value: string): string | null {
   const normalized = normalizeDateValue(value);
   if (!normalized) return null;
@@ -124,19 +140,28 @@ function toIsoDate(value: string): string | null {
   return isIsoDate(iso) ? iso : null;
 }
 
+// Parses CSV text into valid rows + per-row issues for preview/import feedback.
 function buildRows(rawText: string): {
   rows: ParsedRow[];
   issues: RowIssue[];
   totalDataRows: number;
 } {
-  const parsed = parseCsv(rawText).filter((r) => r.some((c) => c.trim().length > 0));
+  const parsed = parseCsv(rawText).filter((r) =>
+    r.some((c) => c.trim().length > 0),
+  );
   if (parsed.length === 0) {
-    return { rows: [], issues: [{ rowNumber: 0, message: "CSV is empty." }], totalDataRows: 0 };
+    return {
+      rows: [],
+      issues: [{ rowNumber: 0, message: "CSV is empty." }],
+      totalDataRows: 0,
+    };
   }
 
   const headerRow = parsed[0];
   const headers = headerRow.map(canonicalColumnName);
-  const provided = new Set(headers.filter((h): h is keyof CreateStudentRequest => h !== null));
+  const provided = new Set(
+    headers.filter((h): h is keyof CreateStudentRequest => h !== null),
+  );
 
   const missing = REQUIRED_COLUMNS.filter((c) => !provided.has(c));
   if (missing.length > 0) {
@@ -208,10 +233,14 @@ function buildRows(rawText: string): {
   return { rows, issues, totalDataRows: Math.max(parsed.length - 1, 0) };
 }
 
+// Bulk student import page with client-side CSV validation and row result error reporting.
 export default function ImportStudentsPage() {
   const { user } = useAuth();
   const permissionLevel = user?.permissionLevel ?? 0;
-  const canCreateStudent = hasPermission(permissionLevel, Permissions.CREATE_STUDENT);
+  const canCreateStudent = hasPermission(
+    permissionLevel,
+    Permissions.CREATE_STUDENT,
+  );
 
   const [fileName, setFileName] = useState<string>("");
   const [rows, setRows] = useState<ParsedRow[]>([]);
@@ -243,6 +272,7 @@ export default function ImportStudentsPage() {
     setFileName(file.name);
 
     try {
+      // Parse immediately so users can review valid/skipped rows
       const text = await file.text();
       const parsed = buildRows(text);
       setRows(parsed.rows);
@@ -259,6 +289,7 @@ export default function ImportStudentsPage() {
     setResults([]);
 
     const out: ImportResult[] = [];
+    // sequential: easier to map API errors directly to row order.
     for (const row of rows) {
       try {
         await createStudent(row.payload);
@@ -312,12 +343,14 @@ export default function ImportStudentsPage() {
             CSV format
           </p>
           <p className="text-sm text-slate-300">
-            Required columns: <code>upn, firstName, lastName, dateOfBirth, gender</code>.
-            Optional: <code>status</code>. Date format can be <code>YYYY-MM-DD</code> or{" "}
-            <code>DD-MM-YYYY</code>.
+            Required columns:{" "}
+            <code>upn, firstName, lastName, dateOfBirth, gender</code>.
+            Optional: <code>status</code>. Date format can be{" "}
+            <code>YYYY-MM-DD</code> or <code>DD-MM-YYYY</code>.
           </p>
           <p className="text-xs text-slate-400">
-            Example header: <code>upn,firstName,lastName,dateOfBirth,gender,status</code>
+            Example header:{" "}
+            <code>upn,firstName,lastName,dateOfBirth,gender,status</code>
           </p>
         </div>
 

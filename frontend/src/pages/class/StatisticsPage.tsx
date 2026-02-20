@@ -21,6 +21,9 @@ import {
   type AnalyticsRange,
 } from "../../utils/analyticsDateRange";
 
+// Class statistics dashboard:
+// - pie chart for total status distribution
+// - line chart for daily/weekly trend
 export default function StatisticsPage() {
   const { classId } = useParams();
   const parsedId = Number(classId);
@@ -41,6 +44,7 @@ export default function StatisticsPage() {
     absent: [] as number[],
   });
   const chartData = useMemo(
+    // Pie chart reflects overall totals for the current range.
     () => ({
       labels: ["Present", "Late", "Absent"],
       datasets: [
@@ -56,9 +60,10 @@ export default function StatisticsPage() {
         },
       ],
     }),
-    [attendanceCounts]
+    [attendanceCounts],
   );
   const lineChartData = useMemo(
+    // Line chart shows trend over computed day/week buckets.
     () => ({
       labels: weeklyLabels,
       datasets: [
@@ -85,7 +90,7 @@ export default function StatisticsPage() {
         },
       ],
     }),
-    [weeklyCounts, weeklyLabels]
+    [weeklyCounts, weeklyLabels],
   );
 
   useEffect(() => {
@@ -125,6 +130,7 @@ export default function StatisticsPage() {
 
     (async () => {
       try {
+        // Derive date window and labels from analytics helper.
         const year = await getCurrentAcademicYear(controller.signal);
         const window = getAnalyticsDateWindow(selectedRange, {
           academicYear: year,
@@ -136,20 +142,24 @@ export default function StatisticsPage() {
         }
 
         const totalDays = getInclusiveDayCount(startDate, endDate);
-        const bucketCount = Math.max(1, Math.ceil(totalDays / 7));
-        const labels = buildWeekLabels(startDate, endDate, bucketCount);
+        const bucketSizeDays = selectedRange === "week" ? 1 : 7;
+        const bucketCount = Math.max(1, Math.ceil(totalDays / bucketSizeDays));
+        const labels =
+          selectedRange === "week"
+            ? buildDayLabels(startDate, bucketCount)
+            : buildWeekLabels(startDate, endDate, bucketCount);
 
         const sessions = await getAttendanceSessionsForClass(
           parsedId,
           window.from,
           window.to,
-          controller.signal
+          controller.signal,
         );
 
         const recordLists = await Promise.all(
           sessions.map((session) =>
-            getAttendanceRecordsForSession(session.id, controller.signal)
-          )
+            getAttendanceRecordsForSession(session.id, controller.signal),
+          ),
         );
 
         const totals = { present: 0, late: 0, absent: 0 };
@@ -165,12 +175,13 @@ export default function StatisticsPage() {
           const sessionDate = parseLocalDate(session.sessionDate);
           if (!sessionDate) return;
           const diffDays = Math.floor(
-            (sessionDate.getTime() - startDate.getTime()) / 86400000
+            (sessionDate.getTime() - startDate.getTime()) / 86400000,
           );
           if (diffDays < 0 || diffDays >= totalDays) return;
-          const bucket = Math.floor(diffDays / 7);
+          const bucket = Math.floor(diffDays / bucketSizeDays);
           if (bucket < 0 || bucket >= bucketCount) return;
 
+          // Reduce each record into both overall totals and bucket totals.
           records.forEach((record) => {
             if (record.status === "PRESENT") {
               totals.present += 1;
@@ -193,6 +204,7 @@ export default function StatisticsPage() {
         setAttendanceCounts(totals);
       } catch (err: unknown) {
         if (!(err instanceof DOMException && err.name === "AbortError")) {
+          // Keep page usable even if analytics fetch fails
           console.error("Failed to load attendance records:", err);
         }
       }
@@ -209,7 +221,9 @@ export default function StatisticsPage() {
     <div className="space-y-6">
       <PageHeader
         label="Statistics"
-        title={clazz?.name ?? (loading ? "Loading class..." : "Class statistics")}
+        title={
+          clazz?.name ?? (loading ? "Loading class..." : "Class statistics")
+        }
         subtitle={`${clazz?.code ? `${clazz.code} - ` : ""}${
           clazz?.teacherName
             ? `Teacher: ${clazz.teacherName}`
@@ -242,9 +256,15 @@ export default function StatisticsPage() {
 
       <SectionCard padding="none">
         <div className="flex items-center justify-between border-b border-slate-800/80 px-6 py-4 text-sm text-slate-300">
-          <span>Weekly attendance trends</span>
+          <span>
+            {selectedRange === "week"
+              ? "Daily attendance trends"
+              : "Weekly attendance trends"}
+          </span>
           <span className="text-xs uppercase tracking-[0.3em] text-slate-400">
-            Week by week for selected period
+            {selectedRange === "week"
+              ? "Day by day for selected week"
+              : "Week by week for selected period"}
           </span>
         </div>
 
@@ -256,7 +276,7 @@ export default function StatisticsPage() {
   );
 }
 
-
+// Parses YYYY-MM-DD into a local Date at midnight for the bucket math.
 function parseLocalDate(value: string) {
   if (!value) return null;
   const parsed = new Date(`${value}T00:00:00`);
@@ -264,6 +284,18 @@ function parseLocalDate(value: string) {
   return parsed;
 }
 
+// Builds per-day x-axis labels for week view.
+function buildDayLabels(startDate: Date, buckets: number) {
+  const labels: string[] = [];
+  for (let index = 0; index < buckets; index += 1) {
+    const day = new Date(startDate);
+    day.setDate(startDate.getDate() + index);
+    labels.push(formatWeekdayMonthDay(day));
+  }
+  return labels;
+}
+
+// Builds week-range labels for longer windows.
 function buildWeekLabels(startDate: Date, endDate: Date, buckets: number) {
   const labels: string[] = [];
   for (let index = 0; index < buckets; index += 1) {
@@ -281,6 +313,16 @@ function buildWeekLabels(startDate: Date, endDate: Date, buckets: number) {
   return labels;
 }
 
+// Compact axis label: "Mon 14/09".
+function formatWeekdayMonthDay(date: Date) {
+  return date.toLocaleDateString("en-GB", {
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+  });
+}
+
+// label helper for week ranges.
 function formatMonthDay(date: Date) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");

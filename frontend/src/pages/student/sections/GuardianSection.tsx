@@ -6,6 +6,7 @@ import { AlertBanner } from "../../../components/ui/AlertBanner";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import { StateMessage } from "../../../components/ui/StateMessage";
 
+// Props for the guardians panel within student detail.
 type GuardianSectionProps = {
   guardians: StudentGuardianResponse[];
   guardiansLoading: boolean;
@@ -26,6 +27,7 @@ type GuardianSectionProps = {
   onRelationshipChange: (guardianId: number, value: string) => void;
 };
 
+// Renders linked guardians and edit actions (relationship/primary/remove).
 export function GuardianSection({
   guardians,
   guardiansLoading,
@@ -87,6 +89,7 @@ export function GuardianSection({
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         {guardians.map((guardian) => {
+          // Per-card state derived from hook-managed maps keyed by guardian id.
           const edit = guardianEdits[guardian.guardianId];
           const isSaving = guardianSaveState[guardian.guardianId];
           const isPrimary = primaryGuardianId === guardian.guardianId;

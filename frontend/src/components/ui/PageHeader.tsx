@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+// Standardized page heading block with optional right-aligned actions/filter controls.
 type PageHeaderProps = {
   label: string;
   title: string;

@@ -8,6 +8,7 @@ import type { Student } from "../../../utils/responses";
 import { formatDate, formatDateTime } from "../../../utils/date";
 import type { StudentForm } from "../../../hooks/useStudentRecord";
 
+// Props for the student profile panel.
 type StudentOverviewSectionProps = {
   student: Student | null;
   studentLoading: boolean;
@@ -22,6 +23,7 @@ type StudentOverviewSectionProps = {
   onFormChange: (patch: Partial<StudentForm>) => void;
 };
 
+// Student identity/enrolment panel with optional edit mode.
 export function StudentOverviewSection({
   student,
   studentLoading,
@@ -187,6 +189,7 @@ type FieldRowProps = {
   type?: string;
 };
 
+// Reusable read/edit field row used in identity and enrolment sections.
 function FieldRow({
   label,
   value,
@@ -196,6 +199,7 @@ function FieldRow({
   type = "text",
 }: FieldRowProps) {
   if (editing) {
+    // Date fields use shared DatePicker to keep format and UX consistent.
     if (type === "date") {
       return (
         <label className="grid gap-1.5 text-xs uppercase tracking-[0.2em] text-slate-300">

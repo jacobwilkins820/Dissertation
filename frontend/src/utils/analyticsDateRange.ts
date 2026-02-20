@@ -1,10 +1,13 @@
 import type { AcademicYearResponse } from "./responses";
 import { formatDateInput } from "./date";
 
+// Milliseconds in one calendar day. Used for inclusive day-count calculations.
 const DAY_MS = 86_400_000;
 
+// Supported analytics windows used by student/class statistics.
 export type AnalyticsRange = "week" | "month" | "school-term" | "academic-year";
 
+// UI options for the shared analytics range dropdown.
 export const ANALYTICS_RANGE_OPTIONS: Array<{
   value: AnalyticsRange;
   label: string;
@@ -26,9 +29,11 @@ type LocalRangeOptions = {
   today?: Date;
 };
 
+// Builds a [from, to] window plus a user facing label for analytics
+// The result is always set to "today" so charts cant request future dates.
 export function getAnalyticsDateWindow(
   range: AnalyticsRange,
-  options: LocalRangeOptions = {}
+  options: LocalRangeOptions = {},
 ): DateWindow {
   const today = toStartOfDay(options.today ?? new Date());
 
@@ -74,8 +79,9 @@ export function getAnalyticsDateWindow(
 
 function getAcademicYearBounds(
   academicYear: AcademicYearResponse | null | undefined,
-  today: Date
+  today: Date,
 ) {
+  // If backend data is unavailable/invalid, fall back to UK academic year dates.
   const fallback = inferAcademicYear(today);
 
   if (!academicYear) return fallback;
@@ -89,8 +95,11 @@ function getAcademicYearBounds(
 }
 
 function inferAcademicYear(today: Date) {
+  // UK school year starts in September and ends in August.
   const startsThisYear = today.getMonth() >= 8;
-  const startYear = startsThisYear ? today.getFullYear() : today.getFullYear() - 1;
+  const startYear = startsThisYear
+    ? today.getFullYear()
+    : today.getFullYear() - 1;
   return {
     start: new Date(startYear, 8, 1),
     end: new Date(startYear + 1, 7, 31),
@@ -99,8 +108,9 @@ function inferAcademicYear(today: Date) {
 
 function getCurrentUkSchoolTerm(
   today: Date,
-  bounds: { start: Date; end: Date }
+  bounds: { start: Date; end: Date },
 ): { name: "Autumn" | "Spring" | "Summer"; start: Date; end: Date } {
+  // Keep term selection inside the resolved academic year bounds.
   const clampedToday = clampDate(today, bounds.start, bounds.end);
   const startYear = bounds.start.getFullYear();
 
@@ -139,12 +149,14 @@ function parseLocalDateInput(value: string) {
 }
 
 function toStartOfDay(date: Date) {
+  // Normalize time to midnight so date-only comparisons remain stable.
   const value = new Date(date);
   value.setHours(0, 0, 0, 0);
   return value;
 }
 
 function startOfWeekMonday(date: Date) {
+  // Converts JS Sunday-first indexing to Monday-first week starts.
   const value = new Date(date);
   const dayFromMonday = (value.getDay() + 6) % 7;
   value.setDate(value.getDate() - dayFromMonday);
@@ -158,13 +170,21 @@ function clampDate(value: Date, min: Date, max: Date) {
 }
 
 function minDate(first: Date, second: Date) {
-  return first.getTime() <= second.getTime() ? new Date(first) : new Date(second);
+  return first.getTime() <= second.getTime()
+    ? new Date(first)
+    : new Date(second);
 }
 
 function maxDate(first: Date, second: Date) {
-  return first.getTime() >= second.getTime() ? new Date(first) : new Date(second);
+  return first.getTime() >= second.getTime()
+    ? new Date(first)
+    : new Date(second);
 }
 
 export function getInclusiveDayCount(start: Date, end: Date) {
-  return Math.max(1, Math.floor((end.getTime() - start.getTime()) / DAY_MS) + 1);
+  // Inclusive count means start=end still yields one day.
+  return Math.max(
+    1,
+    Math.floor((end.getTime() - start.getTime()) / DAY_MS) + 1,
+  );
 }

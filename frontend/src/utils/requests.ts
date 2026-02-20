@@ -1,3 +1,5 @@
+// Request DTOs for backend mutations.
+// should stay aligned with server endpoints so UI forms can serialize safely.
 export type UpdateStudentRequest = {
   upn: string;
   firstName: string;
@@ -29,6 +31,7 @@ export type StudentGuardianUpdateRequest = {
   isPrimary: boolean;
 };
 
+// Class management payloads.
 export type CreateClassRequest = {
   name: string;
   code?: string;
@@ -43,6 +46,12 @@ export type UpdateClassRequest = {
   teacherId?: number | null;
 };
 
+export type SendClassEmailRequest = {
+  subject: string;
+  message: string;
+};
+
+// Enrolment payloads.
 export type CreateEnrolmentRequest = {
   studentId: number;
   classId: number;
@@ -57,6 +66,7 @@ export type CreateAttendanceSessionRequest = {
   session: "AM" | "PM";
 };
 
+// Attendance mutation payloads.
 export type UpdateAttendanceRecordRequest = {
   status: "PRESENT" | "ABSENT" | "LATE";
   reason?: string | null;

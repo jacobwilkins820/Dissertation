@@ -1,6 +1,8 @@
 package uk.ac.uclan.sis.sis_backend.common.exception;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.mail.MailAuthenticationException;
+import org.springframework.mail.MailException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -89,6 +91,38 @@ public class GlobalExceptionHandler {
                 "status", 409,
                 "error", "Conflict",
                 "message", "Request violates a database constraint"
+        ));
+    }
+
+    /**
+     * Maps SMTP authentication failures to a 502 response body.
+     *
+     * @param ex thrown exception
+     * @return error response
+     */
+    @ExceptionHandler(MailAuthenticationException.class)
+    public ResponseEntity<?> handleMailAuth(MailAuthenticationException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of(
+                "timestamp", Instant.now().toString(),
+                "status", 502,
+                "error", "Bad Gateway",
+                "message", "Email authentication failed. Check SMTP username and app password."
+        ));
+    }
+
+    /**
+     * Maps mail send failures to a 502 response body.
+     *
+     * @param ex thrown exception
+     * @return error response
+     */
+    @ExceptionHandler(MailException.class)
+    public ResponseEntity<?> handleMailFailure(MailException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of(
+                "timestamp", Instant.now().toString(),
+                "status", 502,
+                "error", "Bad Gateway",
+                "message", "Email provider rejected the send request."
         ));
     }
 
