@@ -103,3 +103,21 @@ Notes:
 
 - Recipients are all guardian email addresses linked to students currently enrolled in the class.
 - Delivery depends on valid SMTP settings (`SPRING_MAIL_*` / `APP_MAIL_FROM`). They should remain valid but if theres an issue this is the first place to look.
+
+Tests:
+
+Backend:
+
+      The backend uses JPA/Hibernate to map database tables to Java entity classes. Unit tests focus on validating the behaviour of these objects and the service logic that uses them.
+
+      Service tests mock repository dependencies to ensure rules, validation, and relationships between objects behave correctly without requiring a running database. This allows logic to be tested in isolation while keeping persistence concerns separate.
+
+      These tests are run when the backend is started up to ensure there are no errors.
+
+Frontend:
+
+      The front end utilises Cypress testing which needs the application to be running to work. It acts as a pretend user essentially, and goes through different pages and different actions to make sure everything appears as it should and users can't access things their permissions dont allow.
+
+      To open the Cypress UI run from Dissertation\frontend root, npm run cy:open
+
+      To just run them run, npm run cy:run

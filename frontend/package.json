@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "cy:run": "node scripts/cypress-cli.cjs run",
+    "cy:open": "node scripts/cypress-cli.cjs run --headed --browser chrome",
+    "e2e": "node scripts/cypress-cli.cjs run --browser chrome"
   },
   "dependencies": {
     "chart.js": "^4.5.0",
@@ -23,6 +26,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.23",
+    "cypress": "^13.17.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
