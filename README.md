@@ -99,25 +99,28 @@ To demo the email service end-to-end:
 6. Open the `EMAIL` class, click **Email parents**, enter a subject and message, then send.
 7. Check the target inbox (and spam folder) for the message.
 
-Notes:
+## Notes
 
 - Recipients are all guardian email addresses linked to students currently enrolled in the class.
-- Delivery depends on valid SMTP settings (`SPRING_MAIL_*` / `APP_MAIL_FROM`). They should remain valid but if theres an issue this is the first place to look.
+- Delivery depends on valid SMTP settings (`SPRING_MAIL_*` and `APP_MAIL_FROM`). If there is an issue, check these first.
 
-Tests:
+## Tests
 
-Backend:
+### Backend
 
-      The backend uses JPA/Hibernate to map database tables to Java entity classes. Unit tests focus on validating the behaviour of these objects and the service logic that uses them.
+The backend uses JPA/Hibernate to map database tables to Java entity classes. Unit tests focus on validating entity behavior and service-layer logic.
 
-      Service tests mock repository dependencies to ensure rules, validation, and relationships between objects behave correctly without requiring a running database. This allows logic to be tested in isolation while keeping persistence concerns separate.
+Service tests mock repository dependencies so rules, validation, and relationships can be tested in isolation without a running database.
 
-      These tests are run when the backend is started up to ensure there are no errors.
+From `Dissertation\backend\sis-backend`, run:
 
-Frontend:
+- `./mvnw test`
 
-      The front end utilises Cypress testing which needs the application to be running to work. It acts as a pretend user essentially, and goes through different pages and different actions to make sure everything appears as it should and users can't access things their permissions dont allow.
+### Frontend
 
-      To open the Cypress UI run from Dissertation\frontend root, npm run cy:open
+The frontend uses Cypress end-to-end tests. The application must be running for these tests to work.
 
-      To just run them run, npm run cy:run
+From `Dissertation\frontend`, run:
+
+- `npm run cy:open` to open the Cypress UI.
+- `npm run cy:run` to run tests headlessly.
