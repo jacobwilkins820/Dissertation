@@ -1,14 +1,12 @@
 describe("auth", () => {
   it("logs in as admin", () => {
-    const uniqueUpn = `UPN${Date.now()}`;
-
     cy.loginAs("admin_1@example.local", "Password123!");
     cy.contains("Welcome").should("be.visible");
     cy.visit("/register-student");
 
-    cy.contains("label", "UPN").find("input").type(uniqueUpn);
+    cy.contains("label", "UPN").find("input").type("UPN123456789123");
     cy.contains("label", "First name").find("input").type("Test");
-    cy.contains("label", "Last name").find("input").type("Askin");
+    cy.contains("label", "Last name").find("input").type("Mcgee");
     cy.contains("label", "Gender").find("input").type("Male");
 
     cy.contains('button[aria-haspopup="listbox"]', "Default (ACTIVE)").click();
