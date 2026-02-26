@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 /**
- * JPA entity mapped to the `students` table.
+ * JPA entity mapped to the "students" table.
  *
  * This class is the database shape. The API shape is handled by DTOs.
  * created_at / updated_at are required by the schema and are set automatically.

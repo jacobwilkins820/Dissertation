@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-// Gets a delayed copy of `value` that updates only after `delayMs` of silence.
+// Gets a delayed copy of "value" that updates only after "delayMs" of silence.
 // Useful for search inputs to avoid firing API calls on every keypress.
 export function useDebouncedValue<T>(value: T, delayMs: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);

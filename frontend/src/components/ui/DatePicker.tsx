@@ -16,10 +16,10 @@ import { TextField } from "./TextField";
 
 // Public contract for the date picker.
 // The component is "controlled": parent owns the committed value.
-// - `value` is expected in ISO format: YYYY-MM-DD
-// - `onChange` emits ISO format when user clicks Apply
-// - `size` is passed straight through to TextField styling
-// - `className` lets parents control outer wrapper layout/width
+// - "value" is expected in ISO format: YYYY-MM-DD
+// - "onChange" emits ISO format when user clicks Apply
+// - "size" is passed straight through to TextField styling
+// - "className" lets parents control outer wrapper layout/width
 type DatePickerProps = {
   value: string;
   onChange: (value: string) => void;
@@ -64,7 +64,7 @@ function pad2(value: number) {
 }
 
 // Gets number of days in a given month.
-// `monthIndex` is zero-based (0 = January, 11 = December).
+// "monthIndex" is zero-based (0 = January, 11 = December).
 function getDaysInMonth(year: number, monthIndex: number) {
   return new Date(year, monthIndex + 1, 0).getDate();
 }
@@ -116,10 +116,10 @@ function isSameDay(date: Date, year: number, month: number, day: number) {
 // Calendar popover date picker with explicit "Apply".
 //
 // Data model:
-// - Parent owns committed value (`value`) in ISO format.
-// - Component keeps a temporary `draftDate` while popover is open.
-// - Clicking a day changes only `draftDate`.
-// - Clicking Apply sends `onChange(formatISODate(draftDate))`.
+// - Parent owns committed value ("value") in ISO format.
+// - Component keeps a temporary "draftDate" while popover is open.
+// - Clicking a day changes only "draftDate".
+// - Clicking Apply sends "onChange(formatISODate(draftDate))".
 //
 // UX model:
 // - Input is read-only
@@ -147,7 +147,7 @@ export function DatePicker({
   } | null>(null);
 
   // Derived value from parent-controlled ISO string.
-  // useMemo avoids reparsing unless `value` changes.
+  // useMemo avoids reparsing unless "value" changes.
   const parsedValue = useMemo(() => parseISODate(value), [value]);
   // What the user sees in the text field (DD-MM-YYYY).
   const displayValue = parsedValue ? formatDisplayDate(parsedValue) : "";
@@ -507,7 +507,7 @@ export function DatePicker({
                     type="button"
                     onClick={() => handleDaySelect(day)}
                     disabled={disabled || isFuture}
-                    // `aria-pressed` communicates toggle-like selected state.
+                    // "aria-pressed" communicates toggle-like selected state.
                     aria-pressed={isSelected}
                     // Style priority:
                     // 1) selected date
