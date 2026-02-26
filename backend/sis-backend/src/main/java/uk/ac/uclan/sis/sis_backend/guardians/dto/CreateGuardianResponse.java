@@ -1,7 +1,7 @@
 package uk.ac.uclan.sis.sis_backend.guardians.dto;
 
 /**
- * Create response simply returns the new guardian ID and name.
+ * Create response simply Gets the new guardian ID and name.
  */
 public class CreateGuardianResponse {
 

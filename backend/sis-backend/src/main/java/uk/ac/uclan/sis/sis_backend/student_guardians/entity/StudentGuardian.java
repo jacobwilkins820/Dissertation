@@ -54,7 +54,7 @@ public class StudentGuardian {
     }
 
     /**
-     * Returns the composite id.
+     * Gets the composite id.
      *
      * @return composite id
      */
@@ -63,7 +63,7 @@ public class StudentGuardian {
     }
 
     /**
-     * Returns the student entity.
+     * Gets the student entity.
      *
      * @return student entity
      */
@@ -72,7 +72,7 @@ public class StudentGuardian {
     }
 
     /**
-     * Returns the guardian entity.
+     * Gets the guardian entity.
      *
      * @return guardian entity
      */
@@ -81,7 +81,7 @@ public class StudentGuardian {
     }
 
     /**
-     * Returns the relationship label.
+     * Gets the relationship label.
      *
      * @return relationship label
      */
@@ -99,7 +99,7 @@ public class StudentGuardian {
     }
 
     /**
-     * Returns whether the link is primary.
+     * Gets whether the link is primary.
      *
      * @return true when primary
      */

@@ -48,7 +48,7 @@ export function extractErrorMessage(payload: unknown): string {
   return "Request failed.";
 }
 
-// Normalize unknown errors into a message.
+// Turns unknown errors into a message.
 export function getErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof Error) return err.message;
   if (typeof err === "string") return err;

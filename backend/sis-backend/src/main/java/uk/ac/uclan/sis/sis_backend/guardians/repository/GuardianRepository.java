@@ -38,7 +38,7 @@ public interface GuardianRepository extends JpaRepository<Guardian, Long> {
     );
 
     /**
-     * Returns true when an email already exists (case-insensitive).
+     * Gets true when an email already exists (case-insensitive).
      *
      * @param email email address
      * @return true when email exists

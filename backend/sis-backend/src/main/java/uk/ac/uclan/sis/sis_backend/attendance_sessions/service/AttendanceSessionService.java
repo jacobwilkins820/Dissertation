@@ -32,7 +32,7 @@ public class AttendanceSessionService {
     private final AuthorizationService authorizationService;
 
     /**
-     * Creates the attendance session service.
+     * Sets up the attendance session service.
      *
      * @param attendanceSessionRepository repository for sessions
      * @param academicYearService service for academic year lookup
@@ -54,7 +54,7 @@ public class AttendanceSessionService {
     /**
      * Creates an attendance session.
      *
-     * @param request create request payload
+     * @param request create request body
      * @return created attendance session response
      */
     public AttendanceSessionResponse create(CreateAttendanceSessionRequest request) {
@@ -88,7 +88,7 @@ public class AttendanceSessionService {
     }
 
     /**
-     * Returns an attendance session by id.
+     * Gets an attendance session by id.
      *
      * @param id session id
      * @return attendance session response
@@ -101,7 +101,7 @@ public class AttendanceSessionService {
     }
 
     /**
-     * Returns sessions for a class between two dates.
+     * Gets sessions for a class between two dates.
      *
      * @param classId class id
      * @param from start date
@@ -122,7 +122,7 @@ public class AttendanceSessionService {
     }
 
     /**
-     * Maps a session entity to a response.
+     * Turns a session entity into a response.
      *
      * @param s session entity
      * @return attendance session response
@@ -139,7 +139,7 @@ public class AttendanceSessionService {
     }
 
     /**
-     * Returns the current authenticated user.
+     * Gets the current logged-in user.
      *
      * @return current user principal
      */

@@ -33,7 +33,7 @@ public class EnrolmentService {
     private final AuditLogService auditLogService;
 
     /**
-     * Creates the enrolment service.
+     * Sets up the enrolment service.
      *
      * @param repository repository for enrolments
      * @param em entity manager for references
@@ -54,7 +54,7 @@ public class EnrolmentService {
     /**
      * Creates an enrolment record.
      *
-     * @param req create request payload
+     * @param req create request body
      * @return created enrolment response
      */
     @Transactional
@@ -91,7 +91,7 @@ public class EnrolmentService {
     }
 
     /**
-     * Returns an enrolment by id.
+     * Gets an enrolment by id.
      *
      * @param id enrolment id
      * @return enrolment response
@@ -105,7 +105,7 @@ public class EnrolmentService {
     }
 
     /**
-     * Returns enrolments for a class and academic year.
+     * Gets enrolments for a class and academic year.
      *
      * @param classId class id
      * @param academicYearId academic year id
@@ -127,7 +127,7 @@ public class EnrolmentService {
     }
 
     /**
-     * Returns enrolments for a student and academic year.
+     * Gets enrolments for a student and academic year.
      *
      * @param studentId student id
      * @param academicYearId academic year id
@@ -152,7 +152,7 @@ public class EnrolmentService {
      * Updates an enrolment.
      *
      * @param id enrolment id
-     * @param req update request payload
+     * @param req update request body
      * @return updated enrolment response
      */
     @Transactional
@@ -214,7 +214,7 @@ public class EnrolmentService {
     }
 
     /**
-     * Maps an enrolment entity to a response.
+     * Turns an enrolment entity into a response.
      *
      * @param e enrolment entity
      * @return enrolment response
@@ -233,7 +233,7 @@ public class EnrolmentService {
     }
 
     /**
-     * Returns the current authenticated user.
+     * Gets the current logged-in user.
      *
      * @return current user principal
      */

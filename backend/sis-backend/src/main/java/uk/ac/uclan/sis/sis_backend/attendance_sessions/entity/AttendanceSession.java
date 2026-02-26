@@ -57,7 +57,7 @@ public class AttendanceSession {
     }
 
     /**
-     * Returns the session id.
+     * Gets the session id.
      *
      * @return session id
      */
@@ -66,7 +66,7 @@ public class AttendanceSession {
     }
 
     /**
-     * Returns the academic year entity.
+     * Gets the academic year entity.
      *
      * @return academic year entity
      */
@@ -75,7 +75,7 @@ public class AttendanceSession {
     }
 
     /**
-     * Returns the class entity.
+     * Gets the class entity.
      *
      * @return class entity
      */
@@ -84,7 +84,7 @@ public class AttendanceSession {
     }
 
     /**
-     * Returns the session date.
+     * Gets the session date.
      *
      * @return session date
      */
@@ -93,7 +93,7 @@ public class AttendanceSession {
     }
 
     /**
-     * Returns the session part.
+     * Gets the session part.
      *
      * @return session part
      */

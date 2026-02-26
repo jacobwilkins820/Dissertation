@@ -11,7 +11,7 @@ public class AuthorizationService {
     /**
      * Requires the user to have a specific permission bit.
      *
-     * @param user authenticated user
+     * @param user logged-in user
      * @param permission permission to check
      */
     public void require(User user, int permission) {
@@ -25,7 +25,7 @@ public class AuthorizationService {
     /**
      * Requires the user to have the ADMIN role.
      *
-     * @param user authenticated user
+     * @param user logged-in user
      */
     public void requireAdmin(User user) {
         String roleName = user.getRole() == null ? null : user.getRole().getName();

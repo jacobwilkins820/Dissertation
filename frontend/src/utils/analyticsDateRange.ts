@@ -149,14 +149,14 @@ function parseLocalDateInput(value: string) {
 }
 
 function toStartOfDay(date: Date) {
-  // Normalize time to midnight so date-only comparisons remain stable.
+  // Clean up time to midnight so date-only comparisons remain stable.
   const value = new Date(date);
   value.setHours(0, 0, 0, 0);
   return value;
 }
 
 function startOfWeekMonday(date: Date) {
-  // Converts JS Sunday-first indexing to Monday-first week starts.
+  // Turns JS Sunday-first indexing to Monday-first week starts.
   const value = new Date(date);
   const dayFromMonday = (value.getDay() + 6) % 7;
   value.setDate(value.getDate() - dayFromMonday);

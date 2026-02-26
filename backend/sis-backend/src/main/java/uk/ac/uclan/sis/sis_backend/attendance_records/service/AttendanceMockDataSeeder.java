@@ -36,7 +36,7 @@ public class AttendanceMockDataSeeder {
     private final AttendanceRecordRepository attendanceRecordRepository;
 
     /**
-     * Creates the attendance mock data seeder.
+     * Sets up the attendance mock data seeder.
      *
      * @param academicYearRepository repository for academic years
      * @param classRepository repository for classes

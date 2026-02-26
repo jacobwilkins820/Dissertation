@@ -91,7 +91,7 @@ public class Student {
     }
 
     /**
-     * Returns the student id.
+     * Gets the student id.
      *
      * @return student id
      */
@@ -100,7 +100,7 @@ public class Student {
     }
 
     /**
-     * Returns the unique pupil number.
+     * Gets the unique pupil number.
      *
      * @return unique pupil number
      */
@@ -109,7 +109,7 @@ public class Student {
     }
 
     /**
-     * Returns the first name.
+     * Gets the first name.
      *
      * @return first name
      */
@@ -118,7 +118,7 @@ public class Student {
     }
 
     /**
-     * Returns the last name.
+     * Gets the last name.
      *
      * @return last name
      */
@@ -127,7 +127,7 @@ public class Student {
     }
 
     /**
-     * Returns the date of birth.
+     * Gets the date of birth.
      *
      * @return date of birth
      */
@@ -136,7 +136,7 @@ public class Student {
     }
 
     /**
-     * Returns the gender value.
+     * Gets the gender value.
      *
      * @return gender value
      */
@@ -145,7 +145,7 @@ public class Student {
     }
 
     /**
-     * Returns the student status.
+     * Gets the student status.
      *
      * @return student status
      */
@@ -154,7 +154,7 @@ public class Student {
     }
 
     /**
-     * Returns the created timestamp.
+     * Gets the created timestamp.
      *
      * @return created timestamp
      */
@@ -163,7 +163,7 @@ public class Student {
     }
 
     /**
-     * Returns the updated timestamp.
+     * Gets the updated timestamp.
      *
      * @return updated timestamp
      */

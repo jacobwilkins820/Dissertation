@@ -16,7 +16,7 @@ import uk.ac.uclan.sis.sis_backend.students.entity.StudentStatus;
 public class StudentMapper {
 
     /**
-     * Maps a create request to a student entity.
+     * Turns a create request into a student entity.
      *
      * @param req create request
      * @return student entity
@@ -49,7 +49,7 @@ public class StudentMapper {
     }
 
     /**
-     * Maps a student entity to an API response.
+     * Turns a student entity into an API response.
      *
      * @param s student entity
      * @return student response

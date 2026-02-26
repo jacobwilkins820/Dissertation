@@ -57,7 +57,7 @@ function canonicalColumnName(value: string): keyof CreateStudentRequest | null {
   return null;
 }
 
-// Lightweight CSV parser that supports quoted values
+// Lightweight CSV parser that Handles quoted values
 function parseCsv(text: string): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];
@@ -121,7 +121,7 @@ function normalizeDateValue(value: string): string {
   return trimmed;
 }
 
-// Accepts either ISO or DD-MM-YYYY and converts to ISO. as excel messed with it sometimes when testing.
+// Accepts either ISO or DD-MM-YYYY and Turns to ISO. as excel messed with it sometimes when testing.
 function toIsoDate(value: string): string | null {
   const normalized = normalizeDateValue(value);
   if (!normalized) return null;

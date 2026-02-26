@@ -15,7 +15,7 @@ public class AcademicYearController {
     private final AcademicYearService academicYearService;
 
     /**
-     * Creates the academic year controller.
+     * Sets up the academic year controller.
      *
      * @param academicYearService service for academic year access
      */
@@ -24,7 +24,7 @@ public class AcademicYearController {
     }
 
     /**
-     * Returns the current academic year.
+     * Gets the current academic year.
      *
      * @return academic year response
      */

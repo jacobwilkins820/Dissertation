@@ -1,5 +1,5 @@
-import type { ComponentType, ReactNode } from "react";
-import { useState } from "react";
+import type { ComponentType, KeyboardEvent, ReactNode } from "react";
+import { useId, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Hover-triggered flyout menu link.
@@ -38,16 +38,51 @@ export const FlyoutLink = ({
   caretClassName = "bg-slate-950 border-t border-l border-slate-800/80",
 }: FlyoutLinkProps) => {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement | HTMLAnchorElement>(null);
+  const flyoutId = useId();
   const showFlyout = open && !!FlyoutContent;
+
+  const handleTriggerKeyDown = (
+    event: KeyboardEvent<HTMLButtonElement | HTMLAnchorElement>
+  ) => {
+    if (!FlyoutContent) return;
+
+    if (event.key === "Escape") {
+      setOpen(false);
+      triggerRef.current?.focus();
+    }
+  };
+
+  const handleFlyoutKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Escape") return;
+
+    event.preventDefault();
+    setOpen(false);
+    triggerRef.current?.focus();
+  };
 
   return (
     <div
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
+      onFocus={() => setOpen(true)}
+      onBlur={(event) => {
+        const nextFocused = event.relatedTarget as Node | null;
+        if (nextFocused && event.currentTarget.contains(nextFocused)) return;
+        setOpen(false);
+      }}
       className="group relative h-fit w-fit"
     >
       {href ? (
-        <a href={href} className={`relative ${className}`}>
+        <a
+          ref={triggerRef}
+          href={href}
+          onKeyDown={handleTriggerKeyDown}
+          aria-haspopup={FlyoutContent ? "menu" : undefined}
+          aria-expanded={FlyoutContent ? showFlyout : undefined}
+          aria-controls={FlyoutContent ? flyoutId : undefined}
+          className={`relative rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/70 ${className}`}
+        >
           {children}
           <span
             style={{ transform: showFlyout ? "scaleX(1)" : "scaleX(0)" }}
@@ -55,7 +90,15 @@ export const FlyoutLink = ({
           />
         </a>
       ) : (
-        <button type="button" className={`relative ${className}`}>
+        <button
+          ref={triggerRef}
+          type="button"
+          onKeyDown={handleTriggerKeyDown}
+          aria-haspopup={FlyoutContent ? "menu" : undefined}
+          aria-expanded={FlyoutContent ? showFlyout : undefined}
+          aria-controls={FlyoutContent ? flyoutId : undefined}
+          className={`relative rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/70 ${className}`}
+        >
           {children}
           <span
             style={{ transform: showFlyout ? "scaleX(1)" : "scaleX(0)" }}
@@ -66,9 +109,11 @@ export const FlyoutLink = ({
       <AnimatePresence>
         {showFlyout && (
           <motion.div
+            id={flyoutId}
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 15 }}
+            onKeyDown={handleFlyoutKeyDown}
             style={{ x: "-50%" }}
             className={`absolute left-1/2 top-12 mt-2 ${flyoutClassName}`}
           >

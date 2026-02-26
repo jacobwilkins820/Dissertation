@@ -35,7 +35,7 @@ public class GuardianService {
     private final AuditLogService auditLogService;
 
     /**
-     * Creates the guardian service.
+     * Sets up the guardian service.
      *
      * @param guardianRepository repository for guardian access
      * @param authorizationService service for permission checks
@@ -53,7 +53,7 @@ public class GuardianService {
     /**
      * Creates a guardian.
      *
-     * @param request create request payload
+     * @param request create request body
      * @return created guardian summary
      */
     @Transactional
@@ -74,7 +74,7 @@ public class GuardianService {
     }
 
     /**
-     * Returns a guardian by id with access checks.
+     * Gets a guardian by id with access checks.
      *
      * @param id guardian id
      * @return guardian response
@@ -90,7 +90,7 @@ public class GuardianService {
     }
 
     /**
-     * Returns contact details for a guardian by id.
+     * Gets contact details for a guardian by id.
      *
      * @param id guardian id
      * @return guardian contact response
@@ -104,7 +104,7 @@ public class GuardianService {
     }
 
     /**
-     * Returns a paged list of guardians for admins.
+     * Gets a paged list of guardians for admins.
      *
      * @param q search term
      * @param pageable paging request
@@ -124,7 +124,7 @@ public class GuardianService {
     }
 
     /**
-     * Returns a limited guardian search result list.
+     * Gets a limited guardian search result list.
      *
      * @param query search term
      * @return list of guardian search responses
@@ -151,7 +151,7 @@ public class GuardianService {
      * Updates a guardian by id.
      *
      * @param id guardian id
-     * @param request update request payload
+     * @param request update request body
      * @return updated guardian summary
      */
     @Transactional
@@ -197,7 +197,7 @@ public class GuardianService {
     }
 
     /**
-     * Returns the current authenticated user.
+     * Gets the current logged-in user.
      *
      * @return current user principal
      */
@@ -210,7 +210,7 @@ public class GuardianService {
     }
 
     /**
-     * Returns true when the user has an admin role.
+     * Gets true when the user has an admin role.
      *
      * @param user current user
      * @return true when admin

@@ -70,7 +70,7 @@ public class AttendanceRecord {
     }
 
     /**
-     * Returns the attendance record id.
+     * Gets the attendance record id.
      *
      * @return attendance record id
      */
@@ -79,7 +79,7 @@ public class AttendanceRecord {
     }
 
     /**
-     * Returns the attendance session entity.
+     * Gets the attendance session entity.
      *
      * @return attendance session entity
      */
@@ -97,7 +97,7 @@ public class AttendanceRecord {
     }
 
     /**
-     * Returns the student entity.
+     * Gets the student entity.
      *
      * @return student entity
      */
@@ -115,7 +115,7 @@ public class AttendanceRecord {
     }
 
     /**
-     * Returns the user who marked the record.
+     * Gets the user who marked the record.
      *
      * @return marking user
      */
@@ -133,7 +133,7 @@ public class AttendanceRecord {
     }
 
     /**
-     * Returns the attendance status.
+     * Gets the attendance status.
      *
      * @return attendance status
      */
@@ -151,7 +151,7 @@ public class AttendanceRecord {
     }
 
     /**
-     * Returns the status reason.
+     * Gets the status reason.
      *
      * @return status reason
      */
@@ -169,7 +169,7 @@ public class AttendanceRecord {
     }
 
     /**
-     * Returns the marked timestamp.
+     * Gets the marked timestamp.
      *
      * @return marked timestamp
      */
@@ -187,7 +187,7 @@ public class AttendanceRecord {
     }
 
     /**
-     * Returns the created timestamp.
+     * Gets the created timestamp.
      *
      * @return created timestamp
      */
@@ -196,7 +196,7 @@ public class AttendanceRecord {
     }
 
     /**
-     * Returns the updated timestamp.
+     * Gets the updated timestamp.
      *
      * @return updated timestamp
      */

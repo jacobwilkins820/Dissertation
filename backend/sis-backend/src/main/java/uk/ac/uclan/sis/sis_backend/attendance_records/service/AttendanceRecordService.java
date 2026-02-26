@@ -34,7 +34,7 @@ public class AttendanceRecordService {
     private final AuditLogService auditLogService;
 
     /**
-     * Creates the attendance record service.
+     * Sets up the attendance record service.
      *
      * @param repository repository for attendance records
      * @param em entity manager for references
@@ -55,7 +55,7 @@ public class AttendanceRecordService {
     }
 
     /**
-     * Returns an attendance record by id.
+     * Gets an attendance record by id.
      *
      * @param id record id
      * @return attendance record response
@@ -69,7 +69,7 @@ public class AttendanceRecordService {
     }
 
     /**
-     * Returns records for a session.
+     * Gets records for a session.
      *
      * @param attendanceSessionId session id
      * @return list of attendance record list items
@@ -91,7 +91,7 @@ public class AttendanceRecordService {
     /**
      * Creates an attendance record.
      *
-     * @param req create request payload
+     * @param req create request body
      * @return created attendance record response
      */
     @Transactional
@@ -134,7 +134,7 @@ public class AttendanceRecordService {
      * Updates an attendance record.
      *
      * @param id record id
-     * @param req update request payload
+     * @param req update request body
      * @return updated attendance record response
      */
     @Transactional
@@ -253,7 +253,7 @@ public class AttendanceRecordService {
     }
 
     /**
-     * Maps an attendance record entity to a response.
+     * Turns an attendance record entity into a response.
      *
      * @param r attendance record entity
      * @return attendance record response
@@ -274,7 +274,7 @@ public class AttendanceRecordService {
     }
 
     /**
-     * Returns the current authenticated user.
+     * Gets the current logged-in user.
      *
      * @return current user principal
      */

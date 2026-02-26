@@ -9,12 +9,12 @@ import uk.ac.uclan.sis.sis_backend.guardians.entity.Guardian;
 public final class GuardianMapper {
 
     /**
-     * Prevents instantiation.
+     * No instances.
      */
     private GuardianMapper() {}
 
     /**
-     * Maps a create request to a guardian entity.
+     * Turns a create request into a guardian entity.
      *
      * @param req create request
      * @return guardian entity
@@ -50,7 +50,7 @@ public final class GuardianMapper {
     }
 
     /**
-     * Maps a guardian to a full response.
+     * Turns a guardian into a full response.
      *
      * @param g guardian entity
      * @return guardian response
@@ -72,7 +72,7 @@ public final class GuardianMapper {
     }
 
     /**
-     * Maps a guardian to a contact response.
+     * Turns a guardian into a contact response.
      *
      * @param g guardian entity
      * @return guardian contact response
@@ -88,7 +88,7 @@ public final class GuardianMapper {
     }
 
     /**
-     * Maps a guardian to a search response.
+     * Turns a guardian into a search response.
      *
      * @param g guardian entity
      * @return guardian search response
@@ -116,10 +116,10 @@ public final class GuardianMapper {
     }
 
     /**
-     * Normalizes an email string.
+     * Cleans up an email string.
      *
      * @param email email address
-     * @return normalized email
+     * @return cleaned up email
      */
     private static String normaliseEmail(String email) {
         // Lowercase + trim helps avoid mess.
@@ -128,10 +128,10 @@ public final class GuardianMapper {
     }
 
     /**
-     * Normalizes a phone string.
+     * Cleans up a phone string.
      *
      * @param phone phone number
-     * @return normalized phone
+     * @return cleaned up phone
      */
     private static String normalisePhone(String phone) {
         return trimOrNull(phone);

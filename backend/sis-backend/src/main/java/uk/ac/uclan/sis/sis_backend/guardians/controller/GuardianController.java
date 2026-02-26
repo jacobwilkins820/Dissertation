@@ -21,7 +21,7 @@ public class GuardianController {
     private final GuardianService guardianService;
 
     /**
-     * Creates the guardian controller.
+     * Sets up the guardian controller.
      *
      * @param guardianService service for guardian operations
      */
@@ -32,7 +32,7 @@ public class GuardianController {
     /**
      * Creates a guardian.
      *
-     * @param request create request payload
+     * @param request create request body
      * @return created guardian summary
      */
     @PostMapping
@@ -42,7 +42,7 @@ public class GuardianController {
     }
 
     /**
-     * Returns a guardian by id.
+     * Gets a guardian by id.
      *
      * @param id guardian id
      * @return guardian response
@@ -53,7 +53,7 @@ public class GuardianController {
     }
 
     /**
-     * Returns guardian contact details by id.
+     * Gets guardian contact details by id.
      *
      * @param id guardian id
      * @return guardian contact response
@@ -64,7 +64,7 @@ public class GuardianController {
     }
 
     /**
-     * Returns a paged list of guardians with optional search.
+     * Gets a paged list of guardians with optional search.
      *
      * @param q search term
      * @param pageable paging request
@@ -79,7 +79,7 @@ public class GuardianController {
     }
 
     /**
-     * Returns a limited search list for guardian linking.
+     * Gets a limited search list for guardian linking.
      *
      * @param query search term
      * @return guardian search responses
@@ -92,7 +92,7 @@ public class GuardianController {
     }
 
     /**
-     * Returns a limited search list for guardian linking.
+     * Gets a limited search list for guardian linking.
      *
      * @param query search term
      * @return guardian search responses
@@ -108,7 +108,7 @@ public class GuardianController {
      * Updates a guardian by id.
      *
      * @param id guardian id
-     * @param request update request payload
+     * @param request update request body
      * @return updated guardian summary
      */
     @PutMapping("/{id}")
@@ -116,7 +116,7 @@ public class GuardianController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateGuardianRequest request
     ) {
-        // Update returns a summary response (id + name).
+        // Update Gets a summary response (id + name).
         return ResponseEntity.ok(guardianService.update(id, request));
     }
 

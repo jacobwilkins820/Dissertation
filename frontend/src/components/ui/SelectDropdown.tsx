@@ -11,7 +11,7 @@ type SelectOption = {
   label: string;
 };
 
-// Reusable select dropdown with size variants.
+// Shared select dropdown with size variants.
 type SelectDropdownProps = {
   value: string | number;
   options: SelectOption[];

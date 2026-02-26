@@ -18,7 +18,7 @@ public class AcademicYearService {
     private final AcademicYearRepository academicYearRepository;
 
     /**
-     * Creates the academic year service.
+     * Sets up the academic year service.
      *
      * @param academicYearRepository repository for academic years
      */
@@ -27,7 +27,7 @@ public class AcademicYearService {
     }
 
     /**
-     * Returns the academic year covering the given date.
+     * Gets the academic year covering the given date.
      *
      * @param date target date
      * @return academic year entity
@@ -45,7 +45,7 @@ public class AcademicYearService {
     }
 
     /**
-     * Returns the academic year covering the current date.
+     * Gets the academic year covering the current date.
      *
      * @return academic year entity
      */

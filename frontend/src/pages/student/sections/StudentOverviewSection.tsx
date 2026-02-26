@@ -189,7 +189,7 @@ type FieldRowProps = {
   type?: string;
 };
 
-// Reusable read/edit field row used in identity and enrolment sections.
+// Shared read/edit field row used in identity and enrolment sections.
 function FieldRow({
   label,
   value,

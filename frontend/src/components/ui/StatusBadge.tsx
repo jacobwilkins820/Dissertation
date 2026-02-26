@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-// Generic status badge that maps to consistent colors.
+// Generic status badge that Turns to consistent colors.
 type StatusBadgeProps = {
   value?: string | null;
   children?: ReactNode;

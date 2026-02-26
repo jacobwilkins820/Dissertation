@@ -15,7 +15,7 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     /**
-     * Maps not found errors to a 404 response body.
+     * Turns not found errors to a 404 response body.
      *
      * @param ex thrown exception
      * @return error response
@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Maps forbidden errors to a 403 response body.
+     * Turns forbidden errors to a 403 response body.
      *
      * @param ex thrown exception
      * @return error response
@@ -47,7 +47,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Maps authentication errors to a 401 response body.
+     * Turns authentication errors to a 401 response body.
      *
      * @param ex thrown exception
      * @return error response
@@ -63,7 +63,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Maps bad request errors to a 400 response body.
+     * Turns bad request errors to a 400 response body.
      *
      * @param ex thrown exception
      * @return error response
@@ -79,7 +79,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Maps data integrity violations to a 409 response body.
+     * Turns data integrity violations to a 409 response body.
      *
      * @param ex thrown exception
      * @return error response
@@ -95,7 +95,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Maps SMTP authentication failures to a 502 response body.
+     * Turns SMTP authentication failures to a 502 response body.
      *
      * @param ex thrown exception
      * @return error response
@@ -111,7 +111,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Maps mail send failures to a 502 response body.
+     * Turns mail send failures to a 502 response body.
      *
      * @param ex thrown exception
      * @return error response

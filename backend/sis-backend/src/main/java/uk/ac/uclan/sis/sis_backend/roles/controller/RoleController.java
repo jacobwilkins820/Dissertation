@@ -17,7 +17,7 @@ public class RoleController {
     private final RoleService roleService;
 
     /**
-     * Creates the role controller.
+     * Sets up the role controller.
      *
      * @param roleService service for role operations
      */
@@ -26,7 +26,7 @@ public class RoleController {
     }
 
     /**
-     * Returns all roles.
+     * Gets all roles.
      *
      * @return list of role responses
      */
@@ -36,7 +36,7 @@ public class RoleController {
     }
 
     /**
-     * Returns a role by id.
+     * Gets a role by id.
      *
      * @param id role id
      * @return role response
@@ -49,7 +49,7 @@ public class RoleController {
     /**
      * Creates a role.
      *
-     * @param request create request payload
+     * @param request create request body
      * @return created role response
      */
     @PostMapping
@@ -62,7 +62,7 @@ public class RoleController {
      * Updates a role by id.
      *
      * @param id role id
-     * @param request update request payload
+     * @param request update request body
      * @return updated role response
      */
     @PutMapping("/{id}")

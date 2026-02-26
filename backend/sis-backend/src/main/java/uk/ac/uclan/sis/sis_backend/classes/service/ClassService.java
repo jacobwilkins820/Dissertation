@@ -41,7 +41,7 @@ public class ClassService {
     private final AuditLogService auditLogService;
 
     /**
-     * Creates the class service.
+     * Sets up the class service.
      *
      * @param classRepository repository for class access
      * @param userRepository repository for user access
@@ -70,7 +70,7 @@ public class ClassService {
     /**
      * Creates a class.
      *
-     * @param request create request payload
+     * @param request create request body
      * @return created class response
      */
     @Transactional
@@ -102,7 +102,7 @@ public class ClassService {
     }
 
     /**
-     * Returns all classes as list items.
+     * Gets all classes as list items.
      *
      * @return list of classes
      */
@@ -116,7 +116,7 @@ public class ClassService {
     }
 
     /**
-     * Returns a class by id.
+     * Gets a class by id.
      *
      * @param id class id
      * @return class response
@@ -133,7 +133,7 @@ public class ClassService {
      * Updates a class by id.
      *
      * @param id class id
-     * @param request update request payload
+     * @param request update request body
      * @return updated class response
      */
     @Transactional
@@ -203,7 +203,7 @@ public class ClassService {
      * Uses the current academic year enrolments to determine the class roster.
      *
      * @param id class id
-     * @param request email request payload
+     * @param request email request body
      * @return email send summary
      */
     @Transactional
@@ -281,7 +281,7 @@ public class ClassService {
     }
 
     /**
-     * Returns a teacher user by id or throws.
+     * Gets a teacher user by id or throws.
      *
      * @param teacherId teacher user id
      * @return teacher user
@@ -292,10 +292,10 @@ public class ClassService {
     }
 
     /**
-     * Normalizes an optional class code value.
+     * Cleans up an optional class code value.
      *
      * @param code class code
-     * @return normalized code or null
+     * @return cleaned up code or null
      */
     private String normaliseOptionalCode(String code) {
         if (code == null) return null;
@@ -304,7 +304,7 @@ public class ClassService {
     }
 
     /**
-     * Maps a class entity to a response.
+     * Turns a class entity into a response.
      *
      * @param classEntity class entity
      * @return class response
@@ -335,7 +335,7 @@ public class ClassService {
     }
 
     /**
-     * Returns the current authenticated user.
+     * Gets the current logged-in user.
      *
      * @return current user principal
      */

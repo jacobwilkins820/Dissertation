@@ -185,7 +185,7 @@ export function useStudentGuardians(
       }));
 
       try {
-        // When promoting a new primary, explicitly demote the old one first.
+        // When promoting a new primary, demote the old one first.
         if (needsPrimarySwitch && currentPrimaryId !== null) {
           const currentPrimaryRelationship =
             guardianEdits[currentPrimaryId]?.relationship ??
@@ -274,7 +274,7 @@ export function useStudentGuardians(
       }));
 
       try {
-        // Swap primary status in two calls so backend invariants stay explicit.
+        // Swap primary status in two calls so backend rules stay explicit.
         if (currentPrimaryId !== null) {
           await updateStudentGuardianLink(studentId, currentPrimaryId, {
             relationship: getRelationship(currentPrimaryId).trim(),

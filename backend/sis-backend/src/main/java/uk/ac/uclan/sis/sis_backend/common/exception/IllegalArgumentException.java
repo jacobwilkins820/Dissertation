@@ -23,7 +23,7 @@ public class IllegalArgumentException extends RuntimeException {
     }
 
     /**
-     * Returns the related entity name.
+     * Gets the related entity name.
      *
      * @return entity name
      */

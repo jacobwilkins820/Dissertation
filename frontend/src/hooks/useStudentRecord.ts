@@ -22,7 +22,7 @@ const emptyForm: StudentForm = {
   status: "ACTIVE",
 };
 
-// Handles loading, editing, and saving a single student record.
+// Runs loading, editing, and saving a single student record.
 export function useStudentRecord(
   studentId: number,
   canEditStudent: boolean,
@@ -99,7 +99,7 @@ export function useStudentRecord(
     setStudentError(null);
 
     try {
-      // Trim user-input fields before sending to backend .
+      // Trim user-input fields before sending to backend.
       const payload = {
         upn: formValues.upn.trim(),
         firstName: formValues.firstName.trim(),

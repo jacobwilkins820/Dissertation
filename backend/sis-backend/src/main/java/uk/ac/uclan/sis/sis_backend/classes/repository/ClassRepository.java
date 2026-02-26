@@ -15,7 +15,7 @@ public interface ClassRepository extends JpaRepository<Class, Long> {
     Optional<Class> findByCode(String code);
 
     /**
-     * Returns true when a class code already exists.
+     * Gets true when a class code already exists.
      *
      * @param code class code
      * @return true when code exists

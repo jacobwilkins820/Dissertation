@@ -32,7 +32,7 @@ public class UserService {
     private final AuditLogService auditLogService;
 
     /**
-     * Creates the user service with required dependencies.
+     * Sets up the user service with required dependencies.
      *
      * @param userRepository repository for user access
      * @param roleRepository repository for role access
@@ -54,7 +54,7 @@ public class UserService {
     }
 
     /**
-     * Returns all users as list items.
+     * Gets all users as list items.
      *
      * @return list of users
      */
@@ -67,7 +67,7 @@ public class UserService {
     }
 
     /**
-     * Returns detailed user information by id.
+     * Gets detailed user information by id.
      *
      * @param id user id
      * @return user details
@@ -83,7 +83,7 @@ public class UserService {
     /**
      * Creates a new user.
      *
-     * @param req create request payload
+     * @param req create request body
      * @return created user list item
      */
     @Transactional
@@ -164,7 +164,7 @@ public class UserService {
     /**
      * Creates a guardian record and linked parent user in one transaction.
      *
-     * @param req create request payload
+     * @param req create request body
      * @return created user list item
      */
     @Transactional
@@ -266,7 +266,7 @@ public class UserService {
      * Updates an existing user.
      *
      * @param id user id
-     * @param req update request payload
+     * @param req update request body
      * @return updated user list item
      */
     @Transactional
@@ -344,9 +344,9 @@ public class UserService {
     }
 
     /**
-     * Updates the current authenticated user's profile details.
+     * Updates the current logged-in user's profile details.
      *
-     * @param req update request payload
+     * @param req update request body
      * @return updated user list item
      */
     @Transactional
@@ -431,17 +431,17 @@ public class UserService {
     }
 
     /**
-     * Normalizes email for consistent storage.
+     * Cleans up email for consistent storage.
      *
      * @param email raw email
-     * @return normalized email
+     * @return cleaned up email
      */
     private String normalizeEmail(String email) {
         return email == null ? null : email.trim().toLowerCase();
     }
 
     /**
-     * Maps a user to a list item response.
+     * Turns a user into a list item response.
      *
      * @param u user entity
      * @return list item response
@@ -458,7 +458,7 @@ public class UserService {
     }
 
     /**
-     * Maps a user to a detail response.
+     * Turns a user into a detail response.
      *
      * @param u user entity
      * @return detail response
@@ -475,7 +475,7 @@ public class UserService {
     }
 
     /**
-     * Returns the current authenticated user.
+     * Gets the current logged-in user.
      *
      * @return current user principal
      */

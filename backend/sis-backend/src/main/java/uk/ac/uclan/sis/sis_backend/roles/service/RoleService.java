@@ -26,7 +26,7 @@ public class RoleService {
     private final AuthorizationService authorizationService;
 
     /**
-     * Creates the role service.
+     * Sets up the role service.
      *
      * @param roleRepository repository for role access
      * @param authorizationService service for permission checks
@@ -37,7 +37,7 @@ public class RoleService {
     }
 
     /**
-     * Returns all roles.
+     * Gets all roles.
      *
      * @return list of role responses
      */
@@ -51,7 +51,7 @@ public class RoleService {
     }
 
     /**
-     * Returns a role by id.
+     * Gets a role by id.
      *
      * @param id role id
      * @return role response
@@ -65,7 +65,7 @@ public class RoleService {
     }
 
     /**
-     * Returns a role entity by name.
+     * Gets a role entity by name.
      *
      * @param name role name
      * @return role entity
@@ -80,7 +80,7 @@ public class RoleService {
     /**
      * Creates a role.
      *
-     * @param request create request payload
+     * @param request create request body
      * @return created role response
      */
     public RoleResponse create(CreateRoleRequest request) {
@@ -97,7 +97,7 @@ public class RoleService {
      * Updates a role by id.
      *
      * @param id role id
-     * @param request update request payload
+     * @param request update request body
      * @return updated role response
      */
     public RoleResponse update(Long id, UpdateRoleRequest request) {
@@ -125,7 +125,7 @@ public class RoleService {
     }
 
     /**
-     * Maps a role entity to a response.
+     * Turns a role entity into a response.
      *
      * @param role role entity
      * @return role response
@@ -135,7 +135,7 @@ public class RoleService {
     }
 
     /**
-     * Returns the current authenticated user.
+     * Gets the current logged-in user.
      *
      * @return current user principal
      */

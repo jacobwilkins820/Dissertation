@@ -36,7 +36,7 @@ public class StudentGuardianId implements Serializable {
     }
 
     /**
-     * Returns the student id.
+     * Gets the student id.
      *
      * @return student id
      */
@@ -45,7 +45,7 @@ public class StudentGuardianId implements Serializable {
     }
 
     /**
-     * Returns the guardian id.
+     * Gets the guardian id.
      *
      * @return guardian id
      */
@@ -68,7 +68,7 @@ public class StudentGuardianId implements Serializable {
     }
 
     /**
-     * Returns a hash code for the composite id.
+     * Gets a hash code for the composite id.
      *
      * @return hash code
      */

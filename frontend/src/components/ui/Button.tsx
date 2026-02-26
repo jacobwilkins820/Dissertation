@@ -1,4 +1,4 @@
-// Reusable button with style variants and sizes. ensures consistency across the app.
+// Shared button with style variants and sizes. Makes sure consistency across the app.
 type ButtonProps = {
   variant?: "primary" | "secondary" | "danger" | "ghost";
   size?: "sm" | "md" | "lg";

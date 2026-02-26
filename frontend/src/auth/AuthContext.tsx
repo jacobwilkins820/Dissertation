@@ -13,9 +13,9 @@ import {
 import { getToken, setToken, clearToken } from "../utils/storage";
 import { AuthContext, type AuthContextValue } from "./auth.context";
 
-// Auth provider with login/logout
+// Auth provider with login and logout
 
-// Normalize /me response into the AuthUser shape.
+// Clean up /me response into the AuthUser shape.
 function mapMeToAuthUser(me: MeResponse): AuthUser {
   return {
     id: me.userId,

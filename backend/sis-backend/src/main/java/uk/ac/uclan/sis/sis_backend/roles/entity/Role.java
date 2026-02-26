@@ -33,7 +33,7 @@ public class Role {
     }
 
     /**
-     * Returns the role id.
+     * Gets the role id.
      *
      * @return role id
      */
@@ -42,7 +42,7 @@ public class Role {
     }
 
     /**
-     * Returns the role name.
+     * Gets the role name.
      *
      * @return role name
      */
@@ -51,7 +51,7 @@ public class Role {
     }
 
     /**
-     * Returns the permission bitmask.
+     * Gets the permission bitmask.
      *
      * @return permission level
      */

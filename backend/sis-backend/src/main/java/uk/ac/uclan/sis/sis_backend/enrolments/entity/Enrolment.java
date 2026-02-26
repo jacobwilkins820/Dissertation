@@ -68,7 +68,7 @@ public class Enrolment {
     }
 
     /**
-     * Returns the enrolment id.
+     * Gets the enrolment id.
      *
      * @return enrolment id
      */
@@ -77,7 +77,7 @@ public class Enrolment {
     }
 
     /**
-     * Returns the student entity.
+     * Gets the student entity.
      *
      * @return student entity
      */
@@ -95,7 +95,7 @@ public class Enrolment {
     }
 
     /**
-     * Returns the class entity.
+     * Gets the class entity.
      *
      * @return class entity
      */
@@ -113,7 +113,7 @@ public class Enrolment {
     }
 
     /**
-     * Returns the academic year entity.
+     * Gets the academic year entity.
      *
      * @return academic year entity
      */
@@ -131,7 +131,7 @@ public class Enrolment {
     }
 
     /**
-     * Returns the start date.
+     * Gets the start date.
      *
      * @return start date
      */
@@ -149,7 +149,7 @@ public class Enrolment {
     }
 
     /**
-     * Returns the end date.
+     * Gets the end date.
      *
      * @return end date
      */
@@ -167,7 +167,7 @@ public class Enrolment {
     }
 
     /**
-     * Returns the created timestamp.
+     * Gets the created timestamp.
      *
      * @return created timestamp
      */
@@ -176,7 +176,7 @@ public class Enrolment {
     }
 
     /**
-     * Returns the updated timestamp.
+     * Gets the updated timestamp.
      *
      * @return updated timestamp
      */

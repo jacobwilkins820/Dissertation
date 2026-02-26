@@ -3,7 +3,7 @@ import { useAuth } from "../../auth/UseAuth";
 import { FlyoutLink } from "./Flyout";
 import { hasPermission, Permissions } from "../../utils/permissions";
 
-// Main top navigation with permission-aware links.
+// Main top navigation with permission-based links.
 export default function Navbar() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();

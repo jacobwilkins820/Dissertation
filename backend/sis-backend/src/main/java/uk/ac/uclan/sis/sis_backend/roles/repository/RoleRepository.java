@@ -15,7 +15,7 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
     Optional<Role> findByNameIgnoreCase(String name);
 
     /**
-     * Returns true when a role name already exists (case-insensitive).
+     * Gets true when a role name already exists (case-insensitive).
      *
      * @param name role name
      * @return true when role exists

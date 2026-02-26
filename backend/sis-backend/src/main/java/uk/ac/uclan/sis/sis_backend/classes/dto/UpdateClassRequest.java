@@ -2,7 +2,7 @@ package uk.ac.uclan.sis.sis_backend.classes.dto;
 
 public class UpdateClassRequest {
 
-    // dev note: if teacherId is provided as null explicitly, that means "unassign teacher"
+    // dev note: if teacherId is provided as null , that means "unassign teacher"
     private Long teacherId;
 
     private String name;

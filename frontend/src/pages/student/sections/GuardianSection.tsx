@@ -91,7 +91,7 @@ export function GuardianSection({
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         {guardians.map((guardian) => {
-          // Per-card state derived from hook-managed maps keyed by guardian id.
+          // Per-card state derived from hook-managed Turns keyed by guardian id.
           const edit = guardianEdits[guardian.guardianId];
           const isSaving = guardianSaveState[guardian.guardianId];
           const isPrimary = primaryGuardianId === guardian.guardianId;

@@ -8,7 +8,7 @@ import uk.ac.uclan.sis.sis_backend.audit_log.entity.AuditLog;
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
 
     /**
-     * Returns audit logs by actor user id.
+     * Gets audit logs by actor user id.
      *
      * @param actorUserId actor user id
      * @param pageable paging request
@@ -17,7 +17,7 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
     Page<AuditLog> findByActorUserId(Long actorUserId, Pageable pageable);
 
     /**
-     * Returns audit logs by entity type and id.
+     * Gets audit logs by entity type and id.
      *
      * @param entityType entity type
      * @param entityId entity id
@@ -27,7 +27,7 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
     Page<AuditLog> findByEntityTypeIgnoreCaseAndEntityId(String entityType, Long entityId, Pageable pageable);
 
     /**
-     * Returns audit logs by entity type.
+     * Gets audit logs by entity type.
      *
      * @param entityType entity type
      * @param pageable paging request

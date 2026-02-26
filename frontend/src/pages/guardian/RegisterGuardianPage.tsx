@@ -60,7 +60,7 @@ function extractFieldErrors(payload: unknown): FieldErrors {
   return out;
 }
 
-// Converts the optional text inputs to nullable fields expected by backend.
+// Turns the optional text inputs to nullable fields expected by backend.
 function normalizeOptional(value: string) {
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;

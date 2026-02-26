@@ -41,7 +41,7 @@ public class User {
     private Instant updatedAt = Instant.now();
 
     /**
-     * Returns the role for the user.
+     * Gets the role for the user.
      *
      * @return role entity
      */
@@ -59,7 +59,7 @@ public class User {
     }
 
     /**
-     * Returns the linked guardian id.
+     * Gets the linked guardian id.
      *
      * @return linked guardian id
      */
@@ -77,7 +77,7 @@ public class User {
     }
 
     /**
-     * Returns the user id.
+     * Gets the user id.
      *
      * @return user id
      */
@@ -95,7 +95,7 @@ public class User {
     }
 
     /**
-     * Returns the first name.
+     * Gets the first name.
      *
      * @return first name
      */
@@ -113,7 +113,7 @@ public class User {
     }
 
     /**
-     * Returns the last name.
+     * Gets the last name.
      *
      * @return last name
      */
@@ -131,7 +131,7 @@ public class User {
     }
     
     /**
-     * Returns the email address.
+     * Gets the email address.
      *
      * @return email address
      */
@@ -149,7 +149,7 @@ public class User {
     }
 
     /**
-     * Returns the password hash.
+     * Gets the password hash.
      *
      * @return password hash
      */
@@ -167,7 +167,7 @@ public class User {
     }
 
     /**
-     * Returns whether the user is enabled.
+     * Gets whether the user is enabled.
      *
      * @return true when enabled
      */
@@ -185,7 +185,7 @@ public class User {
     }
 
     /**
-     * Returns the created timestamp.
+     * Gets the created timestamp.
      *
      * @return created timestamp
      */
@@ -203,7 +203,7 @@ public class User {
     }
 
     /**
-     * Returns the updated timestamp.
+     * Gets the updated timestamp.
      *
      * @return updated timestamp
      */

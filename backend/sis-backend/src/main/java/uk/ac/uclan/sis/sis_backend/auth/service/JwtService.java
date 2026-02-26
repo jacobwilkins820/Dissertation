@@ -25,7 +25,7 @@ public class JwtService {
     private final Duration tokenTtl;
 
     /**
-     * Creates the JWT service from configuration.
+     * Sets up the JWT service from configuration.
      *
      * @param secret signing key material
      * @param issuer expected issuer value
@@ -90,7 +90,7 @@ public class JwtService {
     /**
      * Generates a signed JWT for the user.
      *
-     * @param user authenticated user
+     * @param user logged-in user
      * @return signed token string
      */
     public String generateToken(User user) {

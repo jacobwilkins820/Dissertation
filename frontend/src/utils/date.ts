@@ -14,7 +14,7 @@ export function formatDateTime(value?: string | null) {
   return parsed.toLocaleString();
 }
 
-// Converts a Date instance to the backend input shape (YYYY-MM-DD).
+// Turns a Date instance into the backend input shape (YYYY-MM-DD).
 export function formatDateInput(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -22,7 +22,7 @@ export function formatDateInput(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-// Returns today's local date in backend-friendly input format.
+// Gets today's local date in backend-friendly input format.
 export function getLocalDateString() {
   return formatDateInput(new Date());
 }

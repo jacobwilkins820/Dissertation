@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface AttendanceRecordRepository extends JpaRepository<AttendanceRecord, Long> {
 
     /**
-     * Returns records for a session ordered by id.
+     * Gets records for a session ordered by id.
      *
      * @param attendanceSessionId session id
      * @return list of attendance records
@@ -26,7 +26,7 @@ public interface AttendanceRecordRepository extends JpaRepository<AttendanceReco
     Optional<AttendanceRecord> findByAttendanceSession_IdAndStudent_Id(Long attendanceSessionId, Long studentId);
 
     /**
-     * Returns true when a record exists for a session and student.
+     * Gets true when a record exists for a session and student.
      *
      * @param attendanceSessionId session id
      * @param studentId student id

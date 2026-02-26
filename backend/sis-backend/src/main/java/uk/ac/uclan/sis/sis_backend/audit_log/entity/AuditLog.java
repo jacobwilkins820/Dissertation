@@ -30,7 +30,7 @@ public class AuditLog {
     private String details;
 
     /**
-     * Initializes the timestamp on insert when missing.
+     * sets up the timestamp on insert when missing.
      */
     @PrePersist
     void prePersist() {
@@ -60,7 +60,7 @@ public class AuditLog {
     }
 
     /**
-     * Returns the audit log id.
+     * Gets the audit log id.
      *
      * @return audit log id
      */
@@ -69,7 +69,7 @@ public class AuditLog {
     }
 
     /**
-     * Returns the actor user id.
+     * Gets the actor user id.
      *
      * @return actor user id
      */
@@ -87,7 +87,7 @@ public class AuditLog {
     }
 
     /**
-     * Returns the action name.
+     * Gets the action name.
      *
      * @return action name
      */
@@ -105,7 +105,7 @@ public class AuditLog {
     }
 
     /**
-     * Returns the entity type.
+     * Gets the entity type.
      *
      * @return entity type
      */
@@ -123,7 +123,7 @@ public class AuditLog {
     }
 
     /**
-     * Returns the entity id.
+     * Gets the entity id.
      *
      * @return entity id
      */
@@ -141,7 +141,7 @@ public class AuditLog {
     }
 
     /**
-     * Returns the timestamp.
+     * Gets the timestamp.
      *
      * @return timestamp
      */
@@ -159,7 +159,7 @@ public class AuditLog {
     }
 
     /**
-     * Returns the details payload.
+     * Gets the details payload.
      *
      * @return details payload
      */

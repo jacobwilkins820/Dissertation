@@ -9,45 +9,59 @@ import AuthLayout from "./layouts/AuthLayout";
 
 const LoginPage = lazy(() => import("./pages/auth/LoginPage"));
 const RegisterUser = lazy(() => import("./pages/user/RegisterUserPage"));
-const RegisterGuardian = lazy(() => import("./pages/guardian/RegisterGuardianPage"));
-const RegisterStudent = lazy(() => import("./pages/student/RegisterStudentPage"));
-const ImportStudentsPage = lazy(() => import("./pages/student/ImportStudentsPage"));
-const StudentDirectoryPage = lazy(() => import("./pages/student/StudentDirectoryPage"));
+const RegisterGuardian = lazy(
+  () => import("./pages/guardian/RegisterGuardianPage"),
+);
+const RegisterStudent = lazy(
+  () => import("./pages/student/RegisterStudentPage"),
+);
+const ImportStudentsPage = lazy(
+  () => import("./pages/student/ImportStudentsPage"),
+);
+const StudentDirectoryPage = lazy(
+  () => import("./pages/student/StudentDirectoryPage"),
+);
 const StudentPage = lazy(() => import("./pages/student/StudentPage"));
 const ClassesPage = lazy(() => import("./pages/class/ClassesPage"));
 const AddClassPage = lazy(() => import("./pages/class/AddClassPage"));
 const ClassDetailPage = lazy(() => import("./pages/class/ClassDetailPage"));
-const AttendanceRegisterPage = lazy(() => import("./pages/class/AttendanceRegisterPage"));
-const GuardiansSearchPage = lazy(() => import("./pages/guardian/GuardiansSearchPage"));
-const GuardianDetailPage = lazy(() => import("./pages/guardian/GuardianDetailPage"));
+const AttendanceRegisterPage = lazy(
+  () => import("./pages/class/AttendanceRegisterPage"),
+);
+const GuardiansSearchPage = lazy(
+  () => import("./pages/guardian/GuardiansSearchPage"),
+);
+const GuardianDetailPage = lazy(
+  () => import("./pages/guardian/GuardianDetailPage"),
+);
 const AccountPage = lazy(() => import("./pages/account/AccountPage"));
 const StatisticsPage = lazy(() => import("./pages/class/StatisticsPage"));
 const HomePage = lazy(() => import("./pages/home/HomePage"));
 
-// App routes with permission gating + layout composition.
+// App routes with permission checks + layout setup.
 // Main router tree and access control rules.
 export default function App() {
   const { user } = useAuth();
   const permissionLevel = user?.permissionLevel ?? 0;
   const canViewStudents = hasPermission(
     permissionLevel,
-    Permissions.VIEW_STUDENT_DIRECTORY
+    Permissions.VIEW_STUDENT_DIRECTORY,
   );
   const canViewStudentDetails = hasPermission(
     permissionLevel,
-    Permissions.VIEW_STUDENT_DETAILS
+    Permissions.VIEW_STUDENT_DETAILS,
   );
   const canViewClasses = hasPermission(
     permissionLevel,
-    Permissions.VIEW_CLASSES
+    Permissions.VIEW_CLASSES,
   );
   const canCreateStudent = hasPermission(
     permissionLevel,
-    Permissions.CREATE_STUDENT
+    Permissions.CREATE_STUDENT,
   );
   const canCreateGuardian = hasPermission(
     permissionLevel,
-    Permissions.CREATE_GUARDIAN
+    Permissions.CREATE_GUARDIAN,
   );
   const canCreateUser = hasPermission(permissionLevel, Permissions.CREATE_USER);
   const canCreateGuardianAccount = canCreateGuardian && canCreateUser;
@@ -165,7 +179,6 @@ export default function App() {
             }
           />
 
-          {/* placeholders */}
           <Route
             path="/classes"
             element={

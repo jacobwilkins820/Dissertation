@@ -39,7 +39,7 @@ public class AcademicYear {
     }
 
     /**
-     * Returns the academic year id.
+     * Gets the academic year id.
      *
      * @return academic year id
      */
@@ -48,7 +48,7 @@ public class AcademicYear {
     }
 
     /**
-     * Returns the academic year name.
+     * Gets the academic year name.
      *
      * @return academic year name
      */
@@ -57,7 +57,7 @@ public class AcademicYear {
     }
 
     /**
-     * Returns the start date.
+     * Gets the start date.
      *
      * @return start date
      */
@@ -66,7 +66,7 @@ public class AcademicYear {
     }
 
     /**
-     * Returns the end date.
+     * Gets the end date.
      *
      * @return end date
      */

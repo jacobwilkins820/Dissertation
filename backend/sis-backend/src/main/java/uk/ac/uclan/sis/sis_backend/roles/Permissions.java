@@ -2,7 +2,7 @@ package uk.ac.uclan.sis.sis_backend.roles;
 
 public final class Permissions {
     /**
-     * Prevents instantiation.
+     * No instances.
      */
     private Permissions() {}
 
@@ -23,7 +23,7 @@ public final class Permissions {
     public static final int CREATE_USER            = 1 << 11; // 2048
 
     /**
-     * Returns true when the permission bit is set in the mask.
+     * Gets true when the permission bit is set in the mask.
      *
      * @param mask permission mask
      * @param permission permission bit

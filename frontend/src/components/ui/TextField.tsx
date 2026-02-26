@@ -1,4 +1,4 @@
-// Reusable input with size variants.
+// Shared input with size variants.
 type TextFieldProps = {
   size?: "sm" | "md" | "lg";
   className?: string;

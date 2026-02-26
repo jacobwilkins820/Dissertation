@@ -23,9 +23,9 @@ public class AuthController {
     private final MeService meService;
 
     /**
-     * Creates the auth controller.
+     * Sets up the auth controller.
      *
-     * @param authService service for login/logout
+     * @param authService service for login and logout
      * @param meService service for current user lookup
      */
     public AuthController(AuthService authService, MeService meService) {
@@ -34,9 +34,9 @@ public class AuthController {
     }
 
     /**
-     * Authenticates a user and returns a token.
+     * Logs in a user and gets a token.
      *
-     * @param request login request payload
+     * @param request login request body
      * @return login response
      */
     @PostMapping("/login")
@@ -45,7 +45,7 @@ public class AuthController {
     }
 
     /**
-     * Returns a logout confirmation payload.
+     * Gets a logout confirmation payload.
      *
      * @return logout response
      */
@@ -55,7 +55,7 @@ public class AuthController {
     }
 
     /**
-     * Returns details for the current user.
+     * Gets details for the current user.
      *
      * @return current user response
      */

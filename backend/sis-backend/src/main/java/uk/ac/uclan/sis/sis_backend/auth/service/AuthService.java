@@ -18,7 +18,7 @@ public class AuthService {
     private final JwtService jwtService;
 
     /**
-     * Creates the auth service with required dependencies.
+     * Sets up the auth service with required dependencies.
      *
      * @param userRepository repository for user lookups
      * @param passwordEncoder encoder for password verification
@@ -35,9 +35,9 @@ public class AuthService {
     }
 
     /**
-     * Authenticates the user and issues a JWT.
+     * Logs in the user and issues a JWT.
      *
-     * @param request login request payload
+     * @param request login request body
      * @return login response with token and user details
      */
     public LoginResponse login(LoginRequest request) {
@@ -62,7 +62,7 @@ public class AuthService {
     }
 
     /**
-     * Returns a logout confirmation response.
+     * Gets a logout confirmation response.
      *
      * @return logout response
      */

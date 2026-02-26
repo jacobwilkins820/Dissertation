@@ -111,7 +111,7 @@ export default function StudentPage() {
 
   const handleRelationshipChange = useCallback(
     (guardianIdValue: number, value: string) => {
-      // Preserve existing isPrimary value while editing relationship text.
+      // Keep existing isPrimary value while editing relationship text.
       setGuardianEdits((prev) => ({
         ...prev,
         [guardianIdValue]: {

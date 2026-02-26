@@ -21,7 +21,7 @@ type HttpOptions = {
 async function request<TResponse>(
   path: string,
   options: HttpOptions,
-  includeAuth: boolean
+  includeAuth: boolean,
 ): Promise<TResponse> {
   const { method = "GET", body, headers = {}, signal } = options;
 
@@ -69,7 +69,7 @@ async function request<TResponse>(
 // For protected endpoints (default).
 export function http<TResponse>(
   path: string,
-  options: HttpOptions = {}
+  options: HttpOptions = {},
 ): Promise<TResponse> {
   return request<TResponse>(path, options, true);
 }
@@ -77,7 +77,7 @@ export function http<TResponse>(
 // For public endpoints like login/register without a token.
 export function publicHttp<TResponse>(
   path: string,
-  options: HttpOptions = {}
+  options: HttpOptions = {},
 ): Promise<TResponse> {
   return request<TResponse>(path, options, false);
 }

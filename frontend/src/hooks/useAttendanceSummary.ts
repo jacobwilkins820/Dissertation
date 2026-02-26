@@ -25,7 +25,7 @@ export type AttendanceSummary = {
 export type AttendanceRange = AnalyticsRange;
 
 // Loads attendance summary for a student across selectable date windows.
-// The hook fan-outs across enrolments - sessions - records, then reduces counts.
+// The hook loads data across enrolments - sessions - records, then counts totals.
 export function useAttendanceSummary(
   studentId: number,
   canViewAttendance: boolean,
@@ -73,7 +73,7 @@ export function useAttendanceSummary(
           new Set((enrolments ?? []).map((item) => item.classId)),
         );
 
-        // Early exit if student has no classes in the selected period.
+        // Stop early if student has no classes in the selected period.
         if (classIds.length === 0) {
           setAttendanceSummary({
             label,
@@ -94,7 +94,7 @@ export function useAttendanceSummary(
         );
 
         const sessions = sessionLists.flat();
-        // Early exit when classes exist but no sessions were recorded yet.
+        // Stop early when classes exist but no sessions were recorded yet.
         if (sessions.length === 0) {
           setAttendanceSummary({
             label,

@@ -25,7 +25,7 @@ type Props = {
   fieldErrors: IdentityFieldErrors;
 };
 
-// Reusable identity/password field group used by user and guardian creation pages.
+// Shared identity/password field group used by user and guardian creation pages.
 export function AccountIdentityFields({
   firstName,
   onFirstNameChange,

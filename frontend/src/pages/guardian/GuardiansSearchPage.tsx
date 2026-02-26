@@ -9,7 +9,7 @@ import { AlertBanner } from "../../components/ui/AlertBanner";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { SectionCard } from "../../components/ui/SectionCard";
 
-// Guardian search page with permission-aware access.
+// Guardian search page with permission-based access.
 export default function GuardiansSearchPage() {
   const navigate = useNavigate();
   const { user } = useAuth();

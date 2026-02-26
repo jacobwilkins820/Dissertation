@@ -25,7 +25,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     Optional<Student> findByUpn(String upn);
 
     /**
-     * Returns true when a UPN already exists.
+     * Gets true when a UPN already exists.
      *
      * @param upn unique pupil number
      * @return true when UPN exists
@@ -51,7 +51,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     Page<Student> search(@Param("term") String term, Pageable pageable);
 
     /**
-     * Returns students linked to a guardian.
+     * Gets students linked to a guardian.
      *
      * @param guardianId guardian id
      * @param pageable paging request

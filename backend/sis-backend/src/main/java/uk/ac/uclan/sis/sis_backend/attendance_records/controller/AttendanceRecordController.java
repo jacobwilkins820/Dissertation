@@ -15,7 +15,7 @@ public class AttendanceRecordController {
     private final AttendanceRecordService service;
 
     /**
-     * Creates the attendance record controller.
+     * Sets up the attendance record controller.
      *
      * @param service service for attendance records
      */
@@ -24,7 +24,7 @@ public class AttendanceRecordController {
     }
 
     /**
-     * Returns an attendance record by id.
+     * Gets an attendance record by id.
      *
      * @param id record id
      * @return attendance record response
@@ -35,7 +35,7 @@ public class AttendanceRecordController {
     }
 
     /**
-     * Returns records for a session.
+     * Gets records for a session.
      *
      * @param sessionId session id
      * @return list of attendance record list items
@@ -49,7 +49,7 @@ public class AttendanceRecordController {
      * Saves attendance marks for a session in one operation.
      *
      * @param sessionId session id
-     * @param req save request payload
+     * @param req save request body
      * @return saved attendance record responses
      */
     @PutMapping("/attendance-sessions/{sessionId}/attendance-records")
@@ -63,7 +63,7 @@ public class AttendanceRecordController {
     /**
      * Creates an attendance record.
      *
-     * @param req create request payload
+     * @param req create request body
      * @return created attendance record response
      */
     @PostMapping("/attendance-records")
@@ -76,7 +76,7 @@ public class AttendanceRecordController {
      * Updates an attendance record by id.
      *
      * @param id record id
-     * @param req update request payload
+     * @param req update request body
      * @return updated attendance record response
      */
     @PutMapping("/attendance-records/{id}")

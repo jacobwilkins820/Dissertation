@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface EnrolmentRepository extends JpaRepository<Enrolment, Long> {
 
     /**
-     * Returns true when an enrolment exists for a student, class, and academic year.
+     * Gets true when an enrolment exists for a student, class, and academic year.
      *
      * @param studentId student id
      * @param classId class id
@@ -29,7 +29,7 @@ public interface EnrolmentRepository extends JpaRepository<Enrolment, Long> {
     Optional<Enrolment> findByStudent_IdAndClazz_IdAndAcademicYear_Id(Long studentId, Long classId, Long academicYearId);
 
     /**
-     * Returns enrolments for a class and academic year ordered by id.
+     * Gets enrolments for a class and academic year ordered by id.
      *
      * @param classId class id
      * @param academicYearId academic year id
@@ -38,7 +38,7 @@ public interface EnrolmentRepository extends JpaRepository<Enrolment, Long> {
     List<Enrolment> findByClazz_IdAndAcademicYear_IdOrderByIdAsc(Long classId, Long academicYearId);
 
     /**
-     * Returns enrolments for a student and academic year ordered by id.
+     * Gets enrolments for a student and academic year ordered by id.
      *
      * @param studentId student id
      * @param academicYearId academic year id

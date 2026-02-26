@@ -17,7 +17,7 @@ public class StudentGuardianController {
     private final StudentGuardianService studentGuardianService;
 
     /**
-     * Creates the student-guardian controller.
+     * Sets up the student-guardian controller.
      *
      * @param studentGuardianService service for link operations
      */
@@ -30,7 +30,7 @@ public class StudentGuardianController {
      *
      * @param studentId student id
      * @param guardianId guardian id
-     * @param request link request payload
+     * @param request link request body
      * @return student-guardian response
      */
     @PutMapping("/students/{studentId}/guardians/{guardianId}")
@@ -43,7 +43,7 @@ public class StudentGuardianController {
     }
 
     /**
-     * Returns links for a student.
+     * Gets links for a student.
      *
      * @param studentId student id
      * @return list of student-guardian responses
@@ -54,7 +54,7 @@ public class StudentGuardianController {
     }
 
     /**
-     * Returns links for a guardian.
+     * Gets links for a guardian.
      *
      * @param guardianId guardian id
      * @return list of student-guardian responses

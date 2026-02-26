@@ -25,7 +25,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final UserRepository userRepository;
 
     /**
-     * Creates the JWT authentication filter.
+     * Sets up the JWT authentication filter.
      *
      * @param jwtService service for parsing and validating tokens
      * @param userRepository repository for loading user details

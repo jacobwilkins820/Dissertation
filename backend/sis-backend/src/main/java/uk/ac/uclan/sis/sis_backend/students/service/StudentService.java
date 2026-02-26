@@ -31,7 +31,7 @@ public class StudentService {
     private final AuditLogService auditLogService;
 
     /**
-     * Creates the student service.
+     * Sets up the student service.
      *
      * @param repo repository for students
      * @param mapper mapper for DTO conversions
@@ -53,7 +53,7 @@ public class StudentService {
     }
 
     /**
-     * Returns a student by id with access checks.
+     * Gets a student by id with access checks.
      *
      * @param id student id
      * @return student response
@@ -76,7 +76,7 @@ public class StudentService {
     }
 
     /**
-     * Returns a paged list of students filtered by query.
+     * Gets a paged list of students filtered by query.
      *
      * @param q search term
      * @param pageable paging request
@@ -114,7 +114,7 @@ public class StudentService {
     /**
      * Creates a student record.
      *
-     * @param request create request payload
+     * @param request create request body
      * @return created student response
      */
     @Transactional
@@ -140,7 +140,7 @@ public class StudentService {
      * Updates a student record.
      *
      * @param id student id
-     * @param request update request payload
+     * @param request update request body
      * @return updated student response
      */
     @Transactional
@@ -189,7 +189,7 @@ public class StudentService {
     }
 
     /**
-     * Returns the current authenticated user.
+     * Gets the current logged-in user.
      *
      * @return current user principal
      */

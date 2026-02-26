@@ -26,7 +26,7 @@ public interface AttendanceSessionRepository extends JpaRepository<AttendanceSes
     );
 
     /**
-     * Returns sessions for a class between two dates ordered by date.
+     * Gets sessions for a class between two dates ordered by date.
      *
      * @param classId class id
      * @param from start date

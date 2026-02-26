@@ -33,7 +33,7 @@ public class StudentGuardianService {
     private final AuditLogService auditLogService;
 
     /**
-     * Creates the student-guardian service.
+     * Sets up the student-guardian service.
      *
      * @param studentGuardianRepository repository for link access
      * @param studentRepository repository for students
@@ -59,7 +59,7 @@ public class StudentGuardianService {
      *
      * @param studentId student id
      * @param guardianId guardian id
-     * @param request link request payload
+     * @param request link request body
      * @return student-guardian response
      */
     @Transactional
@@ -110,7 +110,7 @@ public class StudentGuardianService {
     }
 
     /**
-     * Returns links for a student.
+     * Gets links for a student.
      *
      * @param studentId student id
      * @return list of student-guardian responses
@@ -143,7 +143,7 @@ public class StudentGuardianService {
     }
 
     /**
-     * Returns links for a guardian.
+     * Gets links for a guardian.
      *
      * @param guardianId guardian id
      * @return list of student-guardian responses
@@ -198,7 +198,7 @@ public class StudentGuardianService {
     }
 
     /**
-     * Maps a link entity to a response.
+     * Turns a link entity into a response.
      *
      * @param link student-guardian link
      * @return student-guardian response
@@ -223,7 +223,7 @@ public class StudentGuardianService {
     }
 
     /**
-     * Returns the current authenticated user.
+     * Gets the current logged-in user.
      *
      * @return current user principal
      */
@@ -236,7 +236,7 @@ public class StudentGuardianService {
     }
 
     /**
-     * Returns true when the user has an admin role.
+     * Gets true when the user has an admin role.
      *
      * @param user current user
      * @return true when admin
@@ -247,7 +247,7 @@ public class StudentGuardianService {
     }
 
     /**
-     * Returns true when the user has a parent role.
+     * Gets true when the user has a parent role.
      *
      * @param user current user
      * @return true when parent

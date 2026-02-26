@@ -16,7 +16,7 @@ public class EnrolmentController {
     private final EnrolmentService service;
 
     /**
-     * Creates the enrolment controller.
+     * Sets up the enrolment controller.
      *
      * @param service service for enrolment operations
      */
@@ -27,7 +27,7 @@ public class EnrolmentController {
     /**
      * Creates an enrolment.
      *
-     * @param req create request payload
+     * @param req create request body
      * @return created enrolment response
      */
     @PostMapping
@@ -37,7 +37,7 @@ public class EnrolmentController {
     }
 
     /**
-     * Returns an enrolment by id.
+     * Gets an enrolment by id.
      *
      * @param id enrolment id
      * @return enrolment response
@@ -48,7 +48,7 @@ public class EnrolmentController {
     }
 
     /**
-     * Returns enrolments for a class and academic year.
+     * Gets enrolments for a class and academic year.
      *
      * @param classId class id
      * @param academicYearId academic year id
@@ -63,7 +63,7 @@ public class EnrolmentController {
     }
 
     /**
-     * Returns enrolments for a student and academic year.
+     * Gets enrolments for a student and academic year.
      *
      * @param studentId student id
      * @param academicYearId academic year id
@@ -81,7 +81,7 @@ public class EnrolmentController {
      * Updates an enrolment by id.
      *
      * @param id enrolment id
-     * @param req update request payload
+     * @param req update request body
      * @return updated enrolment response
      */
     @PutMapping("/{id}")

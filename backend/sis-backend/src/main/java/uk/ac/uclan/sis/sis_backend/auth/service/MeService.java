@@ -16,7 +16,7 @@ public class MeService {
     private final GuardianRepository guardianRepository;
 
     /**
-     * Creates the service for current-user lookups.
+     * Sets up the service for current-user lookups.
      *
      * @param userRepository repository for user access
      * @param guardianRepository repository for guardian links
@@ -27,7 +27,7 @@ public class MeService {
     }
 
     /**
-     * Returns profile details for the authenticated user.
+     * Gets profile details for the logged-in user.
      *
      * @return current user response
      */

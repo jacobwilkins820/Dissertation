@@ -20,9 +20,9 @@ public class SecurityConfig {
   private final JwtAuthFilter jwtAuthFilter;
 
   /**
-   * Creates the security configuration with the JWT filter.
+   * Sets up the security configuration with the JWT filter.
    *
-   * @param jwtAuthFilter filter that authenticates bearer tokens
+   * @param jwtAuthFilter filter that Logs in bearer tokens
    */
   public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
     this.jwtAuthFilter = jwtAuthFilter;

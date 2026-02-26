@@ -1,0 +1,12 @@
+talk about how the backend sql and java object map to each other
+
+talk about migration using the csv imports
+
+talk in detail about how ive containerised it to simplify testing and distribution
+
+
+conclusion and future not d3
+
+talk about how it will be deployed maybe using aws. ask matt if theres any point
+
+talk about having guardian user table instead of having to link guardians and guardian users

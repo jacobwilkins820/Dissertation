@@ -40,7 +40,7 @@ import type {
   UpdateStudentRequest,
 } from "../utils/requests";
 
-// Error shape used by fetchJson when backend returns non-2xx responses.
+// Error shape used by fetchJson when backend Gets non-2xx responses.
 export type FetchJsonError = Error & { payload?: unknown };
 
 // Accepts either absolute URLs or API-relative paths.
@@ -48,7 +48,7 @@ function buildUrl(path: string) {
   return path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
 }
 
-// Backend occasionally returns null for list endpoints; normalize to []
+// Backend occasionally returns null for list endpoints; Clean up to []
 function ensureArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
 }
@@ -74,7 +74,7 @@ export async function fetchJson<T>(
   });
 
   if (!res.ok) {
-    // Normalize server error payloads into Error.message while preserving payload.
+    // Clean up server error payloads into Error.message while preserving payload.
     const payload = await safeReadJson(res);
     const err = new Error(extractErrorMessage(payload)) as FetchJsonError;
     err.payload = payload;
@@ -132,7 +132,7 @@ export async function getStudentsPage<T>(
   );
 
   if (!payload || !Array.isArray(payload.content)) {
-    // Guard against malformed payloads before rendering paginated tables.
+    // Guard against bad payloads before rendering paginated tables.
     throw new Error("Unexpected response from server.");
   }
 

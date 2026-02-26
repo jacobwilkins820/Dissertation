@@ -14,7 +14,7 @@ public class ClassController {
     private final ClassService classService;
 
     /**
-     * Creates the class controller.
+     * Sets up the class controller.
      *
      * @param classService service for class operations
      */
@@ -25,7 +25,7 @@ public class ClassController {
     /**
      * Creates a class.
      *
-     * @param request create request payload
+     * @param request create request body
      * @return created class response
      */
     @PostMapping
@@ -35,7 +35,7 @@ public class ClassController {
     }
 
     /**
-     * Returns all classes as list items.
+     * Gets all classes as list items.
      *
      * @return list of class list items
      */
@@ -45,7 +45,7 @@ public class ClassController {
     }
 
     /**
-     * Returns a class by id.
+     * Gets a class by id.
      *
      * @param id class id
      * @return class response
@@ -59,7 +59,7 @@ public class ClassController {
      * Updates a class by id.
      *
      * @param id class id
-     * @param request update request payload
+     * @param request update request body
      * @return updated class response
      */
     @PutMapping("/{id}")

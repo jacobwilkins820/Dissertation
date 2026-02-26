@@ -15,7 +15,7 @@ public class UserController {
     private final UserService userService;
 
     /**
-     * Creates the user controller.
+     * Sets up the user controller.
      *
      * @param userService service for user operations
      */
@@ -24,7 +24,7 @@ public class UserController {
     }
 
     /**
-     * Returns all users.
+     * Gets all users.
      *
      * @return list of users
      */
@@ -34,7 +34,7 @@ public class UserController {
     }
 
     /**
-     * Returns a user by id.
+     * Gets a user by id.
      *
      * @param id user id
      * @return user details
@@ -47,7 +47,7 @@ public class UserController {
     /**
      * Creates a user.
      *
-     * @param req create request payload
+     * @param req create request body
      * @return created user list item
      */
     @PostMapping
@@ -59,7 +59,7 @@ public class UserController {
     /**
      * Creates a guardian and linked parent user in one action.
      *
-     * @param req create request payload
+     * @param req create request body
      * @return created user list item
      */
     @PostMapping("/guardian-account")
@@ -72,7 +72,7 @@ public class UserController {
      * Updates a user.
      *
      * @param id user id
-     * @param req update request payload
+     * @param req update request body
      * @return updated user list item
      */
     @PutMapping("/{id}")
@@ -82,9 +82,9 @@ public class UserController {
     }
 
     /**
-     * Updates the current authenticated user's profile details.
+     * Updates the current logged-in user's profile details.
      *
-     * @param req update request payload
+     * @param req update request body
      * @return updated user list item
      */
     @PutMapping("/me")

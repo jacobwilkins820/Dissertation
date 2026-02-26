@@ -22,7 +22,7 @@ public class AuditLogController {
     private final AuthorizationService authorizationService;
 
     /**
-     * Creates the audit log controller.
+     * Sets up the audit log controller.
      *
      * @param auditLogService service for audit logs
      */
@@ -35,7 +35,7 @@ public class AuditLogController {
     }
 
     /**
-     * Returns all audit logs.
+     * Gets all audit logs.
      *
      * @param pageable paging request
      * @return page of audit log responses
@@ -46,7 +46,7 @@ public class AuditLogController {
     }
 
     /**
-     * Returns audit logs by actor user id.
+     * Gets audit logs by actor user id.
      *
      * @param actorUserId actor user id
      * @param pageable paging request
@@ -58,7 +58,7 @@ public class AuditLogController {
     }
 
     /**
-     * Returns audit logs by entity type and id.
+     * Gets audit logs by entity type and id.
      *
      * @param entityType entity type
      * @param entityId entity id
@@ -77,7 +77,7 @@ public class AuditLogController {
     /**
      * Creates an audit log entry (internal/testing).
      *
-     * @param req create request payload
+     * @param req create request body
      */
     @PostMapping
     public void create(@Valid @RequestBody CreateAuditLogRequest req) {

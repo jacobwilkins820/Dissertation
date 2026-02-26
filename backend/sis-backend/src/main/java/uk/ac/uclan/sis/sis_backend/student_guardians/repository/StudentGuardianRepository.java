@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface StudentGuardianRepository extends JpaRepository<StudentGuardian, StudentGuardianId> {
 
     /**
-     * Returns links by student id.
+     * Gets links by student id.
      *
      * @param studentId student id
      * @return list of links
@@ -22,7 +22,7 @@ public interface StudentGuardianRepository extends JpaRepository<StudentGuardian
     List<StudentGuardian> findByIdStudentId(Long studentId);
 
     /**
-     * Returns links by guardian id.
+     * Gets links by guardian id.
      *
      * @param guardianId guardian id
      * @return list of links
@@ -57,7 +57,7 @@ public interface StudentGuardianRepository extends JpaRepository<StudentGuardian
     int clearOtherPrimaryGuardians(Long studentId, Long guardianId);
 
     /**
-     * Returns distinct guardian email addresses for a list of students.
+     * Gets distinct guardian email addresses for a list of students.
      *
      * @param studentIds student ids
      * @return distinct, lower-cased emails

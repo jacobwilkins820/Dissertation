@@ -66,7 +66,7 @@ export function CsvTemplateDownload() {
         rows.
       </p>
       <div>
-        <Button type="button" variant="secondary" onClick={downloadTemplate}>
+        <Button type="button" variant="primary" onClick={downloadTemplate}>
           Download template
         </Button>
       </div>

@@ -25,7 +25,7 @@ public class StudentController {
     private final StudentService service;
 
     /**
-     * Creates the student controller.
+     * Sets up the student controller.
      *
      * @param service service for student operations
      */
@@ -34,7 +34,7 @@ public class StudentController {
     }
 
     /**
-     * Returns a page of students with optional search.
+     * Gets a page of students with optional search.
      *
      * @param q search term
      * @param pageable paging request
@@ -50,7 +50,7 @@ public class StudentController {
 
 
     /**
-     * Returns a student by id.
+     * Gets a student by id.
      *
      * @param id student id
      * @return student response
@@ -63,7 +63,7 @@ public class StudentController {
     /**
      * Creates a new student.
      *
-     * @param request create request payload
+     * @param request create request body
      * @return created student response
      */
     @PostMapping
@@ -76,7 +76,7 @@ public class StudentController {
      * Updates a student.
      *
      * @param id student id
-     * @param request update request payload
+     * @param request update request body
      * @return updated student response
      */
     @PutMapping("/{id}")

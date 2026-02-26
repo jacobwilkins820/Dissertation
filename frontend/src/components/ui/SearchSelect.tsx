@@ -3,7 +3,7 @@ import { Button } from "./Button";
 import { TextField } from "./TextField";
 import { getErrorMessage } from "../../utils/utilFuncs";
 
-// Generic async search select with debounce + optional summary.
+// Generic search select with debounce and optional summary.
 type SearchSelectProps<T> = {
   label: string;
   placeholder?: string;
@@ -145,23 +145,25 @@ export function SearchSelect<T>({
       )}
 
       {showResults && results.length > 0 && (
-        <div className="grid gap-2">
+        <div className="grid gap-2 bg-slate-900/70 rounded-2xl border border-slate-800/80 p-3">
           {(maxResults ? results.slice(0, maxResults) : results).map((item) => {
             const key = getOptionKey(item);
             const labelText = getOptionLabel(item);
             const isSelected = selectedKey === key;
 
             return (
-              <button
+              <Button
                 key={String(key)}
                 type="button"
+                variant="secondary"
+                size="md"
                 onClick={() => onSelect(item)}
-                className={`rounded-2xl border border-slate-800/80 px-3 py-2 text-left text-sm text-slate-200 transition ${
+                className={`w-full justify-start rounded-2xl border-slate-800/80 px-3 py-2 text-left text-sm font-normal normal-case tracking-normal ${
                   isSelected ? "bg-slate-900/70" : "bg-transparent"
                 }`}
               >
                 {labelText}
-              </button>
+              </Button>
             );
           })}
         </div>

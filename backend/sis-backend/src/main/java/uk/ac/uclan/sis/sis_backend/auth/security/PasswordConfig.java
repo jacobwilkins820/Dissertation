@@ -9,7 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class PasswordConfig {
 
     /**
-     * Provides a password encoder for hashing user credentials.
+     * Gives a password encoder for hashing user credentials.
      *
      * @return BCrypt password encoder with strength 10
      */

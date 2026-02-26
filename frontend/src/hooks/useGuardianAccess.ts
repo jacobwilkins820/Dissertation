@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getGuardianStudents } from "../services/backend";
 import { getErrorMessage } from "../utils/utilFuncs";
 
-// Resolves whether the currently signed-in guardian can access a given student record.
+// Checks whether the currently signed-in guardian can access a given student record.
 // Non-guardian users are allowed immediately; guardians require a relationship lookup.
 export function useGuardianAccess(
   studentId: number,

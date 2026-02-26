@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
 
     /**
-     * Returns true when an email already exists (case-insensitive).
+     * Gets true when an email already exists (case-insensitive).
      *
      * @param email email address
      * @return true when email exists
@@ -27,7 +27,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmailIgnoreCase(String email);
 
     /**
-     * Returns all users with roles eagerly loaded.
+     * Gets all users with roles eagerly loaded.
      *
      * @return list of users with roles
      */
@@ -35,7 +35,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findAllWithRole();
 
     /**
-     * Returns a user by id with the role eagerly loaded.
+     * Gets a user by id with the role eagerly loaded.
      *
      * @param id user id
      * @return matching user, when present

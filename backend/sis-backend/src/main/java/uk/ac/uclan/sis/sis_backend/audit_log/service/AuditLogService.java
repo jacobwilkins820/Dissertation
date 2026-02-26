@@ -22,7 +22,7 @@ public class AuditLogService {
     private final AuthorizationService authorizationService;
 
     /**
-     * Creates the audit log service.
+     * Sets up the audit log service.
      *
      * @param auditLogRepository repository for audit logs
      * @param authorizationService service for permission checks
@@ -63,7 +63,7 @@ public class AuditLogService {
     }
 
     /**
-     * Returns all audit logs.
+     * Gets all audit logs.
      *
      * @param pageable paging request
      * @return page of audit log responses
@@ -75,7 +75,7 @@ public class AuditLogService {
     }
 
     /**
-     * Returns audit logs by actor user id.
+     * Gets audit logs by actor user id.
      *
      * @param actorUserId actor user id
      * @param pageable paging request
@@ -88,7 +88,7 @@ public class AuditLogService {
     }
 
     /**
-     * Returns audit logs by entity.
+     * Gets audit logs by entity.
      *
      * @param entityType entity type
      * @param entityId entity id
@@ -102,7 +102,7 @@ public class AuditLogService {
     }
 
     /**
-     * Maps an audit log entity to a response.
+     * Turns an audit log entity into a response.
      *
      * @param e audit log entity
      * @return audit log response
@@ -120,7 +120,7 @@ public class AuditLogService {
     }
 
     /**
-     * Returns the current authenticated user.
+     * Gets the current logged-in user.
      *
      * @return current user principal
      */
@@ -133,7 +133,7 @@ public class AuditLogService {
     }
 
     /**
-     * Resolves the actor id for an audit entry.
+     * Checks the actor id for an audit entry.
      * Non-admin users can only log as themselves.
      */
     private Long resolveActorUserId(Long requestedActorUserId, User user) {

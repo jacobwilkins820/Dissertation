@@ -18,7 +18,7 @@ public class AttendanceSessionController {
     private final AttendanceSessionService attendanceSessionService;
 
     /**
-     * Creates the attendance session controller.
+     * Sets up the attendance session controller.
      *
      * @param attendanceSessionService service for attendance sessions
      */
@@ -29,7 +29,7 @@ public class AttendanceSessionController {
     /**
      * Creates an attendance session.
      *
-     * @param request create request payload
+     * @param request create request body
      * @return created attendance session response
      */
     @PostMapping
@@ -39,7 +39,7 @@ public class AttendanceSessionController {
     }
 
     /**
-     * Returns an attendance session by id.
+     * Gets an attendance session by id.
      *
      * @param id session id
      * @return attendance session response
@@ -50,7 +50,7 @@ public class AttendanceSessionController {
     }
 
     /**
-     * Returns sessions for a class between two dates.
+     * Gets sessions for a class between two dates.
      *
      * @param classId class id
      * @param from start date

@@ -82,7 +82,7 @@ public class Guardian {
     // --- getters/setters ---
 
     /**
-     * Returns the guardian id.
+     * Gets the guardian id.
      *
      * @return guardian id
      */
@@ -91,7 +91,7 @@ public class Guardian {
     }
 
     /**
-     * Returns the first name.
+     * Gets the first name.
      *
      * @return first name
      */
@@ -109,7 +109,7 @@ public class Guardian {
     }
 
     /**
-     * Returns the last name.
+     * Gets the last name.
      *
      * @return last name
      */
@@ -127,7 +127,7 @@ public class Guardian {
     }
 
     /**
-     * Returns the email address.
+     * Gets the email address.
      *
      * @return email address
      */
@@ -145,7 +145,7 @@ public class Guardian {
     }
 
     /**
-     * Returns the phone number.
+     * Gets the phone number.
      *
      * @return phone number
      */
@@ -163,7 +163,7 @@ public class Guardian {
     }
 
     /**
-     * Returns address line 1.
+     * Gets address line 1.
      *
      * @return address line 1
      */
@@ -181,7 +181,7 @@ public class Guardian {
     }
 
     /**
-     * Returns address line 2.
+     * Gets address line 2.
      *
      * @return address line 2
      */
@@ -199,7 +199,7 @@ public class Guardian {
     }
 
     /**
-     * Returns the city.
+     * Gets the city.
      *
      * @return city
      */
@@ -217,7 +217,7 @@ public class Guardian {
     }
 
     /**
-     * Returns the postcode.
+     * Gets the postcode.
      *
      * @return postcode
      */
@@ -235,7 +235,7 @@ public class Guardian {
     }
 
     /**
-     * Returns the created timestamp.
+     * Gets the created timestamp.
      *
      * @return created timestamp
      */
@@ -244,7 +244,7 @@ public class Guardian {
     }
 
     /**
-     * Returns the updated timestamp.
+     * Gets the updated timestamp.
      *
      * @return updated timestamp
      */

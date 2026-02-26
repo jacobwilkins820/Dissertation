@@ -3,7 +3,7 @@ import { AlertBanner } from "../ui/AlertBanner";
 import { Button } from "../ui/Button";
 import { TextField } from "../ui/TextField";
 
-// Modal for composing and sending class-wide  emails.
+// Modal for composing and sending class-wide emails.
 type EmailParentsModalProps = {
   open: boolean;
   subject: string;

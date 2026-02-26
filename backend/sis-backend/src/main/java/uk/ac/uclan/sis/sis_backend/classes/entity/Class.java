@@ -27,7 +27,7 @@ public class Class {
     private boolean active = true;
 
     /**
-     * Returns the class id.
+     * Gets the class id.
      *
      * @return class id
      */
@@ -36,7 +36,7 @@ public class Class {
     }
 
     /**
-     * Returns the teacher user.
+     * Gets the teacher user.
      *
      * @return teacher user
      */
@@ -54,7 +54,7 @@ public class Class {
     }
 
     /**
-     * Returns the class name.
+     * Gets the class name.
      *
      * @return class name
      */
@@ -72,7 +72,7 @@ public class Class {
     }
 
     /**
-     * Returns the class code.
+     * Gets the class code.
      *
      * @return class code
      */
@@ -90,7 +90,7 @@ public class Class {
     }
 
     /**
-     * Returns whether the class is active.
+     * Gets whether the class is active.
      *
      * @return true when active
      */
