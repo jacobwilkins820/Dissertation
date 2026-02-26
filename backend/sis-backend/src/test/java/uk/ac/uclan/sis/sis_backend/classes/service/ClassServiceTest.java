@@ -11,7 +11,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
+import uk.ac.uclan.sis.sis_backend.academic_years.service.AcademicYearService;
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
+import uk.ac.uclan.sis.sis_backend.audit_log.service.AuditLogService;
 import uk.ac.uclan.sis.sis_backend.classes.dto.ClassListItemResponse;
 import uk.ac.uclan.sis.sis_backend.classes.dto.ClassResponse;
 import uk.ac.uclan.sis.sis_backend.classes.dto.CreateClassRequest;
@@ -19,7 +21,10 @@ import uk.ac.uclan.sis.sis_backend.classes.dto.UpdateClassRequest;
 import uk.ac.uclan.sis.sis_backend.classes.entity.Class;
 import uk.ac.uclan.sis.sis_backend.classes.repository.ClassRepository;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
+import uk.ac.uclan.sis.sis_backend.email.service.EmailService;
+import uk.ac.uclan.sis.sis_backend.enrolments.repository.EnrolmentRepository;
 import uk.ac.uclan.sis.sis_backend.roles.entity.Role;
+import uk.ac.uclan.sis.sis_backend.student_guardians.repository.StudentGuardianRepository;
 import uk.ac.uclan.sis.sis_backend.users.entity.User;
 import uk.ac.uclan.sis.sis_backend.users.repository.UserRepository;
 
@@ -40,6 +45,21 @@ class ClassServiceTest {
 
     @Mock
     private AuthorizationService authorizationService;
+
+    @Mock
+    private EnrolmentRepository enrolmentRepository;
+
+    @Mock
+    private StudentGuardianRepository studentGuardianRepository;
+
+    @Mock
+    private AcademicYearService academicYearService;
+
+    @Mock
+    private EmailService emailService;
+
+    @Mock
+    private AuditLogService auditLogService;
 
     @InjectMocks
     private ClassService service;
@@ -223,7 +243,7 @@ class ClassServiceTest {
 
     @Test
     void delete_missingThrows() {
-        when(classRepository.existsById(3L)).thenReturn(false);
+        when(classRepository.findById(3L)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> service.delete(3L));
         verify(classRepository, never()).deleteById(anyLong());
@@ -231,7 +251,9 @@ class ClassServiceTest {
 
     @Test
     void delete_existingDeletes() {
-        when(classRepository.existsById(3L)).thenReturn(true);
+        Class c = new Class();
+        c.setName("Maths");
+        when(classRepository.findById(3L)).thenReturn(Optional.of(c));
 
         service.delete(3L);
 

@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
+import uk.ac.uclan.sis.sis_backend.audit_log.service.AuditLogService;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
 import uk.ac.uclan.sis.sis_backend.guardians.entity.Guardian;
 import uk.ac.uclan.sis.sis_backend.guardians.repository.GuardianRepository;
@@ -47,6 +48,9 @@ class StudentGuardianServiceTest {
 
     @Mock
     private AuthorizationService authorizationService;
+
+    @Mock
+    private AuditLogService auditLogService;
 
     @InjectMocks
     private StudentGuardianService service;
@@ -87,7 +91,7 @@ class StudentGuardianServiceTest {
         assertEquals(student, saved.getStudent());
         assertEquals(guardian, saved.getGuardian());
 
-        verify(studentGuardianRepository).clearOtherPrimaryGuardians(1L, 2L);
+        verify(studentGuardianRepository, times(2)).clearOtherPrimaryGuardians(1L, 2L);
 
         assertEquals("Amy", response.getStudentFirstName());
         assertEquals("Adams", response.getStudentLastName());

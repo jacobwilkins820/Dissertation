@@ -15,7 +15,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
+import uk.ac.uclan.sis.sis_backend.audit_log.service.AuditLogService;
 import uk.ac.uclan.sis.sis_backend.roles.entity.Role;
+import uk.ac.uclan.sis.sis_backend.student_guardians.repository.StudentGuardianRepository;
 import uk.ac.uclan.sis.sis_backend.students.dto.CreateStudentRequest;
 import uk.ac.uclan.sis.sis_backend.students.dto.StudentResponse;
 import uk.ac.uclan.sis.sis_backend.students.dto.UpdateStudentRequest;
@@ -44,6 +46,12 @@ class StudentServiceTest {
 
     @Mock
     private AuthorizationService authorizationService;
+
+    @Mock
+    private StudentGuardianRepository studentGuardianRepository;
+
+    @Mock
+    private AuditLogService auditLogService;
 
     @InjectMocks
     private StudentService service;
@@ -263,7 +271,7 @@ class StudentServiceTest {
 
     @Test
     void delete_missingThrows404() {
-        when(repository.existsById(10L)).thenReturn(false);
+        when(repository.findById(10L)).thenReturn(Optional.empty());
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> service.delete(10L));
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
@@ -272,7 +280,9 @@ class StudentServiceTest {
 
     @Test
     void delete_existingDeletes() {
-        when(repository.existsById(10L)).thenReturn(true);
+        Student existing = new Student();
+        existing.setUpn("U10");
+        when(repository.findById(10L)).thenReturn(Optional.of(existing));
 
         service.delete(10L);
 

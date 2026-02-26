@@ -20,7 +20,9 @@ import uk.ac.uclan.sis.sis_backend.attendance_records.dto.UpdateAttendanceRecord
 import uk.ac.uclan.sis.sis_backend.attendance_records.entity.AttendanceRecord;
 import uk.ac.uclan.sis.sis_backend.attendance_records.repository.AttendanceRecordRepository;
 import uk.ac.uclan.sis.sis_backend.attendance_sessions.entity.AttendanceSession;
+import uk.ac.uclan.sis.sis_backend.attendance_sessions.repository.AttendanceSessionRepository;
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
+import uk.ac.uclan.sis.sis_backend.audit_log.service.AuditLogService;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
 import uk.ac.uclan.sis.sis_backend.roles.entity.Role;
 import uk.ac.uclan.sis.sis_backend.students.entity.Student;
@@ -43,7 +45,13 @@ class AttendanceRecordServiceTest {
     private EntityManager em;
 
     @Mock
+    private AttendanceSessionRepository attendanceSessionRepository;
+
+    @Mock
     private AuthorizationService authorizationService;
+
+    @Mock
+    private AuditLogService auditLogService;
 
     @InjectMocks
     private AttendanceRecordService service;
@@ -208,7 +216,12 @@ class AttendanceRecordServiceTest {
 
     @Test
     void delete_existingDeletes() {
-        when(repository.existsById(3L)).thenReturn(true);
+        AttendanceSession session = mock(AttendanceSession.class);
+        Student student = mock(Student.class);
+        when(session.getId()).thenReturn(11L);
+        when(student.getId()).thenReturn(22L);
+        AttendanceRecord record = buildRecord(3L, session, student, AttendanceStatus.PRESENT, null);
+        when(repository.findById(3L)).thenReturn(Optional.of(record));
 
         service.delete(3L);
 
@@ -217,7 +230,7 @@ class AttendanceRecordServiceTest {
 
     @Test
     void delete_missingThrows() {
-        when(repository.existsById(3L)).thenReturn(false);
+        when(repository.findById(3L)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> service.delete(3L));
         verify(repository, never()).deleteById(anyLong());

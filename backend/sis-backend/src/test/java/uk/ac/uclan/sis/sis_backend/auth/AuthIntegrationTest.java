@@ -43,6 +43,9 @@ import uk.ac.uclan.sis.sis_backend.roles.Permissions;
 import uk.ac.uclan.sis.sis_backend.roles.entity.Role;
 import uk.ac.uclan.sis.sis_backend.students.entity.Student;
 import uk.ac.uclan.sis.sis_backend.students.repository.StudentRepository;
+import uk.ac.uclan.sis.sis_backend.student_guardians.repository.StudentGuardianRepository;
+import uk.ac.uclan.sis.sis_backend.guardians.repository.GuardianRepository;
+import uk.ac.uclan.sis.sis_backend.audit_log.service.AuditLogService;
 import uk.ac.uclan.sis.sis_backend.users.entity.User;
 import uk.ac.uclan.sis.sis_backend.users.repository.UserRepository;
 
@@ -76,6 +79,15 @@ class AuthIntegrationTest {
 
     @MockBean
     private StudentRepository studentRepository;
+
+    @MockBean
+    private GuardianRepository guardianRepository;
+
+    @MockBean
+    private StudentGuardianRepository studentGuardianRepository;
+
+    @MockBean
+    private AuditLogService auditLogService;
 
     private User viewer;
     private User admin;
@@ -113,17 +125,18 @@ class AuthIntegrationTest {
             ReflectionTestUtils.setField(student, "id", 10L);
             return student;
         });
+        when(guardianRepository.existsById(anyLong())).thenReturn(true);
     }
 
     @Test
     void viewer_can_list_but_cannot_create_students() throws Exception {
         String token = login("viewer@example.com", "viewerpass");
 
-        mockMvc.perform(get("/api/v1/students")
+        mockMvc.perform(get("/api/students")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(post("/api/v1/students")
+        mockMvc.perform(post("/api/students")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createStudentJson("U1")))
@@ -134,7 +147,7 @@ class AuthIntegrationTest {
     void admin_can_create_students() throws Exception {
         String token = login("admin@example.com", "adminpass");
 
-        mockMvc.perform(post("/api/v1/students")
+        mockMvc.perform(post("/api/students")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createStudentJson("U2")))

@@ -12,7 +12,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
+import uk.ac.uclan.sis.sis_backend.audit_log.service.AuditLogService;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
+import uk.ac.uclan.sis.sis_backend.guardians.repository.GuardianRepository;
 import uk.ac.uclan.sis.sis_backend.roles.entity.Role;
 import uk.ac.uclan.sis.sis_backend.roles.repository.RoleRepository;
 import uk.ac.uclan.sis.sis_backend.users.dto.CreateUserRequest;
@@ -39,10 +41,16 @@ class UserServiceTest {
     private RoleRepository roleRepository;
 
     @Mock
+    private GuardianRepository guardianRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
     private AuthorizationService authorizationService;
+
+    @Mock
+    private AuditLogService auditLogService;
 
     @InjectMocks
     private UserService userService;
@@ -144,7 +152,7 @@ class UserServiceTest {
 
         when(userRepository.existsByEmailIgnoreCase("user@example.com")).thenReturn(true);
 
-        assertThrows(IllegalArgumentException.class, () -> userService.create(req));
+        assertThrows(uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException.class, () -> userService.create(req));
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -157,7 +165,7 @@ class UserServiceTest {
 
         when(roleRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> userService.create(req));
+        assertThrows(uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException.class, () -> userService.create(req));
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -238,7 +246,7 @@ class UserServiceTest {
         when(userRepository.findByIdWithRole(1L)).thenReturn(Optional.of(user));
         when(roleRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> userService.update(1L, req));
+        assertThrows(uk.ac.uclan.sis.sis_backend.common.exception.IllegalArgumentException.class, () -> userService.update(1L, req));
     }
 
     @Test
@@ -266,7 +274,9 @@ class UserServiceTest {
 
     @Test
     void delete_existingUserDeletes() {
-        when(userRepository.existsById(5L)).thenReturn(true);
+        Role role = new Role("ADMIN", 1);
+        User user = buildUser(5L, "user@example.com", role);
+        when(userRepository.findByIdWithRole(5L)).thenReturn(Optional.of(user));
 
         userService.delete(5L);
 
@@ -275,7 +285,7 @@ class UserServiceTest {
 
     @Test
     void delete_missingUserThrows() {
-        when(userRepository.existsById(5L)).thenReturn(false);
+        when(userRepository.findByIdWithRole(5L)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> userService.delete(5L));
         verify(userRepository, never()).deleteById(anyLong());

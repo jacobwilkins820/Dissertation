@@ -16,6 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.ac.uclan.sis.sis_backend.auth.security.AuthorizationService;
+import uk.ac.uclan.sis.sis_backend.audit_log.service.AuditLogService;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.CreateGuardianRequest;
 import uk.ac.uclan.sis.sis_backend.guardians.dto.CreateGuardianResponse;
@@ -41,6 +42,9 @@ class GuardianServiceTest {
 
     @Mock
     private AuthorizationService authorizationService;
+
+    @Mock
+    private AuditLogService auditLogService;
 
     @InjectMocks
     private GuardianService service;
@@ -203,7 +207,7 @@ class GuardianServiceTest {
 
     @Test
     void delete_missingThrows() {
-        when(guardianRepository.existsById(8L)).thenReturn(false);
+        when(guardianRepository.findById(8L)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> service.delete(8L));
         verify(guardianRepository, never()).deleteById(anyLong());
@@ -211,7 +215,7 @@ class GuardianServiceTest {
 
     @Test
     void delete_existingDeletes() {
-        when(guardianRepository.existsById(8L)).thenReturn(true);
+        when(guardianRepository.findById(8L)).thenReturn(Optional.of(buildGuardian(8L, "Ada", "Lovelace")));
 
         service.delete(8L);
 

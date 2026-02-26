@@ -15,6 +15,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import uk.ac.uclan.sis.sis_backend.academic_years.entity.AcademicYear;
 import uk.ac.uclan.sis.sis_backend.classes.entity.Class;
 import uk.ac.uclan.sis.sis_backend.common.exception.NotFoundException;
+import uk.ac.uclan.sis.sis_backend.audit_log.service.AuditLogService;
 import uk.ac.uclan.sis.sis_backend.enrolments.dto.EnrolmentListItemResponse;
 import uk.ac.uclan.sis.sis_backend.enrolments.dto.EnrolmentResponse;
 import uk.ac.uclan.sis.sis_backend.enrolments.dto.CreateEnrolmentRequest;
@@ -45,6 +46,9 @@ class EnrolmentServiceTest {
 
     @Mock
     private AuthorizationService authorizationService;
+
+    @Mock
+    private AuditLogService auditLogService;
 
     @InjectMocks
     private EnrolmentService service;
@@ -233,9 +237,7 @@ class EnrolmentServiceTest {
 
     @Test
     void update_successUpdatesDates() {
-        Enrolment enrolment = new Enrolment();
-        enrolment.setStartDate(LocalDate.of(2024, 9, 1));
-        enrolment.setEndDate(LocalDate.of(2025, 6, 1));
+        Enrolment enrolment = buildEnrolment(2L, 20L, 30L);
 
         UpdateEnrolmentRequest req = new UpdateEnrolmentRequest();
         req.setStartDate(LocalDate.of(2024, 10, 1));
@@ -252,7 +254,7 @@ class EnrolmentServiceTest {
 
     @Test
     void delete_missingThrows() {
-        when(repository.existsById(3L)).thenReturn(false);
+        when(repository.findById(3L)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> service.delete(3L));
         verify(repository, never()).deleteById(anyLong());
@@ -260,7 +262,8 @@ class EnrolmentServiceTest {
 
     @Test
     void delete_existingDeletes() {
-        when(repository.existsById(3L)).thenReturn(true);
+        Enrolment enrolment = buildEnrolment(3L, 2L, 3L);
+        when(repository.findById(3L)).thenReturn(Optional.of(enrolment));
 
         service.delete(3L);
 
@@ -273,7 +276,6 @@ class EnrolmentServiceTest {
         AcademicYear ay = mock(AcademicYear.class);
         when(student.getId()).thenReturn(10L);
         when(clazz.getId()).thenReturn(classId);
-        when(ay.getId()).thenReturn(academicYearId);
 
         Enrolment enrolment = new Enrolment();
         enrolment.setStudent(student);
