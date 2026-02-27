@@ -79,7 +79,7 @@ export default function ClassesPage() {
       <PageHeader
         label="Classes"
         title="Class Directory"
-        subtitle="Review active classes and open rosters."
+        subtitle="Review Classes."
       />
       <SectionCard padding="none">
         <div className="flex items-center justify-between border-b border-slate-800/80 px-6 py-4 text-sm text-slate-300">

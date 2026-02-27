@@ -7,7 +7,7 @@ export default function HomePage() {
       <PageHeader
         label="Home"
         title="Welcome"
-        subtitle="Select a section from the navigation to get started."
+        subtitle="Select a button from the nav bar to get started."
       />
     </div>
   );

@@ -28,7 +28,7 @@ export default function GuardiansSearchPage() {
     async (query: string, signal: AbortSignal) => {
       return searchGuardians<GuardianSearch>(query, signal);
     },
-    []
+    [],
   );
 
   if (!canSearch) {
@@ -44,7 +44,7 @@ export default function GuardiansSearchPage() {
       <PageHeader
         label="Directory"
         title="Guardians"
-        subtitle="Search for guardians by name. Results show only the fields your role can access."
+        subtitle="Search for guardians by name."
       />
 
       <SectionCard padding="md">
