@@ -9,7 +9,6 @@ services:
       - "5432:5432"
     volumes:
       - sis_pgdata:/var/lib/postgresql/data
-
   backend:
     build:
       context: ./backend/sis-backend
@@ -29,7 +28,6 @@ services:
       APP_MAIL_FROM: jake.wilkins.test@gmail.com
     ports:
       - "8080:8080"
-
   frontend:
     build:
       context: ./frontend
@@ -38,6 +36,5 @@ services:
       - backend
     ports:
       - "5173:80"
-
 volumes:
   sis_pgdata:
