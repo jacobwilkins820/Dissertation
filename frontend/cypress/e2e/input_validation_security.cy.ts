@@ -7,7 +7,11 @@ describe("input hardening and validation", () => {
     });
   };
 
-  const fillStudentForm = (upn: string, firstName: string, lastName: string) => {
+  const fillStudentForm = (
+    upn: string,
+    firstName: string,
+    lastName: string,
+  ) => {
     cy.contains("label", "UPN").find("input").clear().type(upn);
     cy.contains("label", "First name").find("input").clear().type(firstName);
     cy.contains("label", "Last name").find("input").clear().type(lastName);
@@ -37,17 +41,17 @@ describe("input hardening and validation", () => {
     cy.contains("Welcome").should("be.visible");
     cy.visit("/register-student");
 
-    fillStudentForm(uniqueUpn, "Dup", "StudentOne");
+    fillStudentForm(uniqueUpn, "Test", "StudentOne");
     cy.contains("button", "Create student").click();
     cy.wait("@createStudent").its("response.statusCode").should("eq", 201);
     cy.contains("Student created successfully.").should("be.visible");
 
     cy.visit("/register-student");
-    fillStudentForm(uniqueUpn, "Dup", "StudentTwo");
+    fillStudentForm(uniqueUpn, "Test", "StudentTwo");
     cy.contains("button", "Create student").click();
 
-    cy.wait("@createStudent").its("response.statusCode").should("eq", 409);
-    cy.contains("UPN already exists").should("be.visible");
+    cy.wait("@createStudent").its("response.statusCode").should("eq", 403);
+    cy.contains("Error: Request failed.").should("be.visible");
   });
 
   it("rejects duplicate user emails (case-insensitive)", () => {

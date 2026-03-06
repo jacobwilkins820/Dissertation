@@ -38,7 +38,6 @@ ON CONFLICT (name) DO NOTHING;
 -- PARENT:
 -- Can view own child details + attendance
 -- Can view own guardian contact details (address/self-edit to be re-enabled with self-checks)
--- TODO: Add VIEW_GUARDIAN_ADDRESS + EDIT_GUARDIAN_SELF once self-checks are implemented. aswell as own child checks
 -- 1 + 2 + 8 + 16 + 32 + 64 = 123
 INSERT INTO roles (name, permission_level)
 VALUES ('PARENT', 123)

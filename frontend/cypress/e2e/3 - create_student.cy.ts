@@ -22,12 +22,12 @@ describe("auth", () => {
     cy.contains("Student created successfully.").should("be.visible");
 
     cy.visit("/studentDirectory");
-    cy.contains("label", "Search").find("input").type("Test Askin");
-    cy.contains("tr", "Test Askin")
+    cy.contains("label", "Search").find("input").type("Test Mcgee");
+    cy.contains("tr", "Test Mcgee")
       .should("be.visible")
       .within(() => {
         cy.contains("td", /^Male$/).should("be.visible");
-        cy.get('button[aria-label="Select Test Askin"]').click({ force: true });
+        cy.get('button[aria-label="Select Test Mcgee"]').click({ force: true });
       });
   });
 });
