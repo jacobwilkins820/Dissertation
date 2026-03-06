@@ -38,9 +38,15 @@ export const FlyoutLink = ({
   caretClassName = "bg-slate-950 border-t border-l border-slate-800/80",
 }: FlyoutLinkProps) => {
   const [open, setOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement | HTMLAnchorElement>(null);
+  const triggerRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
   const flyoutId = useId();
   const showFlyout = open && !!FlyoutContent;
+  const setAnchorTriggerRef = (node: HTMLAnchorElement | null) => {
+    triggerRef.current = node;
+  };
+  const setButtonTriggerRef = (node: HTMLButtonElement | null) => {
+    triggerRef.current = node;
+  };
 
   const handleTriggerKeyDown = (
     event: KeyboardEvent<HTMLButtonElement | HTMLAnchorElement>
@@ -75,7 +81,7 @@ export const FlyoutLink = ({
     >
       {href ? (
         <a
-          ref={triggerRef}
+          ref={setAnchorTriggerRef}
           href={href}
           onKeyDown={handleTriggerKeyDown}
           aria-haspopup={FlyoutContent ? "menu" : undefined}
@@ -91,7 +97,7 @@ export const FlyoutLink = ({
         </a>
       ) : (
         <button
-          ref={triggerRef}
+          ref={setButtonTriggerRef}
           type="button"
           onKeyDown={handleTriggerKeyDown}
           aria-haspopup={FlyoutContent ? "menu" : undefined}
