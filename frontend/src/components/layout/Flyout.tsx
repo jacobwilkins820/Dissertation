@@ -3,19 +3,6 @@ import { useId, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Hover-triggered flyout menu link.
-// Example usage placeholder for the flyout.
-const Example = () => {
-  return (
-    <div className="p-4">
-      <FlyoutLink
-        href="#"
-        FlyoutContent={() => <div className="text-black">Register Content</div>}
-      >
-        Register
-      </FlyoutLink>
-    </div>
-  );
-};
 
 type FlyoutLinkProps = {
   children: ReactNode;
@@ -49,7 +36,7 @@ export const FlyoutLink = ({
   };
 
   const handleTriggerKeyDown = (
-    event: KeyboardEvent<HTMLButtonElement | HTMLAnchorElement>
+    event: KeyboardEvent<HTMLButtonElement | HTMLAnchorElement>,
   ) => {
     if (!FlyoutContent) return;
 
@@ -138,4 +125,4 @@ export const FlyoutLink = ({
   );
 };
 
-export default Example;
+export default FlyoutLink;
