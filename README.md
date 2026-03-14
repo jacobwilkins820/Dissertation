@@ -10,11 +10,12 @@ There are two options to build/run the project.
 
 ### Steps
 
-1. From the project root (same level as `docker-compose.yml`), run:
+1. Ensure Docker desktop is running.
+2. From the project root (same level as `docker-compose.yml`), run:
    - `docker compose up`
-2. This builds what is needed and starts the containers.
-3. Open `http://localhost:5173` to reach the login page.
-4. See the login details in the **Login Options** section below.
+3. This builds what is needed and starts the containers.
+4. Open `http://localhost:5173` to reach the login page.
+5. See the login details in the **Login Options** section below.
 
 ## Option 2 (Run Locally Without Docker)
 
